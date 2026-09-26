@@ -13,6 +13,28 @@ what was verified, and what's next. **Read §0 first.**
 
 ## 0. Next session: brief
 
+### Where session 4 left off (audio rework)
+The user asked to overhaul every sound effect ("the sword is really a sword slash… attacking, getting item, effect etc."),
+keeping the footstep and the dialogue text blip. Done and pushed (`a36572d`):
+- **Sources live in `assets/sfx/<name>_<n>.ogg`**, credits in `assets/sfx/CREDITS.txt`. `node tools/gensamples.js` embeds
+  them into `js/samples.js` (generated; don't hand-edit). Every file is CC0 (Kenney + OpenGameArt; each license page checked).
+- **Blows were picked by the user, by ear.** Two rounds of Claude's picks-by-meter were rejected ("too high noise, need a more
+  solid sound… more satisfying, juice feedback", then "not good, need to find again"). A loudness-matched audition of 55 CC0
+  candidates settled it: `hit 3, hurt 6, crit 10, kill 2, battle 1` = retro 8-bit damage hit, qubodup meat impact, qubodup
+  wood impact, retro robot death scream, seax unsheathe. They play dry, one recording each (`sfx.hit` etc. in `js/audio.js`).
+  **Lesson: for anything the user must like the sound of, audition candidates and let them choose.** Numbers (band energy,
+  RMS) were useful for levels, not for taste.
+- **Unchanged by request:** `step`, `blip` (dialogue), `deny` (user: "the deny can stay the old sfx"). `potion` is only the
+  latch click ("just the 'tick' sound is ok, no need that synth sound followed").
+- Rest (Claude's design, not yet explicitly approved or rejected by the user): Rho's weapons launch with `swing` (real blade
+  swish), enemies with `whoosh`; `block` is a sword clash; keycard/chip/coin/door/gear/stairs/level/roar/death are CC0
+  samples with synth layers (`ring` struck metal, `powerDown`, `crackle`); a short convolver hall on everything not in `DRY`.
+- Levels in `LEVEL` were set by meter in the lab after warm-up (first runs mis-read while samples were still decoding):
+  hit/hurt ≈ −18 dBFS loudest-43 ms RMS, kill −17, crit −15, battle −19.
+- The user asked for LF2 and 新新魔塔 audio. Claude would not download or add them (not licensed; the repo is public), but
+  on request searched and gave the user links (§2). **The user will decide whether to use them**; any such file just goes in
+  `assets/sfx/` under the slot's name, then run `gensamples`.
+
 ### Where session 3 left off
 The user asked for this order, and the first three steps are done and merged:
 1. **Rename and rework every monster, visuals and names only** (stats and balance untouched).
@@ -47,7 +69,7 @@ The user asked for this order, and the first three steps are done and merged:
   - Quick check in the console: `MAPS.length` should be **106**.
 - The user reviewed the session-3 art in the browser and approved it, except the Broker (reverted).
 - **Commits.** The user asks for commits and pushes explicitly; in session 3 they let Claude run unattended through
-  commit and push. Everything up to `0ad65af` (Relay 0) is on `origin/main`.
+  commit and push. Everything through the session-4 audio rework is on `origin/main`.
 
 **Still to do: step 4 and variation. Discuss with the user before building either.**
 - **Step 4: how the main story affects play mechanics** (the user wants this *after* lore is done). Deferred candidates are in
@@ -261,6 +283,25 @@ Mk.III, Root), drones (Spark, Welder), hounds (Glass, Hunter, Watchdog), ghosts 
   - Impact Sounds: https://kenney.nl/assets/impact-sounds (zip: https://kenney.nl/media/pages/assets/impact-sounds/87b4ddecda-1677589768/kenney_impact-sounds.zip)
   - License text copied to `assets/LICENSE-kenney.txt`.
   - For SFX polish: other Kenney audio packs and OpenGameArt (filter by CC0) are candidates; **verify each license page** before use.
+- **Session 4 audio research.** CC0 packs, license checked on each page. The used ones are listed with files in `assets/sfx/CREDITS.txt`.
+  - Used: Kenney [RPG Audio](https://kenney.nl/assets/rpg-audio); OpenGameArt
+    [Swishes](https://opengameart.org/content/swishes-sound-pack), [RPG Sound Pack](https://opengameart.org/content/rpg-sound-pack),
+    [20 Sword SFX](https://opengameart.org/content/20-sword-sound-effects-attacks-and-clashes), [Punch](https://opengameart.org/content/punch),
+    [Impact](https://opengameart.org/content/impact), [512 SFX 8-bit](https://opengameart.org/content/512-sound-effects-8-bit-style)
+    (Juhani Junkala; best fit for a 2005 魔塔 feel), [Fantasy weapons library](https://opengameart.org/content/fantasy-weapons-and-apparel-sfx-library).
+  - Auditioned, not picked: [37 hits/punches](https://opengameart.org/content/37-hitspunches) (slow onsets),
+    [40 wet towel hits](https://opengameart.org/content/40-wet-towel-clubpoundhitattack-sounds), [5 hit sounds](https://opengameart.org/content/5-hit-sounds-dying),
+    [NES sounds](https://opengameart.org/content/nes-sounds), [Metal clang/explosions](https://opengameart.org/content/metal-clang-explosions-zing),
+    [crash](https://opengameart.org/content/crash-collision), [100 CC0 SFX](https://opengameart.org/content/100-cc0-sfx).
+  - Not CC0 (skip): several OGA hit packs are CC-BY 3.0 / GPL (e.g. punch-slap-n-kick, wall-impact, osare-10, jute-dh-rpgsounds).
+  - The fantasy library's 43 sword-knife clashes are ~99% energy above 3 kHz (thin, hissy); fine as a layer, not as a blow.
+  - Windows' `C:\Windows\System32	ar.exe` extracts `.7z`; ffmpeg (WinGet) is on PATH.
+- **LF2 audio:** copyrighted (Marti Wong / Little Fighter Co); no reuse license found ([Wikipedia](https://en.wikipedia.org/wiki/Little_Fighter_2)).
+- **新新魔塔 audio links the user asked for** (no license stated; for the user's own decision, not added by Claude):
+  4399 Flash https://www.4399.com/flash/1783.htm · 3DM PC https://dl.3dmgame.com/pc/87774.html ·
+  v1.42 Flash https://www.wanyx.com/game/20593.html · h5mota HTML5 remake https://h5mota.com/tower/?name=xinxin ·
+  h5mota asset library https://h5mota.com/collection/ · mota-js template sounds (repo BSD-3-Clause; sounds' origin unverified)
+  https://github.com/ckcz123/mota-js/tree/master/project/sounds
 - **Inspiration list** (for tone only; never copy): BLAME!, Biomega, NOiSE, Knights of Sidonia (Tsutomu Nihei);
   Dark Souls item-description lore; Hollow Knight; Signalis; SOMA; NieR:Automata; Serial Experiments Lain; Ghost in the Shell.
   (From memory, not researched this session.)
@@ -279,8 +320,8 @@ and `lab.html` loads the same list):
 | `js/maps.js` | **Generated** by `tools/genmaps.js`: `MAPS[105]` (100 main + 5 vaults) and `MAP_META` (npcs / notes / vault links per floor) |
 | `js/balance.js` | **Generated** by `tools/calibrate.js`: `BALANCE[zone]` = monster stats per tier, item values, poison, shop, broker prices |
 | `js/music.js` | `MUSIC` score: 14 tracks as 8-bar eighth-note strings (`C#5`, `-` hold, `.` rest), optional `wave`, `hat` |
-| `js/samples.js` | Kenney CC0 sound effects (Sci-fi, Interface, Impact Sounds) as base64 mono Ogg, embedded so `file://` works |
-| `js/audio.js` | `Sound`: WebAudio synth SFX layered with samples (incl. `whoosh`, `laser`, `zap`, `thud`, `beam`, `chime`), a per-sfx `LEVEL` table in dB, a safety limiter on the master, and a music sequencer |
+| `js/samples.js` | Generated by `node tools/gensamples.js` from `assets/sfx/<name>_<n>.ogg` (CC0: Kenney + OpenGameArt sword packs; sources in `assets/sfx/CREDITS.txt`) as base64, embedded so `file://` works |
+| `js/audio.js` | `Sound`: WebAudio SFX on CC0 samples (user-picked `hit hurt crit kill battle`; blade `swing`, `clash`, `draw`, metal, punch, coins, latch...) plus synth layers (`ring` struck metal, `powerDown`, `crackle`), a short convolver hall on everything not in `DRY`, a per-sfx `LEVEL` table in dB, a safety limiter, and a music sequencer |
 | `js/game.js` | Engine: state, input, movement, combat, UI, rendering. Art/FX tables: `IDLE`/`IDLE_STYLES`/`idlePose`/`drawIdle` (per-sprite map idle), `WEAPON_FX`/`BARE_FX` (player attack per `G.weapon`), `BLADE_TINT`/`heroSprite` (Rho's blade by tier), `ENEMY_FX`/`enemyFx` (enemy attack by sprite → alias list → ability → default), `stairFacing`/`stairSprite`, `remains`/`DECAL_ART`/`decal` (death decals: oil, glitch, cable; `SPRAY` hit sparks), `drawKeyTip` |
 | `lab.html` | Dev page (§5) |
 | `tools/` | `genmaps.js`, `calibrate.js`, `checkmaps.js`, `playbot.js`, `load.js`, `seeds.json` (§4) |
@@ -393,6 +434,10 @@ floors ~800–1,250, 20k–70k HP at the end.
   - idle gallery of every character
   - sound toggle
   - Sound Board: plays every sfx, a few sounds that land together, and every track, with live peak / loudest-43 ms RMS in dBFS
+  - For level checks in automation, wait ~4 s after the first click so every sample has decoded, and repeat each sfx a few
+    times (variants are picked at random).
+- **Choosing sounds:** build a throwaway audition page (candidates trimmed and loudness-matched, a pick per slot, a line to paste
+  back) and serve it on another port; session 4 did this from the scratchpad, not the repo.
 
   Battles never end in the lab. It wraps `update`, `roll`, `updateBattle`, `render` and `resize` from outside, so game code needs no hooks.
 - **Headless verification that worked well** (session 2): Python `playwright` with your own Chromium and a private server port.
@@ -414,6 +459,9 @@ floors ~800–1,250, 20k–70k HP at the end.
 
 - **No ripped 新新魔塔 assets.** The user asked about downloading the original PNG/audio; declined (unlicensed third-party
   work, doesn't fit the theme). Use **CC0 only** (Kenney, or OpenGameArt filtered to CC0).
+  - Session 4: the user said they don't mind using 新新魔塔 or LF2 audio. Claude still wouldn't fetch or commit it, but gave
+    links (§2) so the user can decide. If the user adds such files themselves, that is their call.
+- **Sound choices that matter to the user are made by ear** (session 4): audition, don't pick by measurement alone.
 - Art is procedural and hand-drawn 16×16 character-grid sprites with an automatic dark outline and palette swaps.
 - Monster stats are hidden until the player buys **Scan firmware** from the Broker (2F). No damage numbers on the map.
 - Retreat (Q) in battle restores nothing: the monster keeps full HP.
@@ -429,9 +477,8 @@ floors ~800–1,250, 20k–70k HP at the end.
 
 ## 7. Known issues & limitations
 
-- **Audio has never been heard by a human.** Levels were set by meter in session 3 (`LEVEL` in `js/audio.js`, groups: UI quiet,
-  pickups, attack launches, blows, big moments loudest; stacked hits peak about -2 dBFS before the limiter), and pickups were
-  made colder (relays, servos, fourths and suspended chords). Nobody has listened yet: use the lab Sound Board.
+- **Audio:** the user listened in session 4 and chose the blows by ear (§0). The other new sfx (pickups, door, gear, stairs,
+  level-up, roar, death, weapon launches) got no explicit verdict yet; ask. `LEVEL` in `js/audio.js` is set by meter.
 - **Nobody has watched the idle animations or battle FX at real speed**; they were verified frame by frame. Use `lab.html`.
 - Weakest reads after the rework: Chorus Array (looks like a lattice), Resonator's small hammers, and the dark-grey bodies of
   Scrap Mite / Mother Worm / Janitor on dark floors (readable, dim). The Archivist is deliberately faint.
@@ -454,11 +501,12 @@ floors ~800–1,250, 20k–70k HP at the end.
 
 ## 8. Next steps and ideas
 
-### Session 4: discuss first
+### Session 5: discuss first
 1. **Story → mechanics** (see §0 and `docs/LORE.md` §Deferred).
 2. **Variation over 100 floors**: the hooks below are still all unbuilt; zone floor mechanics and new enemy abilities
    were the session-3 recommendation (plus an Archive/Codex for collected fragments).
-3. Human listening pass on the Sound Board; tune `LEVEL` in `js/audio.js`.
+3. Audio: ask the user about the non-blow sfx (§0, §7). If any are disliked, audition CC0 candidates as in session 4.
+   The user may drop in their own files (e.g. from the 新新魔塔 links in §2); then run `node tools/gensamples.js` and re-level.
 
 ### Candidate hooks for "hollow and repetitive" after ~27F (for discussion, none built)
 - **Collect-to-understand:**
