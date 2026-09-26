@@ -60,14 +60,14 @@ window.playbot = async (maxFloor) => {
     const up = frontier.find(f => f[2] === 'U');
     if (up) { log.push(`F${G.floor + 1} done: hp ${G.hp} atk ${G.atk} def ${G.def} lv ${G.lv} keys ${G.keys.y}/${G.keys.b}/${G.keys.r} gold ${G.gold}`); go(pathTo(prev, up[0], up[1])); settle(); continue; }
     // Out of options: fly back to a Fabricator and spend credits, like a player with the Phase Compass would.
-    const fabFloor = G.visited.filter(f => G.maps[f].flat().includes('S')).pop();
+    const fabFloor = G.visited.filter(f => (f === G.floor || !ABANDONED.has(f)) && G.maps[f].flat().includes('S')).pop();
     if (fabFloor !== undefined && G.gold >= fabricatorCost(G.buys)) {
       const b = BALANCE[zoneOf(fabFloor)].shop, k = ['atk', 'def', 'hp'][G.buys % 3];
       G.gold -= fabricatorCost(G.buys++); G[k] += b[k];
       continue;
     }
     // Or to a Broker for a key.
-    const brokerFloor = G.visited.filter(f => G.maps[f].flat().includes('M')).pop();
+    const brokerFloor = G.visited.filter(f => (f === G.floor || !ABANDONED.has(f)) && G.maps[f].flat().includes('M')).pop();
     if (brokerFloor !== undefined && G.gold >= BALANCE[zoneOf(brokerFloor)].broker.y && frontier.some(f => f[2] === 'Y') && !G.flags.botBought?.[G.floor]) {
       G.gold -= BALANCE[zoneOf(brokerFloor)].broker.y; G.keys.y++;
       (G.flags.botBought ??= {})[G.floor] = true;

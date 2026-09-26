@@ -201,6 +201,9 @@ Item and monster numbers come from `BALANCE[zone]`, so the same map token scales
   from the adjacent cell without moving. Changing floor puts the hero on the arrival stair tile itself.
 - Notes: shown automatically only the first time (`G.read`, keyed `floor:x,y`); after that they're dimmed and
   E re-reads the note you're standing on.
+- `ABANDONED` (world.js): floors the Phase Compass can't reach (boss floors, vault-entrance floors, 45F/68F/87F), shown as
+  NO SIGNAL on the jump screen. The calibrator and playbot only phase back to shops on reachable floors.
+- Scan firmware and the Phase Compass banners carry a one-line usage (`use` arg of `banner`).
 
 ---
 

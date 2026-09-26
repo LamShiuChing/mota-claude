@@ -115,8 +115,9 @@ function pickUp(f, ch) {
 const SHOP_CYCLE = ['atk', 'def', 'hp'];
 let log = [];
 const visited = new Set([0]);
+const reachable = f => f === hero.pos[0] || !W.ABANDONED.has(f); // the Phase Compass can't reach abandoned floors
 function buyFabricator() {
-  const fab = [...visited].reverse().find(f => maps[f].some(r => r.includes('S')));
+  const fab = [...visited].reverse().find(f => reachable(f) && maps[f].some(r => r.includes('S')));
   if (fab === undefined || hero.gold < W.fabricatorCost(hero.buys)) return false;
   const k = SHOP_CYCLE[hero.buys % SHOP_CYCLE.length];
   hero.gold -= W.fabricatorCost(hero.buys++);
@@ -149,7 +150,7 @@ function play(cap) {
       continue;
     } else {
       if (buyFabricator()) continue;
-      const brokerF = [...visited].reverse().find(f => maps[f].some(r => r.includes('M')));
+      const brokerF = [...visited].reverse().find(f => reachable(f) && maps[f].some(r => r.includes('M')));
       const price = brokerF !== undefined && BAL[zoneOf(brokerF)].broker.y;
       if (price && hero.gold >= price && frontier.some(fr => fr[3] === 'Y')) { hero.gold -= price; hero.keys.y++; continue; }
       return { stuck: `F${hero.pos[0] + 1} hp ${hero.hp}: ` + (mons.slice(0, 3).map(o => `${o.m.name} ${o.c}`).join(' | ') || 'no frontier') };

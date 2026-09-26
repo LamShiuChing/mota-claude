@@ -1139,6 +1139,8 @@ npcAt(57, 'brann3'); npcAt(63, 'broker3'); npcAt(67, 'pip3'); npcAt(72, 'wandere
 npcAt(86, 'brann4'); npcAt(91, 'wanderer5');
 // Hidden vault entrances: a fake-walled room holding secret stairs down to a Memory Vault.
 [14, 32, 47, 65, 83].forEach((i, v) => Object.assign(FLOOR_PLAN[i], { vault: v, secret: true }));
+// Dead signal: the Phase Compass can't lock onto boss arenas, floors that hide a vault, or where the dead lie (45F, 68F, 87F).
+const ABANDONED = new Set([...FLOOR_PLAN.keys()].filter(i => i % 10 === 9 || FLOOR_PLAN[i].vault !== undefined || [44, 67, 86].includes(i)));
 
 // Two scraps per vault, in her hand or about her.
 const VAULT_NOTES = [

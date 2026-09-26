@@ -220,7 +220,7 @@ function shatter(tx, ty, spr) {
 const flash = (k, up = true) => { statFlash[k] = { t: time, up }; };
 // Center banner that waits for Enter, like the original's 取得 message.
 // `lore`: optional one-line flavor shown under the item name.
-const banner = (text, color = '#f2f0ea', label = 'ACQUIRED', then, lore) => { ui = { type: 'banner', text, color, label, then, lore }; };
+const banner = (text, color = '#f2f0ea', label = 'ACQUIRED', then, lore, use) => { ui = { type: 'banner', text, color, label, then, lore, use }; };
 const hurt = v => { G.hp = Math.max(1, G.hp - v); flash('hp', false); };
 
 // ---------------------------------------------------------------- movement & interaction
@@ -301,7 +301,7 @@ function pickUp(ch, x, y) {
   if (it.kind === 'compass') {
     G.flags.compass = true;
     Sound.sfx.gear();
-    return banner('Phase Compass', '#6ff7ff', undefined, undefined, ITEM_LORE['Phase Compass']);
+    return banner('Phase Compass', '#6ff7ff', undefined, undefined, ITEM_LORE['Phase Compass'], 'F  phase to a floor you have stood on');
   }
   if (it.kind === 'antivirus') {
     Sound.sfx.gem();
@@ -1009,7 +1009,7 @@ function buy(s) {
   flash('gold', false);
   for (const k of ['hp', 'atk', 'def']) if (o[k]) gain(k, o[k]);
   if (o.key) { G.keys[o.key]++; flash('key' + o.key); }
-  if (o.flag) { G.flags[o.flag] = true; toast('Scan firmware installed', '#6ff7ff'); }
+  if (o.flag) { G.flags[o.flag] = true; banner('Scan Firmware', '#6ff7ff', 'INSTALLED', undefined, undefined, 'M  read what waits on this floor'); }
   if (o.antivirus) { if (G.status === 'CORRUPT') G.status = 'NORMAL'; else G.antivirus++; }
   if (o.fab) G.buys++;
   s.shop = shopFor(s.ch);
@@ -1079,7 +1079,7 @@ function uiKey(key) {
   else if (ui.type === 'fly') {
     const step = { ArrowUp: 1, ArrowDown: -1, ArrowRight: 10, ArrowLeft: -10 }[key];
     if (step) { ui.sel = Math.max(0, Math.min(ui.floors.length - 1, ui.sel + step)); Sound.sfx.select(); }
-    else if (CONFIRM.has(key)) { const f = ui.floors[ui.sel]; close(); if (f !== G.floor) changeFloor(f, f === 0 ? 'U' : 'D'); }
+    else if (CONFIRM.has(key)) { const f = ui.floors[ui.sel]; if (ABANDONED.has(f) && f !== G.floor) return Sound.sfx.deny(); close(); if (f !== G.floor) changeFloor(f, f === 0 ? 'U' : 'D'); }
     else if (key === 'Escape' || key === 'f' || key === 'F') close();
   }
   else if (ui.type === 'choice') {
@@ -1619,11 +1619,12 @@ function drawDialog(d) {
 
 function drawBanner(b) {
   const x = MX - 56, w = MW + 56 + 28, y = MY + 168;
-  const lore = b.lore ? wrap(b.lore, w - 132, 16) : [], h = 34 + (lore.length ? lore.length * 15 + 4 : 0);
+  const lines = [...(b.use ? [[b.use, '#6ff7ff']] : []), ...(b.lore ? wrap(b.lore, w - 132, 16) : []).map(l => [l, '#9ea2ad'])];
+  const h = 34 + (lines.length ? lines.length * 15 + 4 : 0);
   panel(x, y, w, h);
   text(b.label, x + 12, y + 13, { size: 9, color: '#ffc23a' });
   body(b.text, x + 116, y + 7, { color: b.color });
-  lore.forEach((l, i) => body(l, x + 116, y + 29 + i * 15, { size: 16, color: '#9ea2ad' }));
+  lines.forEach(([l, color], i) => body(l, x + 116, y + 29 + i * 15, { size: 16, color }));
   enterHint(x + w - 12, y + 8);
 }
 
@@ -1731,8 +1732,9 @@ function drawFly(u) {
   panel(x, y, w, h);
   spr('compass', x + w / 2 - 16, y + 10);
   body('PHASE JUMP', x + w / 2, y + 44, { size: 20, align: 'center', color: '#6ff7ff' });
-  text(`${f + 1}F`, x + w / 2, y + 72, { size: 20, align: 'center' });
-  body(ZONES[zoneOf(f)].name, x + w / 2, y + 98, { size: 17, align: 'center', color: '#9ea2ad' });
+  const dead = ABANDONED.has(f) && f !== G.floor;
+  text(`${f + 1}F`, x + w / 2, y + 72, { size: 20, align: 'center', color: dead ? '#4f535e' : '#f2f0ea' });
+  body(dead ? '-- NO SIGNAL --' : ZONES[zoneOf(f)].name, x + w / 2, y + 98, { size: 17, align: 'center', color: dead ? '#ff3b4e' : '#9ea2ad', alpha: dead ? 0.6 + 0.4 * Math.random() : 1 });
   body('▲▼ 1 floor  ◀▶ 10  Enter', x + w / 2, y + h - 26, { size: 15, align: 'center', color: '#6e6b66' });
 }
 
