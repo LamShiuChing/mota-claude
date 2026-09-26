@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>STRATUM</title>
+  <link rel="icon" href="data:,">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; height: 100%; background: #030306; overflow: hidden; }
+    body { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; touch-action: none; user-select: none; -webkit-user-select: none; }
+    canvas { display: block; image-rendering: pixelated; box-shadow: 0 0 40px rgba(111, 247, 255, 0.08); }
+    #pad { display: none; gap: 24px; align-items: center; font-family: 'Press Start 2P', monospace; }
+    #pad button { width: 52px; height: 52px; border: 2px solid #4f535e; background: #0b0c12; color: #9ea2ad; font: inherit; font-size: 12px; border-radius: 6px; }
+    #pad button:active { background: #1d2029; color: #6ff7ff; }
+    .dpad { display: grid; grid-template-columns: repeat(3, 52px); gap: 4px; }
+    .acts { display: grid; grid-template-columns: repeat(3, 52px); gap: 4px; }
+    @media (pointer: coarse) { #pad { display: flex; } }
+  </style>
+</head>
+<body>
+  <canvas id="game"></canvas>
+  <div id="pad">
+    <div class="dpad">
+      <span></span><button data-key="ArrowUp">▲</button><span></span>
+      <button data-key="ArrowLeft">◀</button><button data-key="Enter">A</button><button data-key="ArrowRight">▶</button>
+      <span></span><button data-key="ArrowDown">▼</button><span></span>
+    </div>
+    <div class="acts">
+      <button data-key="m">M</button><button data-key="f">F</button><button data-key="q">Q</button>
+      <button data-key="s">S</button><button data-key="l">L</button><button data-key="Escape">B</button>
+    </div>
+  </div>
+  <script src="js/data.js"></script>
+  <script src="js/world.js"></script>
+  <script src="js/maps.js"></script>
+  <script src="js/balance.js"></script>
+  <script src="js/music.js"></script>
+  <script src="js/samples.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/game.js"></script>
+</body>
+</html>
