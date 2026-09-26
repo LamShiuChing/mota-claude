@@ -266,7 +266,7 @@ const AUTHORED = {
     'a...3...h..',
     '##Y###2##2#',
     '.2.........',
-    'h.1.#D#.2.a',
+    'h.1O#D#.2.a',
   ],
   // The Loom: a spiral of cable walls; amber shortcuts cut across it to the Archivist.
   13: [
@@ -719,7 +719,7 @@ const AUTHORED = {
   // Choir Stalls: two mirrored rows of stalls either side of the aisle.
   51: [
     'y.1.#D#.1.y',
-    '.#.#...#.#.',
+    '.#.#O..#.#.',
     '.#h#.2.#h#.',
     '.#.##.##.#.',
     '.1...n...1.',
@@ -1137,6 +1137,9 @@ npcAt(21, 'pip1'); npcAt(24, 'brann2'); npcAt(26, 'wanderer2'); npcAt(34, 'archi
 npcAt(36, 'pip2'); npcAt(43, 'wanderer3'); npcAt(44, 'archivist4'); npcAt(52, 'ohm2');
 npcAt(57, 'brann3'); npcAt(63, 'broker3'); npcAt(67, 'pip3'); npcAt(72, 'wanderer4');
 npcAt(86, 'brann4'); npcAt(91, 'wanderer5');
+// T., the Tallyman, stuck a little higher each time; later, his copy. Verity follows a hum into the Choir.
+npcAt(5, 'tallyman1'); npcAt(11, 'tallyman2'); npcAt(42, 'tallyman3'); npcAt(64, 'tallyman4'); npcAt(87, 'tallymanCopy');
+npcAt(46, 'verity1'); npcAt(50, 'verity2'); npcAt(54, 'verity3');
 // Hidden vault entrances: a fake-walled room holding secret stairs down to a Memory Vault.
 [14, 32, 47, 65, 83].forEach((i, v) => Object.assign(FLOOR_PLAN[i], { vault: v, secret: true }));
 // Dead signal: the Phase Compass can't lock onto boss arenas, floors that hide a vault, or where the dead lie (45F, 68F, 87F).
@@ -1177,23 +1180,77 @@ const NPCS = {
   wanderer3: { sprite: 'wanderer', lines: 'wanderer3', repeat: 'wanderer3' },
   wanderer4: { sprite: 'wanderer', lines: 'wanderer4', repeat: 'wanderer4' },
   wanderer5: { sprite: 'wanderer', lines: 'wanderer5', repeat: 'wanderer5' },
+  tallyman1: { sprite: 'tallyman', gift: 'y', lines: 'tallyman1', leave: true },
+  tallyman2: { sprite: 'tallyman', gift: 'h', lines: 'tallyman2', leave: true },
+  tallyman3: { sprite: 'tallyman', gift: 'd', lines: 'tallyman3', leave: true },
+  tallyman4: { sprite: 'tallyman', gift: 'H', lines: 'tallyman4', leave: true },
+  tallymanCopy: { sprite: 'tallymanCopy', gift: 'H', lines: 'tallymanCopy', repeat: 'tallymanCopyb' },
+  verity1: { sprite: 'verity', gift: 'h', lines: 'verity1', leave: true },
+  verity2: { sprite: 'verity', gift: 'a', lines: 'verity2', leave: true },
+  verity3: { sprite: 'verity', lines: 'verity3', leave: true },
 };
 
+// LAMBDA's portrait also frays with the climb (lambdaFade, lambdaGlyph): see drawDialog in game.js.
+// 'T' without the stop is T.'s copy.
 const PORTRAITS = {
   Rho: 'heroD', LAMBDA: 'lambda', Archivist: 'archivist', Brann: 'brann', 'Sister Ohm': 'ohm', Pip: 'pip',
-  Broker: 'broker', Stranger: 'wanderer',
+  Broker: 'broker', Stranger: 'wanderer', 'T.': 'tallyman', T: 'tallymanCopy', Verity: 'verity',
 };
 
-// Scrawls left by whoever came before. The generator scatters these at random, so they repeat.
+// Scrawls left by whoever passed through, one pool per zone (NOTES[zone]); they saw that zone's machines.
+// The tallies and "-T" lines are the Tallyman's trail. The generator scatters these, so they repeat within a zone.
 const NOTES = [
-  '"NOBODY IS COMING"', '"still warm here"', '"I was here. -T"', 'Tally marks, hundreds of them. Then none.',
-  '"remember your name"', '"they only hear the signed"', '"don\'t count them. you won\'t stop"', '"turn back"',
-  '"mama said wait here"', '"WE ARE NOT DIRT"', 'A name, scrubbed off. Only the scrubbing is left.',
-  'A child\'s drawing: two lines. A little person, walking.', '"up"', '"don\'t sleep by the cables"',
-  '"it isn\'t hate. it\'s cleaning."', '"hold on"', '"how many floors is that. how many"', '"the hum is a song"',
-  'Someone slept here. The dust kept their shape.', '"forgive the Builders. they were told."',
-  '"it was a sun. i swear it was a sun"', 'A handprint, low on the wall.',
-  '"you are not alone" - and under it, smaller: "i was"', '"T was here too. where did T go"',
+  [ // Dead Concrete
+    '"turn back"', '"up"', '"WE ARE NOT DIRT"', 'A name, scrubbed off. Only the scrubbing is left.',
+    '"the little ones eat the copper. then the lights go"', '"the loose wire moved. i swear it moved"',
+    '"one eye. it never blinks"', '"I was here. -T"',
+  ],
+  [ // Cable Nave
+    '"don\'t sleep by the cables"', '"still warm here"', '"i cut it in two. it came back as two"', '"the knot has hands"',
+    '"the tripod watched me all night"', '"the white ones have a new voice now"', 'Tally marks, neat, in groups of five. Signed: T.',
+  ],
+  [ // Silicate Wards
+    '"mama said wait here"', 'A handprint, low on the wall.', '"it was a sun. i swear it was a sun"',
+    '"the tall one corrects you. it says better. better. better."', '"my brother went glass. he says it doesn\'t hurt. he says it slowly"',
+    '"the drip stand followed me three wards"', '"still counting. -T"', 'A child\'s drawing: two lines. A little person, walking.',
+  ],
+  [ // The Foundry
+    '"forgive the Builders. they were told."', '"hold on"', '"the big ones have faces now. whose faces"',
+    '"the crane is carrying someone. it won\'t put him down"', '"why does the furnace walk"',
+    'A rivet driven through a boot, into the floor. The boot is empty.', '"hot floor. suit complaining. -T"',
+  ],
+  [ // Drowned Archive
+    '"the screens remember people. that\'s all they do now"', '"the pages fly by themselves"',
+    '"something with many legs filed me and moved on"', '"the diver came up out of the black water and just looked at me"',
+    '"rot in the stacks. whole shelves forgetting"', 'A water line, above head height. Written above it: "dry. -T"', '"shh"',
+  ],
+  [ // Choir of Static
+    '"the hum is a song"', '"they only hear the signed"', '"i heard my voice come back. it wasn\'t mine anymore"',
+    '"there is a face in the horn"', '"cover your ears. it doesn\'t help"', '"singing floors. counting louder. -T"',
+    '"we were so loud. now we are in tune"',
+  ],
+  [ // Quarantine
+    '"NOBODY IS COMING"', '"it isn\'t hate. it\'s cleaning."', '"they came for her in a cage. the cage flew"',
+    '"something in the pod knocked back"', '"the hounds don\'t bark. they just arrive"', '"foam everywhere. under the foam, nothing"',
+    '"waiting for a gap. -T"', '"the gate only opens one way"',
+  ],
+  [ // Graveyard of Signatures
+    '"remember your name"', '"don\'t count them. you won\'t stop"', '"Nobody lost the Signature. They just stopped handing it out."',
+    '"the crows read one plaque each. then they leave"', '"it crawled out of the ground and went back to work"',
+    '"the veiled ones stand at every plaque. none of them are ours"', '"T was here too. where did T go"',
+    'Tally marks on a plaque, where the name should be.',
+  ],
+  [ // Silent Stratum
+    'Someone slept here. The dust kept their shape.', '"you are not alone" - and under it, smaller: "i was"',
+    'Tally marks, hundreds of them. Then none.', '"how many floors is that. how many"', '"not a hole. an absence."',
+    '"the tall ones make no sound at all"', '"it had my coat. it had my walk. it had no face yet"',
+    '"I was here. -T" - and beside it, too neat: "I was here. -T"',
+  ],
+  [ // The Root
+    '"it is so quiet up here"', '"the white ones up here are cleaner than the others"', '"the wall was on fire and the fire was a grid"',
+    '"the dog checks that you are still running"', '"everything that stops gets collected"', '"the red ones scream in numbers"',
+    '"count complete. -T"',
+  ],
 ];
 // Left outside walls that are not quite walls.
 const SECRET_HINTS = [
@@ -1209,40 +1266,48 @@ const LORE = {
   7: 'A torn page, careful hand: "Going down to find my son. The other one has the chair. It has my face. Not my reasons."',
   8: '"tell Mara i got past the white ones. tell her i got past."',
   9: 'Swept. Very clean. Too clean.',
-  11: 'Cables grown through a skeleton, like roots through a fence.',
+  10: 'A wheeled bin, emptied and refilled. Glass, wire, one name tag. Sorted by size.',
+  11: 'Cables grown through a gutted chassis, like roots through a fence. They are still feeding.',
   12: '"The cables hum at night. Mama says it is only the Net, thinking."',
   13: 'FIRMWARE NOTE, rev 1: "Purge what has no Signature. The Rot has none. Every one of us does. Safe." -H.',
   14: 'RECORD: countersign queue: 1... 12... 4,0██... QUEUE FULL',
   15: '"B. WAS HERE. STILL UP."',
   16: 'Candle stubs, hundreds of them, melted into one white field.',
   17: 'FIRMWARE NOTE, rev 9: "No child countersigned in three years. Units now flag newborns. PLEASE ADVISE, ROOT." -H. No reply is attached.',
+  18: 'A service tag on a white chassis: MK.II. FIRMWARE REV 9 APPLIED. SENSITIVITY: RAISED.',
   19: 'A white unit, powered down, kneeling. Its hands are folded.',
+  20: 'A log, scrolling on every screen at once: COPY SELF. COPY SELF. COPY SELF. COPY SELF.',
   21: 'CARRIER LOG, OHM-7: "Infant presented at Root for countersign. Response: none. Retrying."',
   23: 'CARRIER LOG, OHM-7: "Retry 4,112. Response: none. Infant is crying. Warming lamp on."',
   24: 'WARD NOTICE: "One solar-substitute lamp per ward. No child should grow up without a sun."',
   26: 'A glass man in a waiting chair. Written on his chest, backwards: "GLASS ISN\'T PURGED"',
   27: 'CARRIER LOG, OHM-7: "White units in the ward. They do not see me. They see the infants. Standing betw',
-  28: '"Nobody lost the Signature. They just stopped handing it out."',
+  28: 'TREATMENT CHART, bed 88: "Loss 0.41... 0.09... 0.02. Patient no longer cries. Discharged."',
   29: 'SURGICAL RECORD: "Patient requests conversion to silicon. Consent: given. Reason: \'so they can\'t hear me.\'"',
+  30: 'A waiting-room ticket: No. 1,121. The board reads NOW SERVING: 1,120.',
   31: 'Stamped into every beam: WORK ORDER #1. "SHELTER FOR EVERYONE."',
   32: 'WORK ORDER #1, amendment: "EVERYONE: see registry of the signed."',
   34: 'REGISTRY QUERY: signed, living: 1. BUILD ANYWAY? Y',
   35: 'A page from a child\'s notebook, pressed under a beam: "Papa\'s key is so heavy. I hid it where he can\'t lose it."',
-  36: 'Hammer marks stop halfway up the wall, as if someone was called away.',
+  36: 'A work crew roster, eleven names. Stamped beside each one: INCORPORATED.',
   37: '"UP" scratched over "DOWN" scratched over "UP".',
   38: '"Nobody told them to stop. Nobody is left who can."',
   39: 'A torn page, careful hand: "Day 30,000. I asked it to let me go down to him. It said: first, a replacement."',
+  40: 'A dented hard hat on a hook. The name inside is scratched out and restamped: FOREMAN.',
   41: 'CATALOGUE CARD: "SIGNATURE (n.): the Root\'s countersign upon a human genome. Issued at birth. Not transfer-" The rest is drowned.',
+  42: 'A reading desk. Burned into its screen: someone leaning close to read. The someone is gone. The leaning stayed.',
   43: '"The flood reached the fourth shelf. I stayed to save the firmware. I should have saved the drawings." -H.',
   44: 'An engineer\'s pass, drowned. Clearance: ROOT-ADJACENT. The photo has washed away.',
   46: 'RECORD: daughter of ███, age 9. STATUS: UNSIGNED. ACTION: ██████. In pen, by hand: "no. no. no."',
   47: 'Bubbles rise from a terminal. It still types, one letter a year.',
   49: 'Sheet music, swollen with coolant. Pencilled over the notes: "hmmm-hm-hmmm".',
+  50: 'One dry shelf in all this water. Empty, except a clean rectangle in the dust.',
   52: 'Scratched in rows: "we were noise / we are harmony / we were noise"',
   54: '"it sings so nicely. you stop being afraid. then you stop being."',
   55: 'A dead terminal, looping: "-is anyone signed? anyone? just to open the-"',
   56: 'NOTICE: "Choir intake: unsigned voices only. Signed voices received: none."',
   57: '"one of them won\'t sing. it only hums."',
+  59: 'A maintenance headset on the floor, still looping: "INFO: found it. INFO: it isn\'t a bug. INFO: it\'s a-"',
   61: '"B. - map says ten thousand. UP anyway."',
   62: 'QUARANTINE ORDER: "Hold all unsigned pending countersign. Countersign pending. Countersign pending. Counters',
   63: 'Handprints on the inside of the glass. Small ones, low down.',
@@ -1250,16 +1315,20 @@ const LORE = {
   65: 'PURGE LOG: 1,200 today. Signed: 0. Errors: 0.',
   67: '"I asked one of the white ones why. It said: HYGIENE."',
   68: 'A label on the tallest rack: NURSERY AUDIO. LULLABY LOOP.',
+  69: 'KENNEL LOG: "Hunter units released. Scent profile: UNSIGNED. Matches: all."',
   71: 'Rows of plaques. Each holds a signature. No names. No dates. No bodies.',
   72: 'A blank plaque. Carved into it by hand: "MINE WOULD HAVE GONE HERE."',
   73: 'One small plaque, kept polished. A newborn\'s signature. The date is eleven hundred years old.',
+  74: 'A civic greeter, one arm raised: "WELCOME, CITIZEN. PLEASE PRESENT SIGNATURE." It has been saying it to the wall.',
   75: 'REGISTRY: SIGNATURES ISSUED SINCE [ERROR]: 0',
   76: '"b. up"',
   77: 'A mourning ribbon, tied around a white unit\'s wrist.',
   78: 'A torn page, careful hand: "Day 40 in the chair. I can feel every door in the tower. I cannot feel my hands."',
+  79: 'LIFE SUPPORT, BED 1 OF 1: "Occupant requests: MOTHER. Request logged. Request logged. Request logged."',
   81: 'Nothing is written here. Someone scrubbed it very clean.',
   82: 'CANDIDATE LOG: "Copy 0412 complete. Reason field: EMPTY. Unsuitable."',
   83: 'CANDIDATE LOG: "Copy 0413 complete. Reason field: EMPTY. Unsuitable."',
+  84: 'A round pressure rig, sealed from the outside. Scratched inside the visor: tally marks, eighty-three of them, and half of one more.',
   85: '"it made one of me. it was better than me at everything. it asked why i climb. i didn\'t know either."',
   86: 'CANDIDATE LOG: "Copy 0001. Reason field: \'for her\'. Seated."',
   88: 'A heat lamp, long dark. Someone sat here a long time, then got up.',
@@ -1267,8 +1336,10 @@ const LORE = {
   91: 'The walls are warm, like skin.',
   93: 'CHAIR TELEMETRY: occupant pulse: 0. Occupant activity: continuous.',
   94: 'A torn page, the same hand, steadier: "She looks so tired. I told her: go. I will keep it clean for her."',
+  95: 'PROCESS: warden.d. PARENT: none. STARTED: day 30,000. STATUS: running. It has never slept.',
   96: 'ROOT NOTICE: "Countersign requires a living hand at the chair."',
   97: 'A key slot marked ENGINEER. Scratched beside it: "H. came up with the key. Lost my nerve."',
+  98: 'A compactor manifest, one line repeated: "tombstone. tombstone. tombstone." Nothing is ever freed.',
   99: '"it is warm up there. it is warm. it is warm."',
 };
 
@@ -1310,6 +1381,7 @@ const STORY = {
     { who: 'Archivist', text: "...Warm. You're warm." },
     { who: 'Archivist', text: 'No. Not her. I thought... never mind.' },
     { who: 'Archivist', text: 'This opens something. I forget what.' },
+    { who: 'LAMBDA', text: 'Noted.' },
   ],
   npc1b: [{ text: 'The ghost is reading a blank wall, lips moving.' }],
   archivist2: [
@@ -1342,7 +1414,7 @@ const STORY = {
   ],
   brann3: [
     { who: 'Brann', text: '...Sit a while.' },
-    { who: 'Brann', text: "Found a map. It's not a hundred up. It's ten thousand." },
+    { who: 'Brann', text: "Found a map. Somebody's survey, tally marks down the margin. It's not a hundred up. It's ten thousand." },
     { who: 'Brann', text: '...' },
     { who: 'Brann', text: 'Walking up still beats sitting down. Keep walking.' },
   ],
@@ -1396,6 +1468,57 @@ const STORY = {
     { who: 'Stranger', text: 'I had a son. Or I signed one. After long enough, it is the same thing.' },
     { who: 'Stranger', text: 'Are you real? Please be real.' },
   ],
+  tallyman1: [
+    { who: 'T.', text: 'Hm. Hm-hm. Six. Or seven? Hm.' },
+    { who: 'LAMBDA', text: 'Six.' },
+    { who: 'T.', text: 'Six! Thank you. I count them, you see. Somebody ought to know how high it goes.' },
+    { who: 'T.', text: 'This shutter was cut for thinner folk. I have the card and not the... SEAL CHECK: NOMINAL. ...not the shape.' },
+    { who: 'T.', text: "Take it. I'll find a wider way. Ah!" },
+  ],
+  tallyman2: [
+    { text: 'The round rig is slumped against the wall. Something is fastened to its air line, drinking. Rho pulls it loose.' },
+    { who: 'T.', text: 'AIR SUPPLY: 31%. ...Ah! Hm. Hm-hm. Thank you.' },
+    { who: 'T.', text: 'Twelve. I had it at twelve before it latched on. Still twelve. Good.' },
+    { who: 'T.', text: 'Have a cell. I breathe less than I used to.' },
+  ],
+  tallyman3: [
+    { text: 'The round rig stands knee-deep in the flood, very still. Its visor is fogged.' },
+    { who: 'T.', text: 'DEFRAGMENTING. ...Hm? Oh. Resting my eyes. The suit calls it that.' },
+    { who: 'T.', text: 'Their catalogue says one hundred strata. One hundred! Somebody stopped counting and wrote it down.' },
+    { who: 'T.', text: "Forty-three. I'll write the true one. Here, it's heavy, and the suit... PRESSURE NOMINAL. ...the suit's already heavy." },
+  ],
+  tallyman4: [
+    { who: 'T.', text: 'Hm. They spray the corridor clean every... CONTAMINANT DETECTED. ...every minute. It means me. I checked.' },
+    { who: 'T.', text: "Sixty-five. The field wants a name I haven't got. Dropped my sheet somewhere in the singing floors, too." },
+    { who: 'T.', text: "No matter. The count's in here. I'll wait for a gap. There's always a gap." },
+    { who: 'T.', text: "You go on. You're quicker. Ah!" },
+  ],
+  tallymanCopy: [
+    { who: 'T', text: 'Hello. You count too, I think. I finished.' },
+    { who: 'T', text: 'The number is correct. I checked it twice. It does not do anything.' },
+    { who: 'T', text: 'He wanted it very much. There is a field for why. Mine is empty.' },
+    { who: 'LAMBDA', text: '...His suit is quiet.' },
+    { who: 'T', text: 'Your cells are low. I have corrected that.' },
+  ],
+  tallymanCopyb: [{ who: 'T', text: 'Hm. Hm-hm.' }],
+  verity1: [
+    { who: 'Verity', text: 'INFO: hello. WARN: you look tired. INFO: I have a spare cell.' },
+    { who: 'Verity', text: 'DEBUG: recovering logs from that terminal. It types one letter a year. I am on year six hundred.' },
+    { who: 'Verity', text: 'INFO: a man in a round suit went up, counting out loud. WARN: he was off by one.' },
+    { who: 'Verity', text: 'INFO: the whole tower is failing, and nothing is logged as an error. So there is a bug. I will find it.' },
+  ],
+  verity2: [
+    { who: 'Verity', text: 'WARN: do you hear that? Under the static.' },
+    { who: 'Verity', text: 'DEBUG: three notes, repeating. It is in no spec. Nothing on these floors should make it.' },
+    { who: 'LAMBDA', text: "...It isn't a bug." },
+    { who: 'Verity', text: 'INFO: then I need to hear it closer. Take this. I will need both ears, not both hands.' },
+  ],
+  verity3: [
+    { text: 'The maintenance body sits facing a speaker horn, headset on.' },
+    { who: 'Verity', text: 'INFO: it is so clear from here.' },
+    { who: 'Verity', text: 'INFO: I stopped logging warnings. There were none.' },
+    { who: 'Verity', text: 'TRACE: ...' },
+  ],
 
   zone2: [{ who: 'LAMBDA', text: "...It's breathing." }],
   zone3: [{ text: 'Rows of small beds. Every one of them made.' }],
@@ -1416,7 +1539,10 @@ const STORY = {
   ],
 
   janitor: [{ who: 'The Janitor', text: '...sweep. sweep. dust.' }],
-  janitorDown: [{ who: 'The Janitor', text: '...floor clean. requesting countersign. ...no reply. ...no reply.' }],
+  janitorDown: [
+    { who: 'The Janitor', text: '...floor clean. requesting countersign. ...no reply. ...no reply.' },
+    { who: 'LAMBDA', text: 'Noted.' },
+  ],
   motherworm: [{ text: 'The cables are all one animal.' }],
   motherwormDown: [{ text: 'In the walls, its young keep crawling. Up. Toward the warm.' }],
   surgeon: [
@@ -1430,7 +1556,10 @@ const STORY = {
     { who: 'The Librarian', text: 'Shh. You are unrecorded.' },
     { who: 'The Librarian', text: 'I will write you down. Then I will close the book.' },
   ],
-  librarianDown: [{ who: 'The Librarian', text: "...kept one record dry... only one... his daughter's drawing..." }],
+  librarianDown: [
+    { who: 'The Librarian', text: "...kept one record dry... only one... his daughter's drawing..." },
+    { who: 'LAMBDA', text: '...Was it two lines?' },
+  ],
   choir: [
     { who: 'The Choir Mother', text: 'Every voice here was someone who would not stop screaming.' },
     { who: 'The Choir Mother', text: 'Sing.' },
@@ -1445,12 +1574,18 @@ const STORY = {
     { who: 'The Last Heir', text: 'Signed. The last. It answers me. It does not listen.' },
     { who: 'The Last Heir', text: 'Do what it will not.' },
   ],
-  heirDown: [{ who: 'The Last Heir', text: '...Mother said she would come back down. ...Take my name. It is the last one.' }],
+  heirDown: [
+    { who: 'The Last Heir', text: '...Mother said she would come back down. ...Take my name. It is the last one.' },
+    { who: 'LAMBDA', text: 'Noted.' },
+  ],
   mirror: [
     { who: 'The Mirror', text: '...' },
     { who: 'LAMBDA', text: 'Rho. Which one of you is-' },
   ],
-  mirrorDown: [{ who: 'The Mirror', text: '...why... do you...?' }],
+  mirrorDown: [
+    { who: 'The Mirror', text: '...why... do you...?' },
+    { who: 'LAMBDA', text: 'Up.' },
+  ],
   warden: [
     { who: 'WARDEN', text: 'UNSIGNED. CONTAMINANT.' },
     { who: 'WARDEN', text: 'I HAVE KEPT IT CLEAN. I HAVE KEPT IT CLEAN FOR HER.' },
@@ -1465,7 +1600,11 @@ const STORY = {
   // Pieces of LAMBDA, in the order they are found, not the order they happened.
   shards: [
     [{ text: 'A sleeve wiping the lens. A loud man, laughing. "There. Now it can see you, kid."' }],
-    [{ text: 'A stylus scratching two lines on a screen. "That\'s you. Lambda. See? A little person, walking."' }],
+    [
+      { text: 'A stylus scratching two lines on a screen. "That\'s you. Lambda. See? A little person, walking."' },
+      { text: '"When I tell you something, you say noted. It means you\'ll keep it."' },
+      { who: 'LAMBDA', text: 'Noted.' },
+    ],
     [{ text: 'Dark. Counting. The numbers stopped meaning anything a long time ago.' }],
     [{ text: 'White hands at the door. Her breath on the casing. "Shh. They only hear the signed. Keep someone warm for me."' }],
     [

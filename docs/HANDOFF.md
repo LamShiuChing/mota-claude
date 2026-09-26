@@ -91,9 +91,13 @@ order, from unreliable sources. Few words; silence is fine; LAMBDA talks less as
 | 16F / 53F | **Sister Ohm** lights a candle for each infant she "carried up" and the door never opened for. |
 | 22F / 37F / 68F | **Pip** finds its mother: the nursery lullaby server. LAMBDA: "...I know that song." |
 | 9, 27, 44, 73, 92F | The **Stranger** (identity deliberately ambiguous; possibly the original Warden). |
+| 6F / 12F / 43F / 65F | **T., the Tallyman** counts strata in a pressure rig; stuck each time (narrow shutter, a leech on his air line, a purge field). His suit talks over him. His tallies and "-T" are the graffiti trail. His survey is Brann's "ten thousand" map. |
+| 84F / 88F | T.'s rig, sealed from the outside, with 83 tallies and half of one (`LORE`); his **copy** (Candidate 0413, speaker `T`) finished the count and doesn't know why. |
+| 47F / 51F / 55F / 59F | **Verity**, a debugger AI who speaks in log levels, recovers Archive logs, hears a hum in no spec at the Choir's edge, goes to listen. Her headset loops her last log at 59F. |
+| LAMBDA | Dry, counts things, "Noted." (keeps what others forget: 1F, 10F, 80F; the 2nd shard found shows the girl taught it). Portrait `lambda` → `lambdaFade` from 81F → `lambdaGlyph` from 95F (highest floor reached). A few lines at T., Verity, and the Janitor / Librarian / Heir / Mirror deaths. |
 | 11, 21 … 91F, 95F | One short line (or narration) per zone entry (`ON_ENTER`). |
 | 10, 20 … 100F | Bosses: short intros; **dying lines recontextualize** earlier fragments. |
-| ~70 floors | **`LORE[floorNumber]`**: one authored fragment on that floor's first ordinary note (`readNote`). Other notes are graffiti (`NOTES`); notes near fake walls are oblique whispers (`SECRET_HINTS`). Notes auto-show once; after that E re-reads (dimmed note + E keycap over Rho). |
+| 80 floors | **`LORE[floorNumber]`**: one authored fragment on that floor's first ordinary note (`readNote`), tied to a monster, boss, NPC or feature on or next to that floor (`docs/LORE.md` §Floor map). Other notes are graffiti from that zone's pool (`NOTES[zone]`); notes near fake walls are oblique whispers (`SECRET_HINTS`). Notes auto-show once; after that E re-reads (dimmed note + E keycap over Rho). |
 | Items | Weapons, armor, Compass, Drill show one cryptic `ITEM_LORE` line in the ACQUIRED banner. |
 | Vaults | Two scraps in the girl's hand (`VAULT_NOTES`) + a **Memory Shard**: LAMBDA's memories in *found* order. |
 | 100F | Ending A "Forge the Signature". With all 5 shards a choice appears; "Walk away" gives Ending B (grey sky, small far sun). |

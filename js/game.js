@@ -1748,8 +1748,10 @@ function drawChrome() {
 }
 
 // ---------------------------------------------------------------- modals
+// LAMBDA frays with the climb: torn from 81F, only her glyph from 95F (highest floor reached, so vaults keep it).
+const lambdaPortrait = () => { const top = Math.max(...G.visited.filter(f => !isVault(f))); return top >= 94 ? 'lambdaGlyph' : top >= 80 ? 'lambdaFade' : 'lambda'; };
 function drawDialog(d) {
-  const line = d.lines[d.i], portrait = PORTRAITS[line.who];
+  const line = d.lines[d.i], portrait = line.who === 'LAMBDA' ? lambdaPortrait() : PORTRAITS[line.who];
   const x = MX + 22, w = MW - 44, tx = portrait ? x + 66 : x + 16;
   const lines = wrap(line.text, x + w - tx - 12, 18);
   const h = Math.max(portrait ? 100 : 76, 42 + lines.length * 18 + 22), y = MY + 36;
