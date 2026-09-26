@@ -806,10 +806,134 @@ function glow(px, py, rgb, r = 30) {
   ctx.fillRect(px - 16, py - 16, 64, 64);
 }
 
+// ---------------------------------------------------------------- idle animation
+// Idle style per base sprite name; unknown names fall back to 'breathe'. frame = extra frame in data.js,
+// look = frame glancing left (flipped to track the hero), face: 1 = the art faces right (flipped to face the hero).
+const IDLE = {
+  mite: { style: 'skitter', frame: 'miteB' },
+  wisp: { style: 'hover', frame: 'wispB', rate: 4, glitch: true },
+  husk: { style: 'shamble', face: 1 },
+  sanitizer: { style: 'stance', look: 'sanitizerL', legs: 11 },
+  serpent: { style: 'slither', frame: 'serpentT', face: 1 },
+  mason: { style: 'stomp', frame: 'masonB' },
+  drone: { style: 'hover', frame: 'droneB', rate: 14 },
+  turret: { style: 'sentry', look: 'turretL' },
+  hound: { style: 'pant', frame: 'houndP', face: 1 },
+  ghost: { style: 'glitch' },
+  surgeon: { style: 'stance', frame: 'surgeonB', legs: 11 },
+  choir: { style: 'hover', frame: 'choirB', rate: 2.5 },
+  knight: { style: 'stance', look: 'knightL', legs: 11, slow: true },
+  warden: { style: 'dread', frame: 'wardenE' },
+  archivist: { style: 'glitch', still: true },
+  lambda: { style: 'glitch', still: true },
+  brann: { style: 'breathe', face: 1 },
+  ohm: { style: 'breathe', face: 1 },
+  pip: { style: 'hop' },
+  broker: { style: 'breathe', face: 1 },
+};
+const idleWave = (t, hz, seed) => Math.sin((t * hz + seed) * 2 * Math.PI);
+const idleBeat = (t, per, len, seed) => (t + seed * per) % per < len; // on for len s out of every per s
+// Bands: rows [0,cut) rise 1 sprite pixel (d=1, row cut-1 repeats) or sink 1 (d=-1, row cut drops).
+const idleLift = (cut, d) => d > 0 ? [[cut - 1, 16, 0, 0], [0, cut, 0, -1]] : d < 0 ? [[cut + 1, 16, 0, 0], [0, cut, 0, 1]] : null;
+const IDLE_STYLES = {
+  breathe: (p, t, s, c) => { p.bands = idleLift(c.cut || 7, idleWave(t, 0.45, s) > 0.2 ? 1 : 0); },
+  hop: (p, t, s) => { p.y = idleBeat(t, 1.8, 0.3, s) ? -2 : 0; if (idleBeat(t + 1.5, 1.8, 0.1, s)) p.bands = idleLift(8, -1); },
+  skitter: (p, t, s, c) => {
+    const run = idleBeat(t, 2.4, 0.7, s);
+    p.frame = Math.floor(t * (run ? 12 : 1.5) + s * 4) % 2 ? c.frame : null;
+    if (run) p.x = (Math.floor(t * 8) % 4 < 2 ? 1 : 0) * (s < 0.5 ? 1 : -1);
+  },
+  hover: (p, t, s, c) => {
+    p.y = -1 - Math.round(idleWave(t, 0.5, s) + 1);
+    p.shadow = 1;
+    if (Math.floor(t * c.rate + s * 7) % 2) p.frame = c.frame;
+    if (c.glitch && idleBeat(t, 1.7, 0.08, s)) p.x = s < 0.5 ? 1 : -1;
+  },
+  glitch: (p, t, s, c) => {
+    if (!c.still) { p.y = -Math.round(idleWave(t, 0.35, s) + 1); p.shadow = 0.5; }
+    p.alpha = 0.75 + 0.25 * Math.sin(t * 9 + Math.sin(t * 23) + s * 9);
+    if (idleBeat(t, 1.3 + s, 0.12, s)) {
+      const r = 2 + Math.floor(hash(Math.floor(t * 10), 3, Math.floor(s * 1000)) * 9), dx = s < 0.5 ? 1 : -1;
+      p.bands = [[0, r, 0, 0], [r, r + 3, dx, 0], [r + 3, 16, -dx, 0]];
+    }
+  },
+  slither: (p, t, s, c) => {
+    const w = k => Math.round(idleWave(t, 0.7, s - k * 0.18));
+    p.bands = [[10, 16, w(2), 0], [5, 10, w(1), 0], [0, 5, w(0), 0]];
+    if (idleBeat(t, 1.9, 0.2, s)) p.frame = c.frame;
+  },
+  sentry: (p, t, s) => { if (idleBeat(t, 1.3, 0.1, s)) p.spark = p.frame ? [p.flip ? 12 : 2, 4] : [7, 4]; }, // muzzle blink
+  pant: (p, t, s, c) => {
+    const pant = idleWave(t, 0.2, s) > -0.2, open = pant && Math.floor(t * 5 + s * 3) % 2;
+    if (open) p.frame = c.frame;
+    p.bands = idleBeat(t, 5, 0.7, s) ? idleLift(7, -1) : idleLift(7, open ? 1 : 0);
+  },
+  stance: (p, t, s, c) => {
+    const lean = Math.round(idleWave(t, c.slow ? 0.18 : 0.3, s) * 0.75), up = idleWave(t, 0.5, s + 0.3) > 0.3;
+    p.bands = [[c.legs, 16, 0, 0], [c.legs - 1, c.legs, lean, 0], [0, c.legs, lean, up ? -1 : 0]];
+    if (c.frame && idleBeat(t, 3.2, 0.5, s)) p.frame = c.frame;
+  },
+  stomp: (p, t, s, c) => {
+    const k = (t + s * 2.6) % 2.6;
+    p.x = Math.floor((t + s * 2.6) / 2.6) % 2;
+    if (k < 0.15) p.bands = idleLift(9, -1);
+    if (idleBeat(t, 3.7, 0.15, s)) p.frame = c.frame;
+  },
+  shamble: (p, t, s) => {
+    p.bands = idleBeat(t, 2.9, 0.25, s) ? [[7, 16, 0, 0], [0, 7, s < 0.5 ? 1 : -1, 0]] : idleLift(7, idleWave(t, 0.35, s) > 0.4 ? 1 : 0);
+  },
+  dread: (p, t, s, c) => {
+    p.bands = idleLift(8, idleWave(t, 0.3, s) > 0.2 ? 1 : 0);
+    if (idleBeat(t, 3.5, 0.6, s)) p.frame = c.frame;
+  },
+};
+// Idle pose of a creature at time t. seed (0-1) desyncs neighbours, face = side the hero is on (-1/0/1),
+// heavy = boss: slower, with a periodic red pulse. x/y and bands are in sprite pixels, so motion stays on the grid.
+function idlePose(name, t, seed = 0, face = 0, heavy = false) {
+  const c = IDLE[VARIANTS[name]?.[0] || name] || { style: 'breathe' };
+  const p = { x: 0, y: 0, flip: false, frame: null, bands: null, alpha: 1, shadow: 0, pulse: 0, spark: null };
+  if (heavy) t *= 0.6;
+  let side = face;
+  if (idleBeat(t, 4 + seed * 3, c.style === 'sentry' ? 1.2 : 0.6, seed)) side = side ? -side : seed < 0.5 ? -1 : 1;
+  if (c.look && side) { p.frame = c.look; p.flip = side > 0; }
+  else if (c.face && side) p.flip = side * c.face < 0;
+  IDLE_STYLES[c.style](p, t, seed, c);
+  if (heavy) { const k = (t + seed * 3.5) % 3.5; if (k < 0.6) p.pulse = Math.sin(k / 0.6 * Math.PI); }
+  return p;
+}
+// Cached derived canvases of a cached sprite: '#f' mirrored, '#r' flat red silhouette.
+function spriteFx(key, fx) {
+  return spriteCache[key + fx] ??= canvasOf(16, 16, g => {
+    if (fx === '#f') { g.scale(-1, 1); g.drawImage(sprite(key), -16, 0); return; }
+    g.drawImage(sprite(key), 0, 0);
+    g.globalCompositeOperation = 'source-in';
+    g.fillStyle = '#ff3b4e';
+    g.fillRect(0, 0, 16, 16);
+  });
+}
+function drawIdle(def, x, y, p, s = TS) {
+  const v = VARIANTS[def.sprite], u = s / 16;
+  let key = spriteKey(p.frame ? { sprite: p.frame, swap: v ? { ...v[1], ...def.swap } : def.swap } : def);
+  if (p.flip) { spriteFx(key, '#f'); key += '#f'; }
+  x += p.x * u;
+  if (p.shadow) { // shrinks as the creature rises
+    const w = (7 + p.y) * u, sx = x + s / 2 - w / 2, sy = y + 13 * u;
+    ctx.fillStyle = `rgba(0,0,0,${0.3 * p.shadow})`;
+    ctx.fillRect(sx + u, sy, w - 2 * u, u);
+    ctx.fillRect(sx, sy + u, w, u);
+  }
+  y += p.y * u;
+  const blit = img => p.bands ? p.bands.forEach(([a, b, dx, dy]) => ctx.drawImage(img, 0, a, 16, b - a, x + dx * u, y + (a + dy) * u, s, (b - a) * u)) : ctx.drawImage(img, x, y, s, s);
+  ctx.globalAlpha = p.alpha;
+  blit(sprite(key));
+  if (p.pulse) { ctx.globalAlpha = p.pulse * 0.45; blit(spriteFx(key, '#r')); }
+  ctx.globalAlpha = 1;
+  if (p.spark) rect(ctx, '#fff', x + p.spark[0] * u, y + p.spark[1] * u, 2 * u, u);
+}
+
 function drawMap() {
   if (!floorBg[G.floor]) buildFloorBg(G.floor);
   ctx.drawImage(floorBg[G.floor], MX, MY, MW, MW);
-  const bob = Math.floor(time * 2.5) % 2;
   for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
     const ch = tile(x, y), px = mapX(x), py = mapY(y);
     if (ch === '.' || ch === '#' || ch === '%') continue;
@@ -824,10 +948,15 @@ function drawMap() {
       ctx.lineWidth = 1;
       [[1, 0], [-1, 0], [0, 1], [0, -1]].forEach(([dx, dy]) => ctx.strokeRect(px + dx * TS + 2.5, py + dy * TS + 2.5, TS - 5, TS - 5));
     }
-    const dy = m || npc || ch === 'M' ? ((bob + x + y) % 2) * -2 : 0;
-    if (npc?.ghost) ctx.globalAlpha = 0.75 + 0.25 * Math.sin(time * 9 + Math.sin(time * 23));
+    const def = m || npc || (ch === 'M' ? { sprite: 'broker' } : null);
+    if (def) {
+      const p = idlePose(def.sprite, time, hash(x, y, G.floor), Math.sign(G.x - x), m?.boss);
+      if (npc?.ghost) p.alpha = 0.75 + 0.25 * Math.sin(time * 9 + Math.sin(time * 23));
+      drawIdle(def, px, py, p);
+      continue;
+    }
     if (ch === 'n') ctx.globalAlpha = 0.55 + 0.35 * Math.sin(time * 2 + x);
-    spr(tileSpriteName(ch, x, y), px, py + dy);
+    spr(tileSpriteName(ch, x, y), px, py);
     ctx.globalAlpha = 1;
   }
   doorAnims.filter(d => d.f === G.floor).forEach(d => {
