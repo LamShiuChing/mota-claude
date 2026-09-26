@@ -187,13 +187,18 @@ function generate(plan, rand) {
 }
 const DOORS_SET = new Set(['Y', 'B', 'R']);
 
-// Hand-made maps: record npcs / notes / vault links from the plan.
+// Hand-made maps: record npcs / notes / vault links from the plan. A plan's `npc` takes the map's 'O',
+// its `vault` the map's '^', and a note within two steps of a fake wall gets a secret hint.
 function fromHandmade(map, extra = {}) {
   const meta = { npcs: { ...(extra.npcs || {}) }, notes: {}, links: {} };
   const notes = [...(extra.notes || [])];
+  const link = extra.link ?? (extra.vault !== undefined ? W.MAIN_FLOORS + extra.vault : undefined);
+  const nearFake = (x, y) => map.some((row, fy) => [...row].some((c, fx) => c === '%' && Math.abs(fx - x) + Math.abs(fy - y) <= 2));
   map.forEach((row, y) => [...row].forEach((ch, x) => {
-    if (ch === 'n') meta.notes[key(x, y)] = notes.shift() || W.NOTES[(x * 7 + y) % W.NOTES.length];
-    if (ch === '^' && extra.link !== undefined) meta.links[key(x, y)] = extra.link;
+    if (ch === 'n') meta.notes[key(x, y)] = notes.shift()
+      || (nearFake(x, y) ? W.SECRET_HINTS[(x + y) % W.SECRET_HINTS.length] : W.NOTES[(x * 7 + y) % W.NOTES.length]);
+    if (ch === '^' && link !== undefined) meta.links[key(x, y)] = link;
+    if (ch === 'O' && extra.npc) meta.npcs[key(x, y)] = extra.npc;
   }));
   return { map, meta };
 }
