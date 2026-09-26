@@ -96,30 +96,37 @@ const panelTex = canvasOf(32, 32, g => {
 let panelPattern = null;
 
 const floorBg = [];
+// Walls and fake walls look the same; the map edge counts as wall.
+const solid = (m, x, y) => x < 0 || y < 0 || x >= N || y >= N || m[y][x] === '#' || m[y][x] === '%';
+const mix = (a, b, t) => '#' + [1, 3, 5].map(i => Math.round(parseInt(a.substr(i, 2), 16) * (1 - t) + parseInt(b.substr(i, 2), 16) * t).toString(16).padStart(2, '0')).join('');
+// Flat 16x16 pixel tiles drawn at 2x. Walls are raised blocks: a lit top, plus a dark rack face wherever floor lies below.
 // Built from the live map, so a revealed fake wall ('%') becomes floor after a rebuild.
 function buildFloorBg(fi) {
-  const th = ZONES[zoneOf(fi)].theme;
+  const th = ZONES[zoneOf(fi)].theme, m = G.maps[fi];
   floorBg[fi] = canvasOf(N * 16, N * 16, g => {
-    G.maps[fi].forEach((row, ty) => row.forEach((ch, tx) => {
-      const ox = tx * 16, oy = ty * 16, rnd = i => hash(tx * 7 + i, ty * 13 + i, fi);
-      if (ch === '#' || ch === '%') {
-        // Server-rack panel: light bevelled block with vent slots and a status LED.
-        rect(g, th.wall, ox, oy, 16, 16);
-        rect(g, th.hi, ox, oy, 16, 1); rect(g, th.hi, ox, oy, 1, 16);
-        rect(g, th.mortar, ox, oy + 15, 16, 1); rect(g, th.mortar, ox + 15, oy, 1, 16);
-        const vents = rnd(1) < 0.5;
-        for (let i = 0; i < 3; i++) {
-          if (vents) { rect(g, th.mortar, ox + 3, oy + 4 + i * 3, 10, 1); rect(g, th.hi, ox + 3, oy + 5 + i * 3, 10, 1); }
-          else { rect(g, th.mortar, ox + 3 + i * 4, oy + 3, 1, 10); rect(g, th.hi, ox + 4 + i * 4, oy + 3, 1, 10); }
-        }
-        for (let i = 0; i < 4; i++) rect(g, th.speck, ox + 1 + Math.floor(rnd(i + 5) * 14), oy + 1 + Math.floor(rnd(i + 9) * 14));
-        if (rnd(20) < 0.25) rect(g, th.accent, ox + 12, oy + 12, 2, 1);
+    m.forEach((row, ty) => row.forEach((ch, tx) => {
+      const ox = tx * 16, oy = ty * 16, rnd = i => hash(tx * 7 + i, ty * 13 + i, fi), at = (dx, dy) => solid(m, tx + dx, ty + dy);
+      if (at(0, 0)) {
+        const face = !at(0, 1), top = face ? 10 : 16;
+        rect(g, th.wall, ox, oy, 16, top);
+        if (!at(0, -1)) rect(g, th.hi, ox, oy, 16, 1);
+        if (!at(-1, 0)) rect(g, th.hi, ox, oy, 1, top);
+        if (!at(1, 0)) rect(g, th.mortar, ox + 15, oy, 1, top);
+        if (!face) return;
+        rect(g, th.hi, ox, oy + 9, 16, 1);
+        rect(g, th.mortar, ox, oy + 10, 16, 5);
+        for (let i = 3; i < 16; i += 4) rect(g, th.seam, ox + i, oy + 11, 1, 3);
+        rect(g, th.seam, ox, oy + 15, 16, 1);
+        if (rnd(1) < 0.2) rect(g, th.accent, ox + 1 + 4 * Math.floor(rnd(2) * 4), oy + 12, 2, 1);
       } else {
-        // Floor grating.
         rect(g, th.floor, ox, oy, 16, 16);
+        rect(g, th.speck, ox, oy, 15, 1); rect(g, th.speck, ox, oy, 1, 15);
         rect(g, th.seam, ox, oy + 15, 16, 1); rect(g, th.seam, ox + 15, oy, 1, 16);
-        for (let i = 2; i < 15; i += 4) { rect(g, th.seam, ox + 1, oy + i, 14, 1); rect(g, th.speck, ox + 1, oy + i + 1, 14, 1); }
-        for (let i = 0; i < 4; i++) rect(g, th.speck, ox + Math.floor(rnd(i + 3) * 15), oy + Math.floor(rnd(i + 30) * 15));
+        if (at(0, -1)) rect(g, th.seam, ox, oy, 16, 2);
+        if (at(-1, 0)) rect(g, th.seam, ox, oy, 1, 16);
+        const r = rnd(3);
+        if (r < 0.1) [[4, 4], [11, 4], [4, 11], [11, 11]].forEach(([x, y]) => rect(g, th.seam, ox + x, oy + y));
+        else if (r < 0.16) for (let i = 0; i < 3; i++) rect(g, th.seam, ox + 5, oy + 6 + i * 2, 6, 1);
       }
     }));
   });
@@ -1214,25 +1221,53 @@ function portraitFrame(name, x, y, size = 48) {
 const spr = (name, x, y, s = 32) => ctx.drawImage(sprite(name), x, y, s, s);
 const enterHint = (x, y) => body('-Enter-', x, y, { size: 18, color: '#8a8f9c', align: 'right', shadow: false, alpha: 0.6 + 0.4 * Math.sin(time * 4) });
 
-function drawStairs(x, y, up, arrow = up ? '#6ff7ff' : '#ff8a3c') {
-  ctx.fillStyle = '#07080c';
-  ctx.fillRect(x, y, TS, TS);
-  for (let i = 0; i < 5; i++) {
-    const shade = up ? 170 - i * 22 : 60 + i * 22;
-    ctx.fillStyle = `rgb(${shade},${shade + 4},${shade + 12})`;
-    const inset = up ? i * 2 : (4 - i) * 2;
-    ctx.fillRect(x + 2 + inset, y + 2 + i * 6, TS - 4 - inset * 2, 5);
-  }
-  const pulse = 0.5 + 0.5 * Math.sin(time * 4);
-  ctx.globalAlpha = 0.5 + pulse * 0.5;
-  ctx.fillStyle = arrow;
-  const cy = y + 16 + (up ? -2 - pulse * 2 : 2 + pulse * 2);
-  for (let i = 0; i < 4; i++) {
-    const w = up ? i * 2 + 2 : 8 - i * 2;
-    ctx.fillRect(x + 16 - w, cy - 4 + i * 2, w * 2, 2);
-  }
-  ctx.globalAlpha = 1;
+// Stairs open toward the side you walk in from: the only open neighbour, else (room corners) an open side
+// backed by a wall, ties broken in arrival order N S E W. The steps recede away from that side.
+const SIDES = [[0, -1], [0, 1], [1, 0], [-1, 0]];
+function stairFacing(x, y) {
+  const open = (dx, dy) => !solid(G.maps[G.floor], x + dx, y + dy);
+  let best = 1, score = 0;
+  SIDES.forEach(([dx, dy], i) => {
+    const s = open(dx, dy) ? 2 + !open(-dx, -dy) : 0;
+    if (s > score) { best = i; score = s; }
+  });
+  return best;
 }
+// 16x16 stairwell drawn entering from the bottom, then turned to face. Up: steps climb toward the light.
+// Down: steps sink into a black shaft. Gold = vault stairs.
+const stairCache = {};
+function stairSprite(up, gold, facing) {
+  const z = zoneOf(), key = [z, up, gold, facing].join();
+  if (!stairCache[key]) {
+    const th = ZONES[z].theme, [hi, mid, lo, dark] = gold ? [PAL.O, PAL.y, PAL.Y, PAL.N] : [th.hi, th.wall, th.mortar, th.seam];
+    const base = canvasOf(16, 16, g => {
+      rect(g, PAL.h, 0, 0, 16, 16);
+      for (let k = 0; k < 5; k++) { // k = 0 far end .. 4 at the entry
+        const y = 1 + k * 3;
+        if (up) {
+          const c = mix(hi, mid, k / 4);
+          rect(g, c, 2, y, 12, 2); rect(g, mix(lo, PAL.h, 0.5), 2, y + 2, 12, 1);
+        } else { // narrowing into the shaft
+          const c = mix(PAL.h, mid, (k + 1) / 5), n = [3, 2, 2, 1, 0][k];
+          rect(g, mix(lo, PAL.h, 0.5), 1, y, 14, 3);
+          rect(g, mix(c, hi, 0.3), 2 + n, y + 1, 12 - n * 2, 1); rect(g, c, 2 + n, y + 2, 12 - n * 2, 1);
+        }
+      }
+      rect(g, lo, 1, 0, 1, 16); rect(g, lo, 14, 0, 1, 16);
+      rect(g, dark, 0, 0, 1, 16); rect(g, dark, 15, 0, 1, 16); rect(g, dark, 0, 0, 16, 1);
+    });
+    stairCache[key] = canvasOf(16, 16, g => { g.translate(8, 8); g.rotate([Math.PI, 0, -Math.PI / 2, Math.PI / 2][facing]); g.drawImage(base, -8, -8); });
+  }
+  return stairCache[key];
+}
+function drawStairs(px, py, x, y, up, gold = false) {
+  ctx.drawImage(stairSprite(up, gold, stairFacing(x, y)), px, py, TS, TS);
+  // Screen-aligned up/down arrow, bobbing the way it leads.
+  const key = 'arrow' + up + gold, bob = Math.round(0.5 + 0.5 * Math.sin(time * 4)) * (up ? -2 : 2);
+  spriteCache[key] ??= buildSprite(up ? STAIR_ARROW : [...STAIR_ARROW].reverse(), { c: gold ? 'w' : up ? 'c' : 'o' });
+  spr(key, px, py + bob);
+}
+const STAIR_ARROW = ['', '', '', '', '', '.......cc', '......cccc', '.....cccccc', '....cccccccc', '.......cc', '.......cc', '', '', '', '', ''];
 
 // ---------------------------------------------------------------- map
 function tileSpriteName(ch, x, y) {
@@ -1390,8 +1425,8 @@ function drawMap() {
   for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
     const ch = tile(x, y), px = mapX(x), py = mapY(y);
     if (ch === '.' || ch === '#' || ch === '%') continue;
-    if (ch === 'U' || ch === 'D') { drawStairs(px, py, ch === 'U'); continue; }
-    if (ch === '^') { glow(px, py, '255,194,58'); drawStairs(px, py, false, '#ffc23a'); continue; }
+    if (ch === 'U' || ch === 'D') { drawStairs(px, py, x, y, ch === 'U'); continue; }
+    if (ch === '^') { glow(px, py, '255,194,58'); drawStairs(px, py, x, y, isVault(G.floor), true); continue; }
     const m = isMonster(ch) ? monsterAt(ch) : null, npc = ch === 'O' ? NPCS[meta().npcs[metaKey(x, y)]] : null;
     if (m?.boss) glow(px, py, '255,59,78');
     if (ch === 'L') glow(px, py, G.flags['boss' + G.floor] ? '111,247,255' : '60,70,90');
