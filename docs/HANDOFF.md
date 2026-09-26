@@ -24,20 +24,57 @@ stay faithful to the original. The world, story, art and sound are original.
   is cruel, with a few good moments.
 - **Language:** English UI and text (the user picked English).
 
-### Story beats (all text in `js/world.js` → `STORY`)
+### Story beats (all text in `js/world.js`: `STORY`, `LORE`, `NOTES`, `SECRET_HINTS`, `VAULT_NOTES`, `ITEM_LORE`)
+Souls-style delivery (user direction): **no tutorials, no hints, nobody explains**. The story comes in fragments,
+out of chronological order, from unreliable sources. Few words; silence is fine; LAMBDA talks less as it degrades.
+
 | Floor | Beat |
 |---|---|
-| 1F | Intro (narration + LAMBDA). The **Archivist** (ghost engineer) gives an Amber keycard and hints. |
-| 2F | **Broker** (sells Scan firmware + keycards + antivirus) and **Fabricator** (stat shop). |
-| 4F / 25F / 58F / 87F | **Brann** the scavenger chases a "Sun" he's never seen. He grows more tired each meeting and is finally found dead, smiling at a heat lamp ("FOUND IT. ISN'T IT WARM."). Gives his Drill. |
-| 13F / 35F / 45F | **Archivist** arc. At 45F he finds his own drowned body, says goodbye and fades. |
-| 16F / 53F | **Sister Ohm**, an android nun who lights candles for the dead. The second time she's half-destroyed and gives her last cell. |
-| 22F / 37F / 68F | **Pip**, a lost drone looking for its "mother" server. It finds her decommissioned and stays to hum her song. |
-| 9, 27, 44, 73, 92F | Nameless "Stranger" one-liners. |
-| 11, 21 … 91F | A LAMBDA line on entering each new zone. 95F: LAMBDA says it won't survive the terminal. |
-| 10, 20 … 100F | Bosses: The Janitor, Mother Worm, The Surgeon, The Foreman, The Librarian, The Choir Mother, The Gatekeeper, The Last Heir, The Mirror (a copy of Rho), WARDEN//ROOT. Each has an intro and a dying line. |
-| Vaults | 5 hidden **Memory Vaults**, each with a **Memory Shard** that tells part of LAMBDA's past (a girl named it; it was hidden in a visor to "keep someone warm"). |
-| 100F | Ending A **"Forge the Signature"** (Rho takes the Warden's chair). With all 5 shards, a choice unlocks Ending B **"Keep LAMBDA"** (they climb out and see a grey sky and a small, warm sun). |
+| 1F | Two-line intro ("The Builders never stopped." LAMBDA: "Up."). The **Archivist** (a ghost that mistakes Rho for someone) gives an Amber keycard. No mechanics explained. |
+| 2F | **Broker** and **Fabricator** (shop text is flavor only). |
+| 4F / 25F / 58F / 87F | **Brann** chases a "Sun". Found dead smiling at a heat lamp ("FOUND IT. ISN'T IT WARM."). Gives his Drill. His "B. WAS HERE. UP." marks trail between meetings (`LORE`). |
+| 13F / 35F / 45F | **Archivist**: wrote the Sanitizer firmware; forgets his daughter; finds his drowned body; "Tell the little walking man I'm sorry." |
+| 16F / 53F | **Sister Ohm** lights a candle for each infant she "carried up" and the door never opened for. |
+| 22F / 37F / 68F | **Pip** finds its mother: the nursery lullaby server. LAMBDA: "...I know that song." |
+| 9, 27, 44, 73, 92F | The **Stranger** (identity deliberately ambiguous; possibly the original Warden). |
+| 11, 21 … 91F, 95F | One short line (or narration) per zone entry (`ON_ENTER`). |
+| 10, 20 … 100F | Bosses: short intros; **dying lines recontextualize** earlier fragments (Janitor asks for a countersign; Surgeon's patients begged for glass; Foreman asks who "everyone" is; Gatekeeper and Heir mention a mother who never came down; Warden kept it clean "for her"). |
+| Most generated floors | **`LORE[floorNumber]`**: one authored fragment replaces that floor's first ordinary floor note (`readNote` in game.js). Other notes are random graffiti from `NOTES`; notes near fake walls are oblique whispers from `SECRET_HINTS`. |
+| Vaults | Each vault: two scraps in the girl's hand (`VAULT_NOTES`) + a **Memory Shard**. The shards are LAMBDA's memories in *found* order, not chronological. |
+| 100F | Ending A "Forge the Signature" (LAMBDA goes in; Rho sits in the chair). With all 5 shards a choice appears; "Walk away" gives Ending B (grey sky, small far sun). |
+
+### Story bible (hidden truth; keep new content consistent, never state it outright in game)
+- **The Signature** is the Root's countersign on a human genome, given at birth by a *living human hand* in the Root
+  chair (the Warden). Signed humans are served by the Net. It is not lost: nobody has issued one in ~1100 years.
+- **The Warden** was a human. Chair-bound for ~30,000 days, she asked to go down to her son. The chair made a copy
+  of her first (Candidate Copy 0001, reason "for her") and seated it. A copy isn't a living hand, so it can't
+  countersign. From then on every newborn was unsigned. WARDEN//ROOT is that copy, keeping the city "clean for her".
+  The original walked down. The Stranger might be her; this is never confirmed.
+- **The Sanitizers** ("the white ones") run hygiene firmware written by **the Archivist** (initial "H.") to purge the
+  Rot, a data/flesh corruption: "purge what has no Signature. The Rot has none; every one of us does." Once signing
+  stopped, children became indistinguishable from the Rot. It isn't hate, it's hygiene.
+- **Consequences:** Sister Ohm (a nursery carrier unit) carried ~900,000 infants up for a countersign that never came.
+  Silicate Husks are people who asked the Surgeon to turn them into glass, because glass isn't purged. The Choir is the
+  purged voices. The Builders obey Work Order #1, "SHELTER FOR EVERYONE", where everyone means the signed: one person
+  is left, so they never finish. **The Last Heir** (80F) is the Warden's son, the last signed human, kept alive by a Net
+  that answers him but doesn't listen.
+- **LAMBDA** was written by the Archivist's unsigned daughter (age ~9, fate unrecorded). She named it for the glyph λ,
+  "a little person, walking", read it stories, and hid in it her father's ENGINEER key. When the white ones came
+  she hid it in a visor: "Keep someone warm for me." Centuries in the dark followed. A Broker later sold the cracked visor to
+  "a loud man with a drill" (Brann), who gave it to a child, Rho. Brann half-recognizes the visor; neither says so.
+  The key lets LAMBDA forge a single countersign by spending itself (Ending A). The last shard: she gave it "the key,
+  and a reason not to use it".
+- **The Mirror**: from the Silent Stratum up, the tower copies climbers as replacement candidates. Copies with an empty
+  "reason field" are unsuitable. "Two went in. One came out. The door did not record which." Whether Rho is the
+  original is left open.
+- **Brann's Sun**: nurseries got "solar-substitute" heat lamps so no child grew up without a sun. Brann died at one.
+  The real sun exists (Ending B), small and far. The sky may be 10,000 strata up (Brann's map), so the climb out is long.
+- **Pip's mother** is the nursery lullaby server ("hmmm-hm-hmmm"). The girl learned the song there, so LAMBDA knows it.
+- **Endings:** A: Rho is signed and sits in the chair as the new living Warden, so the cycle continues but a hand is there.
+  B: they leave the chair empty and the city unchanged, and go see the sky.
+- **Motifs:** warm / cold; "keep someone warm"; the λ "little person walking"; countersign / no reply; "up".
+  Fragment voices: H.'s firmware notes, OHM-7 carrier logs, Warden diary pages (older pages are found *higher*,
+  the page she carried down is at 7F), candidate logs, registry and purge records, Brann's marks, and the girl.
 
 ### Zones (`js/world.js` → `ZONES`)
 | # | Floors | Name | Music | Theme / enemy flavor |
