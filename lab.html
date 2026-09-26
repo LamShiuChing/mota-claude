@@ -110,7 +110,7 @@
   render = () => (lab.gallery ? drawGallery() : baseRender());
 
   // Idle gallery: every character animating with its map idle.
-  const GALLERY = [{ name: 'Rho', sprite: 'heroD' }, ...['archivist', 'lambda', 'brann', 'ohm', 'pip', 'broker', 'wanderer'].map(s => ({ name: s, sprite: s })),
+  const GALLERY = [{ name: 'Rho', sprite: 'heroD' }, ...['archivist', 'lambda', 'lambdaFade', 'lambdaGlyph', 'brann', 'ohm', 'pip', 'broker', 'wanderer', 'tallyman', 'tallymanCopy', 'verity'].map(s => ({ name: s, sprite: s })),
     ...ZONES.flatMap(z => [...z.roster, { ...z.boss, boss: true }])];
   function drawGallery() {
     ctx.setTransform(scale, 0, 0, scale, 0, 0);
