@@ -181,7 +181,7 @@ function generate(plan, rand) {
   }
   for (let i = 0; i < 1 + (rand() < 0.4 ? 1 : 0); i++) {
     const at = placeIn('n', shuffled(order));
-    if (at) meta.notes[key(...at)] = pick(W.NOTES);
+    if (at) meta.notes[key(...at)] = pick(W.NOTES[plan.zone]);
   }
   return { map: g.map(r => r.join('')), meta };
 }
@@ -196,7 +196,7 @@ function fromHandmade(map, extra = {}) {
   const nearFake = (x, y) => map.some((row, fy) => [...row].some((c, fx) => c === '%' && Math.abs(fx - x) + Math.abs(fy - y) <= 2));
   map.forEach((row, y) => [...row].forEach((ch, x) => {
     if (ch === 'n') meta.notes[key(x, y)] = notes.shift()
-      || (nearFake(x, y) ? W.SECRET_HINTS[(x + y) % W.SECRET_HINTS.length] : W.NOTES[(x * 7 + y) % W.NOTES.length]);
+      || (nearFake(x, y) ? W.SECRET_HINTS[(x + y) % W.SECRET_HINTS.length] : W.NOTES[extra.zone][(x * 7 + y) % W.NOTES[extra.zone].length]);
     if (ch === '^' && link !== undefined) meta.links[key(x, y)] = link;
     if (ch === 'O' && extra.npc) meta.npcs[key(x, y)] = extra.npc;
   }));

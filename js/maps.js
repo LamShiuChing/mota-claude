@@ -67,17 +67,17 @@ const MAPS = [
   "..2Yh#.#b2."
  ],
  [
-  ".....4.Y...",
-  ".4..3#.#5..",
-  "n...y#U#...",
+  ".....44Y...",
+  ".y..5#.#...",
+  "....5#U#5..",
   "##Y########",
-  "..y..#.....",
-  "5#####.....",
-  "yY4..5...5.",
-  ".#...#Y####",
-  ".#..4#d.h4a",
-  ".#5###.n3#a",
-  "D#.4.#.hd#a"
+  ".....#.....",
+  "5#####..4..",
+  "yY...5..3..",
+  ".#.y4#Y####",
+  "y#..O#3d.4a",
+  ".#5###hh.#d",
+  "D#.n.#d3H#a"
  ],
  [
   "..4#D...y#U",
@@ -155,7 +155,7 @@ const MAPS = [
   "a...3...h..",
   "##Y###2##2#",
   ".2.........",
-  "h.1.#D#.2.a"
+  "h.1O#D#.2.a"
  ],
  [
   "D.1.y..2.h.",
@@ -549,16 +549,16 @@ const MAPS = [
  ],
  [
   "2..#.....Y.",
-  "##Y#.#..3#y",
-  "U.1#.#1..#.",
+  "##Y#3#...#.",
+  "U.r#.#31O#y",
   "##Y#######Y",
-  "...#D.ynyyy",
+  "...#D.yyyyy",
   "...###Y#Y##",
-  ".3H#...#y#.",
-  "##Y#2..#y#.",
-  "dhd#.3.Ry2.",
-  "hra#3#####Y",
-  "daa3.....#."
+  "..3#...#1#3",
+  "##Y#.22#y#.",
+  ".ha#...Ry2.",
+  "dha#3#####Y",
+  "hd13.....#n"
  ],
  [
   "a.y#h.S#.2U",
@@ -600,17 +600,17 @@ const MAPS = [
   "U.n#..d#..."
  ],
  [
-  "d...4#vHbBh",
-  "h#...#Y####",
-  "d#...Y..4.y",
-  "####B#y.y4.",
-  "U.daa#..y..",
+  "d.5..#hHbBh",
+  "d#b.5#Y####",
+  "d#O..Y3....",
+  "####B#...3.",
+  "U.aaa#...y.",
   "####4###5##",
-  ".#...#.b...",
-  "5#Y###.....",
-  ".5y3.Y....D",
-  ".#n.4###B##",
-  ".#M..#bY.n."
+  ".#...#.yy..",
+  ".#Y###...yy",
+  "v5...Y....D",
+  ".#...###B##",
+  ".#M33#bY5n."
  ],
  [
   "^.H..#..d.U",
@@ -653,7 +653,7 @@ const MAPS = [
  ],
  [
   "y.1.#D#.1.y",
-  ".#.#...#.#.",
+  ".#.#O..#.#.",
   ".#h#.2.#h#.",
   ".#.##.##.#.",
   ".1...n...1.",
@@ -704,17 +704,17 @@ const MAPS = [
   "dhadada#y.D"
  ],
  [
-  "...#3..24yy",
+  "..n#...2y3.",
   ".###...#4##",
-  "..D#..4#.h2",
-  "...###2#.w4",
-  "...#aad#hdH",
+  "..D#O.2#...",
+  ".y.###2#hw2",
+  "...#daa#hd4",
   "3###.######",
-  "...#.#...#.",
-  "...#y#...#H",
-  "...43Y.n2%d",
-  "2..###Y####",
-  "...#.3nY2.U"
+  "...#y#..3#a",
+  "...#.#..2#H",
+  ".2.43Y.n.%.",
+  "...###Y####",
+  "2..#.4.Y..U"
  ],
  [
   ".5r#.4daaY.",
@@ -834,15 +834,15 @@ const MAPS = [
   "a.2.y.3h..D"
  ],
  [
-  "......2Yn#D",
+  "...4.3.Yh#D",
   ".#########.",
-  "ada#...#.#.",
-  "d2d#4.3#3#y",
-  "ahh..y.4.4.",
+  "adO#...#b#.",
+  "adh#4..#3#.",
+  "adh.4y.4.4n",
   "Y###B###.#.",
-  ".w.4...3b#.",
-  "##3#...#4#.",
-  "U.3#4..#n#.",
+  ".w.4.3.3n#.",
+  "##3#n..#.#.",
+  "U.4#...#.#.",
   "########%##",
   "...a...H..."
  ],
@@ -1133,17 +1133,17 @@ const MAPS = [
   "n..#...#..U"
  ],
  [
-  "n..5.Y...#D",
-  "6..#y#..5#.",
-  "..6#.#...Y.",
-  "##Y#6#####n",
-  "..5Ydnh#a#y",
-  "...#Hdd#H#.",
-  "...#h5h%.#.",
+  "...5.Y...#D",
+  "...#.#...#.",
+  "..5#4#6.yY.",
+  "##Y#6#####y",
+  "5..YdhO#.#y",
+  "...#5nd#H#y",
+  "...#hHh%.#n",
   "Y###6###.#.",
-  "aaa#6..#.#.",
+  "aaa#...#d#.",
   "####5#.###y",
-  "..e.66..U#y"
+  ".ne4....U#."
  ],
  [
   "D.4.#h#.4.a",
@@ -1367,4 +1367,4 @@ const MAPS = [
   "H...*..n..."
  ]
 ];
-const MAP_META = [{"npcs":{"5,1":"archivist1"},"notes":{"4,10":"\"it isn't hate. it's cleaning.\""},"links":{}},{"npcs":{},"notes":{"0,5":"\"they only hear the signed\""},"links":{}},{"npcs":{},"notes":{"0,9":"\"WE ARE NOT DIRT\""},"links":{}},{"npcs":{"5,0":"brann1"},"notes":{"5,2":"\"don't sleep by the cables\""},"links":{}},{"npcs":{},"notes":{"1,4":"\"hollow\"","2,3":"Tally marks, hundreds of them. Then none."},"links":{}},{"npcs":{},"notes":{"0,2":"\"T was here too. where did T go\"","7,9":"\"it isn't hate. it's cleaning.\""},"links":{}},{"npcs":{},"notes":{"10,7":"Someone slept here. The dust kept their shape."},"links":{}},{"npcs":{},"notes":{"5,8":"Knuckle marks on the wall. Someone knocked, and knocked.","10,3":"\"hold on\""},"links":{}},{"npcs":{"8,9":"wanderer1"},"notes":{"0,2":"\"I was here. -T\"","7,10":"A child's drawing: two lines. A little person, walking."},"links":{}},{"npcs":{},"notes":{"7,0":"\"still warm here\""},"links":{}},{"npcs":{},"notes":{"0,10":"A name, scrubbed off. Only the scrubbing is left."},"links":{}},{"npcs":{},"notes":{"0,0":"\"NOBODY IS COMING\"","10,4":"\"I was here. -T\""},"links":{}},{"npcs":{"5,5":"archivist2"},"notes":{"6,10":"\"remember your name\""},"links":{}},{"npcs":{},"notes":{"0,10":"A name, scrubbed off. Only the scrubbing is left."},"links":{}},{"npcs":{},"notes":{"4,1":"Cold air seeps from somewhere.","1,9":"\"how many floors is that. how many\""},"links":{"0,0":100}},{"npcs":{"5,5":"ohm1"},"notes":{"7,10":"A child's drawing: two lines. A little person, walking."},"links":{}},{"npcs":{},"notes":{"5,2":"\"don't sleep by the cables\""},"links":{}},{"npcs":{},"notes":{"0,1":"Cold air seeps from somewhere.","2,9":"A child's drawing: two lines. A little person, walking.","10,10":"\"they only hear the signed\""},"links":{}},{"npcs":{},"notes":{"4,4":"\"mama said wait here\""},"links":{}},{"npcs":{},"notes":{"1,10":"\"the hum is a song\""},"links":{}},{"npcs":{},"notes":{"0,5":"\"they only hear the signed\""},"links":{}},{"npcs":{"2,6":"pip1"},"notes":{"0,2":"\"I was here. -T\"","6,10":"\"remember your name\""},"links":{}},{"npcs":{},"notes":{"5,0":"A child's drawing: two lines. A little person, walking."},"links":{}},{"npcs":{},"notes":{"0,0":"\"NOBODY IS COMING\"","10,10":"\"mama said wait here\""},"links":{}},{"npcs":{"0,8":"brann2"},"notes":{"0,2":"\"I was here. -T\""},"links":{}},{"npcs":{},"notes":{"5,0":"A child's drawing: two lines. A little person, walking."},"links":{}},{"npcs":{"10,5":"wanderer2"},"notes":{"5,3":"\"it isn't hate. it's cleaning.\""},"links":{}},{"npcs":{},"notes":{"1,5":"\"up\"","9,5":"\"it hums behind here\""},"links":{}},{"npcs":{},"notes":{"5,0":"A child's drawing: two lines. A little person, walking."},"links":{}},{"npcs":{},"notes":{"0,10":"A name, scrubbed off. Only the scrubbing is left."},"links":{}},{"npcs":{},"notes":{"5,5":"\"how many floors is that. how many\"","0,10":"A name, scrubbed off. Only the scrubbing is left."},"links":{}},{"npcs":{},"notes":{"5,0":"A child's drawing: two lines. A little person, walking.","9,3":"\"hollow\""},"links":{}},{"npcs":{},"notes":{"4,5":"\"it hums behind here\"","6,5":"\"T was here too. where did T go\""},"links":{"6,10":101}},{"npcs":{},"notes":{"3,0":"\"WE ARE NOT DIRT\""},"links":{}},{"npcs":{"0,0":"archivist3"},"notes":{"5,2":"\"don't sleep by the cables\"","9,4":"One panel here was never bolted down."},"links":{}},{"npcs":{},"notes":{"0,2":"\"hold on\"","8,2":"\"how many floors is that. how many\""},"links":{}},{"npcs":{"2,7":"pip2"},"notes":{"0,10":"A name, scrubbed off. Only the scrubbing is left."},"links":{}},{"npcs":{},"notes":{"4,8":"\"hollow\"","0,8":"\"don't count them. you won't stop\"","7,0":"\"up\""},"links":{}},{"npcs":{},"notes":{"7,10":"A child's drawing: two lines. A little person, walking."},"links":{}},{"npcs":{},"notes":{"8,10":"Someone slept here. The dust kept their shape."},"links":{}},{"npcs":{},"notes":{"2,2":"\"how many floors is that. how many\"","4,10":"\"it isn't hate. it's cleaning.\""},"links":{}},{"npcs":{},"notes":{"5,6":"\"the hum is a song\"","3,10":"One panel here was never bolted down."},"links":{}},{"npcs":{},"notes":{"7,4":"\"hold on\""},"links":{}},{"npcs":{"4,10":"wanderer3"},"notes":{"5,2":"\"don't sleep by the cables\"","6,10":"\"remember your name\""},"links":{}},{"npcs":{"5,5":"archivist4"},"notes":{"2,0":"\"it isn't hate. it's cleaning.\"","5,8":"\"forgive the Builders. they were told.\""},"links":{}},{"npcs":{},"notes":{"5,2":"\"don't sleep by the cables\"","2,10":"\"NOBODY IS COMING\""},"links":{}},{"npcs":{},"notes":{"2,9":"\"still warm here\"","9,10":"\"mama said wait here\""},"links":{}},{"npcs":{},"notes":{"3,2":"Cold air seeps from somewhere.","4,6":"A name, scrubbed off. Only the scrubbing is left."},"links":{"0,0":102}},{"npcs":{},"notes":{"0,10":"A name, scrubbed off. Only the scrubbing is left."},"links":{}},{"npcs":{},"notes":{"3,10":"\"turn back\""},"links":{}},{"npcs":{},"notes":{"5,4":"\"hold on\""},"links":{}},{"npcs":{},"notes":{"4,3":"Knuckle marks on the wall. Someone knocked, and knocked.","10,4":"\"still warm here\"","2,0":"\"still warm here\""},"links":{}},{"npcs":{"6,0":"ohm2"},"notes":{"6,2":"\"it was a sun. i swear it was a sun\"","4,10":"\"it isn't hate. it's cleaning.\""},"links":{}},{"npcs":{},"notes":{"0,8":"\"mama said wait here\""},"links":{}},{"npcs":{},"notes":{"7,8":"\"hollow\"","6,10":"Someone slept here. The dust kept their shape."},"links":{}},{"npcs":{},"notes":{"1,7":"Someone slept here. The dust kept their shape."},"links":{}},{"npcs":{},"notes":{"6,0":"\"I was here. -T\""},"links":{}},{"npcs":{"4,10":"brann3"},"notes":{"6,5":"\"T was here too. where did T go\"","8,10":"One panel here was never bolted down."},"links":{}},{"npcs":{},"notes":{"5,0":"A child's drawing: two lines. A little person, walking."},"links":{}},{"npcs":{},"notes":{"3,10":"\"turn back\""},"links":{}},{"npcs":{},"notes":{"2,6":"\"the hum is a song\""},"links":{}},{"npcs":{},"notes":{"2,2":"Knuckle marks on the wall. Someone knocked, and knocked.","10,6":"\"T was here too. where did T go\""},"links":{}},{"npcs":{},"notes":{"6,6":"\"you are not alone\" - and under it, smaller: \"i was\""},"links":{}},{"npcs":{"3,9":"broker3"},"notes":{"6,0":"Someone slept here. The dust kept their shape."},"links":{}},{"npcs":{},"notes":{"8,8":"\"hollow\"","8,0":"\"mama said wait here\""},"links":{}},{"npcs":{},"notes":{"8,0":"One panel here was never bolted down.","4,10":"\"it isn't hate. it's cleaning.\""},"links":{"0,0":103}},{"npcs":{},"notes":{"0,9":"\"WE ARE NOT DIRT\""},"links":{}},{"npcs":{"4,8":"pip3"},"notes":{"5,2":"\"don't sleep by the cables\"","6,8":"\"it hums behind here\"","0,10":"A name, scrubbed off. Only the scrubbing is left."},"links":{}},{"npcs":{},"notes":{"5,2":"\"don't sleep by the cables\""},"links":{}},{"npcs":{},"notes":{"0,10":"A name, scrubbed off. Only the scrubbing is left."},"links":{}},{"npcs":{},"notes":{"5,5":"\"how many floors is that. how many\""},"links":{}},{"npcs":{},"notes":{"8,2":"One panel here was never bolted down.","0,8":"\"they only hear the signed\""},"links":{}},{"npcs":{"5,4":"wanderer4"},"notes":{"5,0":"A child's drawing: two lines. A little person, walking.","5,10":"A handprint, low on the wall."},"links":{}},{"npcs":{},"notes":{"10,8":"Someone slept here. The dust kept their shape.","4,10":"\"it isn't hate. it's cleaning.\""},"links":{}},{"npcs":{},"notes":{"4,9":"Cold air seeps from somewhere.","8,6":"\"you are not alone\" - and under it, smaller: \"i was\"","8,4":"Someone slept here. The dust kept their shape."},"links":{}},{"npcs":{},"notes":{"0,6":"A handprint, low on the wall."},"links":{}},{"npcs":{},"notes":{"9,4":"\"WE ARE NOT DIRT\""},"links":{}},{"npcs":{},"notes":{"6,5":"Tally marks, hundreds of them. Then none."},"links":{}},{"npcs":{},"notes":{"0,3":"Tally marks, hundreds of them. Then none.","5,10":"A handprint, low on the wall."},"links":{}},{"npcs":{},"notes":{"2,0":"\"it isn't hate. it's cleaning.\"","8,0":"\"mama said wait here\""},"links":{}},{"npcs":{},"notes":{"5,5":"\"how many floors is that. how many\""},"links":{}},{"npcs":{},"notes":{"2,3":"Cold air seeps from somewhere.","6,4":"\"it was a sun. i swear it was a sun\""},"links":{}},{"npcs":{},"notes":{"1,0":"\"turn back\"","0,9":"\"how many floors is that. how many\""},"links":{}},{"npcs":{},"notes":{"3,2":"Cold air seeps from somewhere.","0,6":"\"don't count them. you won't stop\"","5,10":"A handprint, low on the wall."},"links":{"0,0":104}},{"npcs":{},"notes":{"7,4":"Cold air seeps from somewhere.","8,3":"\"remember your name\"","4,10":"\"still warm here\""},"links":{}},{"npcs":{},"notes":{"2,10":"\"WE ARE NOT DIRT\""},"links":{}},{"npcs":{"5,5":"brann4"},"notes":{"5,4":"\"hold on\"","0,10":"A name, scrubbed off. Only the scrubbing is left."},"links":{}},{"npcs":{},"notes":{"5,4":"Cold air seeps from somewhere.","10,3":"\"remember your name\"","0,0":"\"NOBODY IS COMING\""},"links":{}},{"npcs":{},"notes":{"5,6":"\"the hum is a song\""},"links":{}},{"npcs":{},"notes":{"3,10":"\"turn back\"","7,10":"A child's drawing: two lines. A little person, walking."},"links":{}},{"npcs":{},"notes":{"4,2":"\"don't count them. you won't stop\"","0,10":"A name, scrubbed off. Only the scrubbing is left."},"links":{}},{"npcs":{"4,6":"wanderer5"},"notes":{"0,2":"\"I was here. -T\"","5,4":"\"hold on\"","8,4":"\"hollow\""},"links":{}},{"npcs":{},"notes":{"0,4":"\"how many floors is that. how many\""},"links":{}},{"npcs":{},"notes":{"1,6":"\"still warm here\"","7,0":"\"you are not alone\" - and under it, smaller: \"i was\""},"links":{}},{"npcs":{},"notes":{"9,10":"\"you are not alone\" - and under it, smaller: \"i was\""},"links":{}},{"npcs":{},"notes":{"0,0":"\"WE ARE NOT DIRT\""},"links":{}},{"npcs":{},"notes":{"10,7":"\"up\"","2,6":"\"I was here. -T\""},"links":{}},{"npcs":{},"notes":{"2,5":"One panel here was never bolted down.","0,4":"A name, scrubbed off. Only the scrubbing is left."},"links":{}},{"npcs":{},"notes":{"9,6":"A handprint, low on the wall."},"links":{}},{"npcs":{},"notes":{"1,7":"\"it isn't hate. it's cleaning.\"","9,7":"\"you are not alone\" - and under it, smaller: \"i was\""},"links":{}},{"npcs":{},"notes":{"2,8":"\"Papa forgets my name on bad days. I leave it on his desk.\"","8,8":"A small blanket, folded very neatly."},"links":{"0,0":14}},{"npcs":{},"notes":{"2,6":"\"The white ones are in our ward. Don't make a sound.\"","8,6":"Scratched low on the wall: two lines, walking."},"links":{"5,0":32}},{"npcs":{},"notes":{"6,0":"Water marks, up to the ceiling. Then dry.","9,5":"\"I read you the one about the sun again. You like that one.\""},"links":{"10,0":47}},{"npcs":{},"notes":{"3,2":"\"The lamp in ward 9 still works. If you get cold, sit by it.\"","7,2":"A child's shoe. Just the one."},"links":{"0,0":65}},{"npcs":{},"notes":{"3,8":"\"If you are reading this, you are not me. That is all right.\"","7,10":"\"Thank you, whoever you are.\""},"links":{"0,0":83}}];
+const MAP_META = [{"npcs":{"5,1":"archivist1"},"notes":{"4,10":"\"one eye. it never blinks\""},"links":{}},{"npcs":{},"notes":{"0,5":"\"the loose wire moved. i swear it moved\""},"links":{}},{"npcs":{},"notes":{"0,9":"\"up\""},"links":{}},{"npcs":{"5,0":"brann1"},"notes":{"5,2":"\"the loose wire moved. i swear it moved\""},"links":{}},{"npcs":{},"notes":{"1,4":"\"hollow\"","2,3":"\"up\""},"links":{}},{"npcs":{"4,8":"tallyman1"},"notes":{"3,10":"A name, scrubbed off. Only the scrubbing is left."},"links":{}},{"npcs":{},"notes":{"10,7":"\"one eye. it never blinks\""},"links":{}},{"npcs":{},"notes":{"5,8":"Knuckle marks on the wall. Someone knocked, and knocked.","10,3":"\"the loose wire moved. i swear it moved\""},"links":{}},{"npcs":{"8,9":"wanderer1"},"notes":{"0,2":"\"WE ARE NOT DIRT\"","7,10":"A name, scrubbed off. Only the scrubbing is left."},"links":{}},{"npcs":{},"notes":{"7,0":"\"up\""},"links":{}},{"npcs":{},"notes":{"0,10":"\"the knot has hands\""},"links":{}},{"npcs":{"3,10":"tallyman2"},"notes":{"0,0":"\"don't sleep by the cables\"","10,4":"\"the tripod watched me all night\""},"links":{}},{"npcs":{"5,5":"archivist2"},"notes":{"6,10":"\"the knot has hands\""},"links":{}},{"npcs":{},"notes":{"0,10":"\"the knot has hands\""},"links":{}},{"npcs":{},"notes":{"4,1":"Cold air seeps from somewhere.","1,9":"\"i cut it in two. it came back as two\""},"links":{"0,0":100}},{"npcs":{"5,5":"ohm1"},"notes":{"7,10":"\"the knot has hands\""},"links":{}},{"npcs":{},"notes":{"5,2":"\"i cut it in two. it came back as two\""},"links":{}},{"npcs":{},"notes":{"0,1":"Cold air seeps from somewhere.","2,9":"\"the knot has hands\"","10,10":"\"still warm here\""},"links":{}},{"npcs":{},"notes":{"4,4":"\"the tripod watched me all night\""},"links":{}},{"npcs":{},"notes":{"1,10":"\"the knot has hands\""},"links":{}},{"npcs":{},"notes":{"0,5":"\"the drip stand followed me three wards\""},"links":{}},{"npcs":{"2,6":"pip1"},"notes":{"0,2":"\"it was a sun. i swear it was a sun\"","6,10":"\"my brother went glass. he says it doesn't hurt. he says it slowly\""},"links":{}},{"npcs":{},"notes":{"5,0":"\"the tall one corrects you. it says better. better. better.\""},"links":{}},{"npcs":{},"notes":{"0,0":"\"mama said wait here\"","10,10":"\"mama said wait here\""},"links":{}},{"npcs":{"0,8":"brann2"},"notes":{"0,2":"\"it was a sun. i swear it was a sun\""},"links":{}},{"npcs":{},"notes":{"5,0":"\"the tall one corrects you. it says better. better. better.\""},"links":{}},{"npcs":{"10,5":"wanderer2"},"notes":{"5,3":"\"still counting. -T\""},"links":{}},{"npcs":{},"notes":{"1,5":"\"my brother went glass. he says it doesn't hurt. he says it slowly\"","9,5":"\"it hums behind here\""},"links":{}},{"npcs":{},"notes":{"5,0":"\"the tall one corrects you. it says better. better. better.\""},"links":{}},{"npcs":{},"notes":{"0,10":"\"it was a sun. i swear it was a sun\""},"links":{}},{"npcs":{},"notes":{"5,5":"A rivet driven through a boot, into the floor. The boot is empty.","0,10":"\"the crane is carrying someone. it won't put him down\""},"links":{}},{"npcs":{},"notes":{"5,0":"\"forgive the Builders. they were told.\"","9,3":"\"hollow\""},"links":{}},{"npcs":{},"notes":{"4,5":"\"it hums behind here\"","6,5":"A rivet driven through a boot, into the floor. The boot is empty."},"links":{"6,10":101}},{"npcs":{},"notes":{"3,0":"\"the big ones have faces now. whose faces\""},"links":{}},{"npcs":{"0,0":"archivist3"},"notes":{"5,2":"\"the big ones have faces now. whose faces\"","9,4":"One panel here was never bolted down."},"links":{}},{"npcs":{},"notes":{"0,2":"\"why does the furnace walk\"","8,2":"\"why does the furnace walk\""},"links":{}},{"npcs":{"2,7":"pip2"},"notes":{"0,10":"\"the crane is carrying someone. it won't put him down\""},"links":{}},{"npcs":{},"notes":{"4,8":"\"hollow\"","0,8":"\"hold on\"","7,0":"\"the crane is carrying someone. it won't put him down\""},"links":{}},{"npcs":{},"notes":{"7,10":"\"the crane is carrying someone. it won't put him down\""},"links":{}},{"npcs":{},"notes":{"8,10":"\"the crane is carrying someone. it won't put him down\""},"links":{}},{"npcs":{},"notes":{"2,2":"\"something with many legs filed me and moved on\"","4,10":"\"the diver came up out of the black water and just looked at me\""},"links":{}},{"npcs":{},"notes":{"5,6":"\"shh\"","3,10":"One panel here was never bolted down."},"links":{}},{"npcs":{"8,2":"tallyman3"},"notes":{"10,10":"\"the screens remember people. that's all they do now\""},"links":{}},{"npcs":{"4,10":"wanderer3"},"notes":{"5,2":"\"something with many legs filed me and moved on\"","6,10":"\"the diver came up out of the black water and just looked at me\""},"links":{}},{"npcs":{"5,5":"archivist4"},"notes":{"2,0":"\"the screens remember people. that's all they do now\"","5,8":"\"the pages fly by themselves\""},"links":{}},{"npcs":{},"notes":{"5,2":"\"something with many legs filed me and moved on\"","2,10":"\"the diver came up out of the black water and just looked at me\""},"links":{}},{"npcs":{"2,2":"verity1"},"notes":{"9,10":"\"the screens remember people. that's all they do now\""},"links":{}},{"npcs":{},"notes":{"3,2":"Cold air seeps from somewhere.","4,6":"\"shh\""},"links":{"0,0":102}},{"npcs":{},"notes":{"0,10":"\"the diver came up out of the black water and just looked at me\""},"links":{}},{"npcs":{},"notes":{"3,10":"\"the diver came up out of the black water and just looked at me\""},"links":{}},{"npcs":{"4,1":"verity2"},"notes":{"5,4":"\"cover your ears. it doesn't help\""},"links":{}},{"npcs":{},"notes":{"4,3":"Knuckle marks on the wall. Someone knocked, and knocked.","10,4":"\"the hum is a song\"","2,0":"\"the hum is a song\""},"links":{}},{"npcs":{"6,0":"ohm2"},"notes":{"6,2":"\"i heard my voice come back. it wasn't mine anymore\"","4,10":"\"there is a face in the horn\""},"links":{}},{"npcs":{},"notes":{"0,8":"\"i heard my voice come back. it wasn't mine anymore\""},"links":{}},{"npcs":{"4,2":"verity3"},"notes":{"7,8":"\"it hums behind here\"","2,0":"\"there is a face in the horn\""},"links":{}},{"npcs":{},"notes":{"1,7":"\"singing floors. counting louder. -T\""},"links":{}},{"npcs":{},"notes":{"6,0":"\"the hum is a song\""},"links":{}},{"npcs":{"4,10":"brann3"},"notes":{"6,5":"\"singing floors. counting louder. -T\"","8,10":"One panel here was never bolted down."},"links":{}},{"npcs":{},"notes":{"5,0":"\"the hum is a song\""},"links":{}},{"npcs":{},"notes":{"3,10":"\"there is a face in the horn\""},"links":{}},{"npcs":{},"notes":{"2,6":"\"foam everywhere. under the foam, nothing\""},"links":{}},{"npcs":{},"notes":{"2,2":"Knuckle marks on the wall. Someone knocked, and knocked.","10,6":"\"the gate only opens one way\""},"links":{}},{"npcs":{},"notes":{"6,6":"\"the gate only opens one way\""},"links":{}},{"npcs":{"3,9":"broker3"},"notes":{"6,0":"\"they came for her in a cage. the cage flew\""},"links":{}},{"npcs":{"2,2":"tallyman4"},"notes":{"8,6":"Cold air seeps from somewhere.","10,4":"\"the gate only opens one way\"","4,7":"\"NOBODY IS COMING\""},"links":{}},{"npcs":{},"notes":{"8,0":"One panel here was never bolted down.","4,10":"\"waiting for a gap. -T\""},"links":{"0,0":103}},{"npcs":{},"notes":{"0,9":"\"something in the pod knocked back\""},"links":{}},{"npcs":{"4,8":"pip3"},"notes":{"5,2":"\"foam everywhere. under the foam, nothing\"","6,8":"\"it hums behind here\"","0,10":"\"they came for her in a cage. the cage flew\""},"links":{}},{"npcs":{},"notes":{"5,2":"\"foam everywhere. under the foam, nothing\""},"links":{}},{"npcs":{},"notes":{"0,10":"\"they came for her in a cage. the cage flew\""},"links":{}},{"npcs":{},"notes":{"5,5":"\"remember your name\""},"links":{}},{"npcs":{},"notes":{"8,2":"One panel here was never bolted down.","0,8":"\"don't count them. you won't stop\""},"links":{}},{"npcs":{"5,4":"wanderer4"},"notes":{"5,0":"\"the crows read one plaque each. then they leave\"","5,10":"\"the veiled ones stand at every plaque. none of them are ours\""},"links":{}},{"npcs":{},"notes":{"10,8":"\"T was here too. where did T go\"","4,10":"\"it crawled out of the ground and went back to work\""},"links":{}},{"npcs":{},"notes":{"4,9":"Cold air seeps from somewhere.","8,6":"Tally marks on a plaque, where the name should be.","8,4":"\"T was here too. where did T go\""},"links":{}},{"npcs":{},"notes":{"0,6":"Tally marks on a plaque, where the name should be."},"links":{}},{"npcs":{},"notes":{"9,4":"\"the crows read one plaque each. then they leave\""},"links":{}},{"npcs":{},"notes":{"6,5":"\"don't count them. you won't stop\""},"links":{}},{"npcs":{},"notes":{"0,3":"\"the crows read one plaque each. then they leave\"","5,10":"\"the veiled ones stand at every plaque. none of them are ours\""},"links":{}},{"npcs":{},"notes":{"2,0":"\"T was here too. where did T go\"","8,0":"\"remember your name\""},"links":{}},{"npcs":{},"notes":{"5,5":"Someone slept here. The dust kept their shape."},"links":{}},{"npcs":{},"notes":{"2,3":"Cold air seeps from somewhere.","6,4":"\"it had my coat. it had my walk. it had no face yet\""},"links":{}},{"npcs":{},"notes":{"1,0":"Tally marks, hundreds of them. Then none.","0,9":"\"the tall ones make no sound at all\""},"links":{}},{"npcs":{},"notes":{"3,2":"Cold air seeps from somewhere.","0,6":"\"it had my coat. it had my walk. it had no face yet\"","5,10":"\"the tall ones make no sound at all\""},"links":{"0,0":104}},{"npcs":{},"notes":{"7,4":"Cold air seeps from somewhere.","8,3":"\"you are not alone\" - and under it, smaller: \"i was\"","4,10":"Someone slept here. The dust kept their shape."},"links":{}},{"npcs":{},"notes":{"2,10":"\"how many floors is that. how many\""},"links":{}},{"npcs":{"5,5":"brann4"},"notes":{"5,4":"\"I was here. -T\" - and beside it, too neat: \"I was here. -T\"","0,10":"Tally marks, hundreds of them. Then none."},"links":{}},{"npcs":{"6,4":"tallymanCopy"},"notes":{"5,5":"One panel here was never bolted down.","1,10":"\"I was here. -T\" - and beside it, too neat: \"I was here. -T\"","10,6":"\"how many floors is that. how many\""},"links":{}},{"npcs":{},"notes":{"5,6":"\"you are not alone\" - and under it, smaller: \"i was\""},"links":{}},{"npcs":{},"notes":{"3,10":"\"I was here. -T\" - and beside it, too neat: \"I was here. -T\"","7,10":"\"how many floors is that. how many\""},"links":{}},{"npcs":{},"notes":{"4,2":"\"the wall was on fire and the fire was a grid\"","0,10":"\"the dog checks that you are still running\""},"links":{}},{"npcs":{"4,6":"wanderer5"},"notes":{"0,2":"\"the wall was on fire and the fire was a grid\"","5,4":"\"everything that stops gets collected\"","8,4":"\"hollow\""},"links":{}},{"npcs":{},"notes":{"0,4":"\"everything that stops gets collected\""},"links":{}},{"npcs":{},"notes":{"1,6":"\"it is so quiet up here\"","7,0":"\"count complete. -T\""},"links":{}},{"npcs":{},"notes":{"9,10":"\"count complete. -T\""},"links":{}},{"npcs":{},"notes":{"0,0":"\"the wall was on fire and the fire was a grid\""},"links":{}},{"npcs":{},"notes":{"10,7":"\"the dog checks that you are still running\"","2,6":"\"it is so quiet up here\""},"links":{}},{"npcs":{},"notes":{"2,5":"One panel here was never bolted down.","0,4":"\"the dog checks that you are still running\""},"links":{}},{"npcs":{},"notes":{"9,6":"\"count complete. -T\""},"links":{}},{"npcs":{},"notes":{"1,7":"\"it is so quiet up here\"","9,7":"\"it is so quiet up here\""},"links":{}},{"npcs":{},"notes":{"2,8":"\"Papa forgets my name on bad days. I leave it on his desk.\"","8,8":"A small blanket, folded very neatly."},"links":{"0,0":14}},{"npcs":{},"notes":{"2,6":"\"The white ones are in our ward. Don't make a sound.\"","8,6":"Scratched low on the wall: two lines, walking."},"links":{"5,0":32}},{"npcs":{},"notes":{"6,0":"Water marks, up to the ceiling. Then dry.","9,5":"\"I read you the one about the sun again. You like that one.\""},"links":{"10,0":47}},{"npcs":{},"notes":{"3,2":"\"The lamp in ward 9 still works. If you get cold, sit by it.\"","7,2":"A child's shoe. Just the one."},"links":{"0,0":65}},{"npcs":{},"notes":{"3,8":"\"If you are reading this, you are not me. That is all right.\"","7,10":"\"Thank you, whoever you are.\""},"links":{"0,0":83}}];
