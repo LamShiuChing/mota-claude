@@ -1,12 +1,63 @@
 # STRATUM: Design Doc & Handoff
 
-Handoff for the next session doing polish work. It covers what the game is, how it's built, every decision
-and reference gathered so far, what was verified, and what's still open.
+Handoff between sessions. It covers what the game is, how it's built, every decision and reference gathered so far,
+what was verified, and what's next. **Read §0 first.**
 
-- Repo: https://github.com/LamShiuChing/mota-claude (branch `main`, first commit `e335ce5`)
+- Repo: https://github.com/LamShiuChing/mota-claude (branch `main`)
 - Local path: `D:\魔塔` (Windows 11, PowerShell + Git Bash)
 - Owner: LamShiuChing
-- Play: open `index.html` in a browser (works from `file://`; fonts need internet)
+- Play: open `index.html` (works from `file://`; fonts need internet). Dev preview: `lab.html` (§5).
+
+---
+
+## 0. Next session: brief
+
+**Scope the user set for the next session** (session 3):
+1. **Story & lore polish**
+2. **Sound-effect polish** (nothing has ever been heard by a human; see §7)
+3. **Enemy sprite polish**, redirected toward **cyber-gore** (below)
+4. **Then: more mechanics for richer gameplay.** Discuss with the user first; §8 has candidate ideas.
+
+The user said "we will explore and discuss polish next session", so **propose and discuss before building**, especially
+for mechanics and art direction.
+
+### User's playtest feedback (end of session 2, verbatim intent)
+- Played **up to 27F**: "the game feels good."
+- "As we progress somehow feels a bit **hollow and repetitive**. Need something to **attract or push the player to
+  continue explore the game and story**."
+
+### Gore direction: correction from the user (important)
+> "the gore i mean is **cyber gore, psychologically**, not explicit blood gore etc. so the worm, nurse, etc should all be
+> related to **AI, computer and a kinda cyber thing**, or can just be a bit gore, like **half cyborg, failed experiment
+> to turn into robot**, etc. can use some **technical terms** to add a familiarity, like **transformer is for AI**, or some
+> terms idk, but need to fit."
+
+Session 2 overshot into literal blood. What's there now and needs redirecting:
+- **Palette** (`js/data.js` line ~11): `X` blood, `x` dried blood, `m`/`M` flesh, plus bone/bile/corpse/rust/oil letters.
+- **Sprites with the most blood/flesh pixels**: motherworm (106), drip (35), serpentT/serpent (~28), speaker (26),
+  surgeonBoss (20), janitor (17), surgeon/surgeonB (16), crane (16), sanitizer, warden, choirmother, specimen (12 each).
+  Also houndP ("bloody drool"), the crane's meat-hook carcass, the specimen jar fetus, blood-filled IV Drip.
+- **Death decals** (`js/game.js` ~1520): `OILY` / `bleed()` / `GORE` / `splat()`. Flesh monsters leave **red blood pools**.
+  Suggested direction: coolant/oil, sparks, burnt circuitry, dead-pixel glitch squares, spilled data (0/1), cable ends.
+- **Battle hit particles** (`landFx`) spray blood red for "flesh" monsters.
+- Suggested art direction: failed human→machine conversions (half-cyborg, grafted chassis, cables sewn into skin,
+  faces replaced by screens/lenses), glitch/corruption rather than wounds, uncanny rather than bloody, horror of being
+  *processed*. Psychological, not splatter.
+
+### Technical-term bank for names and lore (brainstorm; must fit the world, and use sparingly)
+Unverified brainstorm from general CS/ML vocabulary; check meanings before relying on a nuance.
+- **AI/ML:** transformer, attention head, token, embedding, latent space, weights, gradient, backprop(agation),
+  loss, overfitting, hallucination, checkpoint, fine-tune, dropout, epoch, inference, prompt, context window, seed.
+- **Systems:** kernel panic, segfault, null pointer, stack overflow, heap, memory leak, garbage collector, zombie process,
+  orphan process, daemon, fork bomb, deadlock, race condition, watchdog, bootloader, POST, firmware, cache miss.
+- **Data/storage:** bit rot, checksum, CRC, parity, RAID, sector, fragmentation, tombstone (deleted record), orphaned
+  inode, cold storage, backup, rollback, diff, merge conflict.
+- **Network:** handshake, packet loss, ping, TTL (time to live), timeout, 404, broadcast storm, loopback.
+- Already used in-game: Daemon, Garbage Collector, Kernel Bug, Firewall, Root, Sanitizer, Signature/countersign,
+  checksum-ish "reason field", Candidate Copy, Work Order #1.
+- Examples of fit: Mother Worm → something that *self-replicates* (worm = self-spreading malware); Nurse Unit →
+  a *fine-tuning* nurse "correcting" patients; the Choir → purged voices stuck in a *training set*; the Mirror → an
+  *overfit* copy; Silicate Husks → people *quantized* into glass; hallucination for the Silent Stratum.
 
 ---
 
@@ -15,22 +66,25 @@ and reference gathered so far, what was verified, and what's still open.
 **STRATUM** is a 100-floor tile tower RPG (魔塔 genre), modelled on **新新魔塔 (2005)**. Its UI and mechanics
 stay faithful to the original. The world, story, art and sound are original.
 
-- **World:** a BLAME!-style megastructure that machines never stopped building. Humans lost the
-  *Signature* (a genetic key to the Net). The city's immune system, the **Sanitizers**, purges
+- **World:** a BLAME!-style megastructure that machines never stopped building. Nobody has been issued a
+  *Signature* (the Net's countersign on a human) for ~1100 years. The city's immune system, the **Sanitizers**, purges
   anything without one.
-- **Player:** **Rho**, a silent wanderer. **LAMBDA** is an AI fragment in Rho's visor. They climb
-  Relay Tower 7's 100 strata to a Root Terminal so LAMBDA can forge a Signature.
+- **Player:** **Rho**, a silent wanderer. **LAMBDA** is an AI fragment in Rho's cracked visor. They climb
+  Relay Tower 7's 100 strata to the Root.
 - **Tone** (user's words): *hopeless + dark + warm*, inspired by Dark Souls and BLAME!. The world
   is cruel, with a few good moments.
-- **Language:** English UI and text (the user picked English).
+- **Delivery** (user's words): "no need hint, make it darksouls… player need to figure out everything… the story is
+  piece by piece, it will be revealed shattered, not linear."
+- **Language:** English UI and text.
 
 ### Story beats (all text in `js/world.js`: `STORY`, `LORE`, `NOTES`, `SECRET_HINTS`, `VAULT_NOTES`, `ITEM_LORE`)
-Souls-style delivery (user direction): **no tutorials, no hints, nobody explains**. The story comes in fragments,
-out of chronological order, from unreliable sources. Few words; silence is fine; LAMBDA talks less as it degrades.
+**No tutorials, no hints, nobody explains.** The only usage text allowed: the key list on H, and a one-line usage on
+the Scan firmware / Phase Compass banners (user asked for those). The story comes in fragments, out of chronological
+order, from unreliable sources. Few words; silence is fine; LAMBDA talks less as it degrades.
 
 | Floor | Beat |
 |---|---|
-| 1F | Two-line intro ("The Builders never stopped." LAMBDA: "Up."). The **Archivist** (a ghost that mistakes Rho for someone) gives an Amber keycard. No mechanics explained. |
+| 1F | Two-line intro ("The Builders never stopped." LAMBDA: "Up."). The **Archivist** (a ghost that mistakes Rho for someone) gives an Amber keycard. |
 | 2F | **Broker** and **Fabricator** (shop text is flavor only). |
 | 4F / 25F / 58F / 87F | **Brann** chases a "Sun". Found dead smiling at a heat lamp ("FOUND IT. ISN'T IT WARM."). Gives his Drill. His "B. WAS HERE. UP." marks trail between meetings (`LORE`). |
 | 13F / 35F / 45F | **Archivist**: wrote the Sanitizer firmware; forgets his daughter; finds his drowned body; "Tell the little walking man I'm sorry." |
@@ -38,10 +92,11 @@ out of chronological order, from unreliable sources. Few words; silence is fine;
 | 22F / 37F / 68F | **Pip** finds its mother: the nursery lullaby server. LAMBDA: "...I know that song." |
 | 9, 27, 44, 73, 92F | The **Stranger** (identity deliberately ambiguous; possibly the original Warden). |
 | 11, 21 … 91F, 95F | One short line (or narration) per zone entry (`ON_ENTER`). |
-| 10, 20 … 100F | Bosses: short intros; **dying lines recontextualize** earlier fragments (Janitor asks for a countersign; Surgeon's patients begged for glass; Foreman asks who "everyone" is; Gatekeeper and Heir mention a mother who never came down; Warden kept it clean "for her"). |
-| Most generated floors | **`LORE[floorNumber]`**: one authored fragment replaces that floor's first ordinary floor note (`readNote` in game.js). Other notes are random graffiti from `NOTES`; notes near fake walls are oblique whispers from `SECRET_HINTS`. |
-| Vaults | Each vault: two scraps in the girl's hand (`VAULT_NOTES`) + a **Memory Shard**. The shards are LAMBDA's memories in *found* order, not chronological. |
-| 100F | Ending A "Forge the Signature" (LAMBDA goes in; Rho sits in the chair). With all 5 shards a choice appears; "Walk away" gives Ending B (grey sky, small far sun). |
+| 10, 20 … 100F | Bosses: short intros; **dying lines recontextualize** earlier fragments. |
+| ~70 floors | **`LORE[floorNumber]`**: one authored fragment on that floor's first ordinary note (`readNote`). Other notes are graffiti (`NOTES`); notes near fake walls are oblique whispers (`SECRET_HINTS`). Notes auto-show once; after that E re-reads (dimmed note + E keycap over Rho). |
+| Items | Weapons, armor, Compass, Drill show one cryptic `ITEM_LORE` line in the ACQUIRED banner. |
+| Vaults | Two scraps in the girl's hand (`VAULT_NOTES`) + a **Memory Shard**: LAMBDA's memories in *found* order. |
+| 100F | Ending A "Forge the Signature". With all 5 shards a choice appears; "Walk away" gives Ending B (grey sky, small far sun). |
 
 ### Story bible (hidden truth; keep new content consistent, never state it outright in game)
 - **The Signature** is the Root's countersign on a human genome, given at birth by a *living human hand* in the Root
@@ -68,7 +123,7 @@ out of chronological order, from unreliable sources. Few words; silence is fine;
   "reason field" are unsuitable. "Two went in. One came out. The door did not record which." Whether Rho is the
   original is left open.
 - **Brann's Sun**: nurseries got "solar-substitute" heat lamps so no child grew up without a sun. Brann died at one.
-  The real sun exists (Ending B), small and far. The sky may be 10,000 strata up (Brann's map), so the climb out is long.
+  The real sun exists (Ending B), small and far. The sky may be 10,000 strata up (Brann's map).
 - **Pip's mother** is the nursery lullaby server ("hmmm-hm-hmmm"). The girl learned the song there, so LAMBDA knows it.
 - **Endings:** A: Rho is signed and sits in the chair as the new living Warden, so the cycle continues but a hand is there.
   B: they leave the chair empty and the city unchanged, and go see the sky.
@@ -76,19 +131,23 @@ out of chronological order, from unreliable sources. Few words; silence is fine;
   Fragment voices: H.'s firmware notes, OHM-7 carrier logs, Warden diary pages (older pages are found *higher*,
   the page she carried down is at 7F), candidate logs, registry and purge records, Brann's marks, and the girl.
 
-### Zones (`js/world.js` → `ZONES`)
-| # | Floors | Name | Music | Theme / enemy flavor |
-|---|---|---|---|---|
-| 1 | 1–10 | Dead Concrete | stratum | grey panels; Bug, Power Surge, Silicate Husk, Watch Drone, Sanitizer, Builder |
-| 2 | 11–20 | Cable Nave | nave | green, falling 0/1 data; Worm (corrupt), Sentry turret (field) |
-| 3 | 21–30 | Silicate Wards | ward | clinical blue; Crystal Hound (twin), Nurse Unit (corrupt) |
-| 4 | 31–40 | The Foundry | foundry | rust/embers; Furnace Turret, Crane Frame |
-| 5 | 41–50 | Drowned Archive | archive | deep blue bubbles; Data Wraith (pierce) |
-| 6 | 51–60 | Choir of Static | choir | purple; Static Choir / Arc Seraph (pierce) |
-| 7 | 61–70 | Quarantine | quarantine | red/white hazard; Enforcer, Hunter Hound |
-| 8 | 71–80 | Graveyard of Signatures | grave | grey-green ash; Signed Ghost, Mourner |
-| 9 | 81–90 | Silent Stratum | silent | near black; Void Wisp, Faceless |
-| 10 | 91–100 | The Root | core | red + cyan; Daemon, Garbage Collector |
+### Zones, rosters, gear (`js/world.js` → `ZONES`)
+Abilities: swift = strikes first, double = attacks twice, pierce = ignores DEF, corrupt = poison, aura = hurts when adjacent.
+
+| # | Floors | Zone | Weapon / Armor | Tiers 1–6 | Boss |
+|---|---|---|---|---|---|
+| 1 | 1–10 | Dead Concrete | Rebar Machete / Faraday Vest | Bug, Power Surge (swift), Silicate Husk, Watch Drone (swift), Sanitizer, Builder | The Janitor |
+| 2 | 11–20 | Cable Nave | Arc Cleaver / Cable Mesh | Cable Leech, Worm (corrupt), Spark Drone (swift), Tangle, Sentry (aura), Sanitizer Mk.II | Mother Worm |
+| 3 | 21–30 | Silicate Wards | Scalpel Edge / Ceramic Plate | IV Drip, Silicate Patient (corrupt), Orderly, Needle Drone (swift), Crystal Hound (double), Nurse Unit (corrupt) | The Surgeon |
+| 4 | 31–40 | The Foundry | Rivet Greatsword / Slag Armor | Slag Crawler, Welder Drone (swift), Rivet Crab (double), Walking Furnace (aura), Builder Mk.II, Crane Frame | The Foreman |
+| 5 | 41–50 | Drowned Archive | Index Rapier / Archive Cloak | Data Wraith (pierce), Index Hound (double), Archive Worm (corrupt), Drowned Diver (corrupt), Page Moth (swift), Lantern Reader | The Librarian |
+| 6 | 51–60 | Choir of Static | Resonance Blade / Choir Shroud | Static Choir (pierce), Arc Seraph (swift, pierce), Surge Wisp (swift), Hymn Horn (aura), Bell Knight (double), Echo (pierce) | The Choir Mother |
+| 7 | 61–70 | Quarantine | Purge Saber / Quarantine Suit | Specimen, Sanitizer Mk.III, Containment Cage (swift), Purge Sprayer (aura), Enforcer (double), Hunter Hound (swift, double) | The Gatekeeper |
+| 8 | 71–80 | Graveyard of Signatures | Grave Scythe / Mourning Coat | Signed Ghost (pierce), Hollow Citizen (corrupt), Grave Worm (corrupt), Mourner (pierce), Tombkeeper (double), Obituary Crow (swift) | The Last Heir |
+| 9 | 81–90 | Silent Stratum | Null Edge / Silence Weave | Lacuna, Void Wisp (swift, pierce), Dust Husk, Stilt Stalker (swift, double), Monolith (aura), Faceless | The Mirror |
+| 10 | 91–100 | The Root | Root Brand / Kernel Plate | Kernel Bug, Daemon (pierce), Root Sanitizer, Firewall (aura), Root Hound (swift, double), Garbage Collector | WARDEN//ROOT |
+
+Every boss has unique art; ≤2 tiers per zone reuse an older base sprite with a palette swap.
 
 ---
 
@@ -121,22 +180,35 @@ out of chronological order, from unreliable sources. Few words; silence is fine;
      - https://truth.bahamut.com.tw/s01/202310/811684e85f5747ed7d2b8f20a5368d8f.JPG (地下 7F: 「取得 隨意門,按'T'使用」; a red blood splatter decal on the floor)
      - https://truth.bahamut.com.tw/s01/202310/a3988878771a32ed7fba1019cdc64ac2.JPG (地下 25F final area, princess)
      - Not yet viewed: …/39844e4edbdfe61aa7e2d0193b321598.JPG, …/81092fc7cf2dfa01e9c82acfba68d94f.JPG, …/b4253ff8c6ad94e7f53d4b378e9aad21.JPG (same folder)
-5. **User direction during the session** (in order):
-   - "Faithful juice, sound and effect"
-   - A 3-floor prototype first
-   - 新新-style random combat
-   - English UI
+5. **User direction, session 1** (in order):
+   - "Faithful juice, sound and effect"; a 3-floor prototype first; 新新-style random combat; English UI
    - "Create your own universe… the game mechanic, overall style, UI can be faithful"
-   - Then: "AI and computer… cyber tech fantasy, like BLAME!"
-   - "UI more faithful to 新新魔塔"
-   - "No need to show the HP for monster… a skill… buy from NPC"
-   - "Battle UI should show all the stats, two icon frames, square"
+   - "AI and computer… cyber tech fantasy, like BLAME!"; "UI more faithful to 新新魔塔"
+   - "No need to show the HP for monster… a skill… buy from NPC"; "Battle UI should show all the stats, two icon frames, square"
    - "Full cyber, the potion is not matching the theme… real-world terms (computer components)"
-   - Asked whether original audio/PNG could be downloaded (see §6)
-   - Chose "Mix: CC0 SFX + own art" and "Original 2005" layout
+   - Asked whether original audio/PNG could be downloaded (see §6); chose "Mix: CC0 SFX + own art" and "Original 2005" layout
    - "Loop yourself… full game (100+ levels)… hidden paths, NPCs, dialogue… Dark Souls + BLAME!… hopeless + dark + warm"
+6. **User direction, session 2** (in order):
+   - Idle animation: "more variation, apart from blobbing up and down. maybe flip the sprite or add other animation"
+   - Tiles: "more pixel art like, and more minimalist… easy to understand, like the key, the door… variation on stair
+     according to their facing side… handle all cases beautifully"
+   - Attacks: "for player, make it more special and epic… changed… if they acquire different weapon. for enemy, add
+     different attack effect too"
+   - "no need hint, make it darksouls… player need to figure out everything… story… revealed shattered, not linear"
+   - "add more enemies"; "add more level" → clarified as **hand-craft more floors** (keep 100)
+   - "the sprites (character) are still too cute. need to be more cyber dark, gore" → later corrected to **cyber/psychological
+     gore, not blood** (§0)
+   - "move once cell when I press once"; arrive **on** the stair tile; take items **without stepping onto them**
+   - Notes: don't re-show every time; **E to re-read**, with a small E tooltip
+   - "some floor should not be reach with compass, by design… abandon level" → boss floors, lore floors, floors with hidden passages
+   - When acquiring Scan / Compass, show what they do
+   - Weapon pickup looked like a sword but attacks didn't read as changing → **all weapons are blades**
+   - Enemy (and then player) attacks: **no ray/projectile lines**, "just the effect"; **no charge/recoil**; "the whole square
+     can stay untouched… the character or enemy can have impact effect but not the whole icon frame cell"
+   - A separate dev page to preview effects → `lab.html`
+   - Playtest to 27F: feels good; later "hollow and repetitive" (§0)
 
-### What research turned up
+### What research turned up (session 1; no new web research in session 2)
 - **Original 2005 layout** (from the Bahamut screenshots):
   - The whole screen is a patterned lavender stone backdrop.
   - **Left status panel:** portrait at top-left, `狀態:` with a rounded box showing `正常`, then rows 等級 / 體力 / 攻擊力 / 防禦力 / 敏捷 / 經驗值 with **italic values right-aligned**.
@@ -147,34 +219,41 @@ out of chronological order, from unreliable sources. Few words; silence is fine;
   - **Item pickup:** a full-width center banner `取得 xxx … -Enter-` that waits for Enter.
   - Palette: panels are dark cobblestone with a cyan (#1ea4d4-ish) border; walls light grey stone, floors dark cobble.
 - **新新魔塔2 layout** (Bing image search results: 9game, ZOL, pcsoft, bilibili, zhihu, 3dmgame): a top status bar with icon rows. **Not used**; the user picked the 2005 layout.
-- Original mechanics worth borrowing later:
-  - the monster book is an item given on 5F
-  - feather flight (F key)
-  - the 隨意門 "anywhere door" (T key)
-  - old men teaching skills (e.g. reflect damage)
-  - blood decal where monsters die
-  - floor naming 主塔 / 地下 / 神秘樓
+- Original mechanics worth borrowing (status now):
+  - monster book item (done: Scan firmware from the Broker)
+  - feather flight, F key (done: Phase Compass, with ABANDONED floors)
+  - blood decal where monsters die (done, but must become cyber-gore, §0)
+  - the 隨意門 "anywhere door" (T key): **not done**
+  - old men teaching skills (e.g. reflect damage): **not done**
+  - floor naming 主塔 / 地下 / 神秘樓, hidden mystery-floor chain: **not done**
 - **Kenney assets are CC0:** https://kenney.nl/support ("all game assets on the asset pages are public domain licensed (CC0)… even in commercial projects… Attribution is not required").
   - Sci-fi Sounds: https://kenney.nl/assets/sci-fi-sounds (zip: https://kenney.nl/media/pages/assets/sci-fi-sounds/6b296f9ecf-1677589334/kenney_sci-fi-sounds.zip)
   - Interface Sounds: https://kenney.nl/assets/interface-sounds (zip: https://kenney.nl/media/pages/assets/interface-sounds/fa43c1dd4d-1677589452/kenney_interface-sounds.zip)
   - License text copied to `assets/LICENSE-kenney.txt`.
+  - For SFX polish: other Kenney audio packs and OpenGameArt (filter by CC0) are candidates; **verify each license page** before use.
+- **Inspiration list** (for tone only; never copy): BLAME!, Biomega, NOiSE, Knights of Sidonia (Tsutomu Nihei);
+  Dark Souls item-description lore; Hollow Knight; Signalis; SOMA; NieR:Automata; Serial Experiments Lain; Ghost in the Shell.
+  (From memory, not researched this session.)
 
 ---
 
 ## 3. Architecture
 
-Plain browser JS with no build step or modules, so it works from `file://`. Scripts load in this order (`index.html`):
+Plain browser JS with no build step or modules, so it works from `file://`. Scripts load in this order (`index.html`,
+and `lab.html` loads the same list):
 
 | File | Role |
 |---|---|
-| `js/data.js` | Core rules: `PAL` palette, `SPRITES` (16×16 char art, auto-outlined), `VARIANTS` (palette swaps), `ITEMS` kinds, `DOORS`, `ABILITIES`, `hitChances`, **`battleCost`** (the single luck-aware damage formula, shared by the Scan screen and the calibrator), `HERO_START`, `expToNext`, `levelGain`, `fabricatorCost`. `heroDw`/`heroUw`/`heroRw` = Rho holding a blade |
-| `js/world.js` | Content: `ZONES` (theme, music, gear names, 6-tier roster + boss with abilities/swaps/dialog keys), hand-made maps (`MAP_1F`/`2F`/`3F`, `AUTHORED` = 60 authored floors keyed by floor number, `VAULT_MAPS[5]`), `FLOOR_PLAN` (per-floor specials; `.map` = authored layout), `VAULTS`, `ON_ENTER`, `NPCS`, `PORTRAITS`, `NOTES`, `SECRET_HINTS`, `STORY`, `zoneMonster()` |
+| `js/data.js` | Core rules: `PAL` palette, `SPRITES` (16×16 char art, auto-outlined; idle frames sit right after their base, e.g. `miteB`, `sanitizerL`), `VARIANTS` (palette swaps), `ITEMS` kinds, `DOORS`, `ABILITIES`, `hitChances`, **`battleCost`** (the single luck-aware damage formula, shared by the Scan screen and the calibrator), `HERO_START`, `expToNext`, `levelGain`, `fabricatorCost`. `heroDw`/`heroUw`/`heroRw` = Rho holding a blade. Newer monster sprites are in the `Object.assign(SPRITES, …)` block at the end |
+| `js/world.js` | Content: `ZONES` (theme, music, gear names, 6-tier roster + boss with abilities/swaps/dialog keys), hand-made maps (`MAP_1F`/`2F`/`3F`, `AUTHORED` = 60 authored floors keyed by floor number, `VAULT_MAPS[5]`), `FLOOR_PLAN` (per-floor specials; `.map` = authored layout), `ABANDONED`, `VAULTS`, `ON_ENTER`, `NPCS`, `PORTRAITS`, `NOTES`, `SECRET_HINTS`, `LORE`, `ITEM_LORE`, `STORY`, `zoneMonster()` |
 | `js/maps.js` | **Generated** by `tools/genmaps.js`: `MAPS[105]` (100 main + 5 vaults) and `MAP_META` (npcs / notes / vault links per floor) |
 | `js/balance.js` | **Generated** by `tools/calibrate.js`: `BALANCE[zone]` = monster stats per tier, item values, poison, shop, broker prices |
 | `js/music.js` | `MUSIC` score: 14 tracks as 8-bar eighth-note strings (`C#5`, `-` hold, `.` rest), optional `wave`, `hat` |
 | `js/samples.js` | 12 Kenney CC0 sound effects as base64 (embedded so `file://` works) |
-| `js/audio.js` | `Sound`: WebAudio synth SFX with sample fallback, and a music sequencer |
-| `js/game.js` | Engine: state, input, movement, combat, UI, rendering. Art/FX tables: `IDLE`/`IDLE_STYLES`/`idlePose` (per-sprite map idle animation), `WEAPON_FX`/`BARE_FX` (player attack per `G.weapon`), `BLADE_TINT`/`heroSprite` (Rho's blade by tier), `ENEMY_FX`/`enemyFx` (enemy attack by sprite → ability → default), `stairFacing`/`stairSprite`, `OILY`/`splat` (death decals) |
+| `js/audio.js` | `Sound`: WebAudio synth SFX with sample fallback (incl. `whoosh`, `laser`, `zap`, `thud`, `beam`, `chime`), and a music sequencer |
+| `js/game.js` | Engine: state, input, movement, combat, UI, rendering. Art/FX tables: `IDLE`/`IDLE_STYLES`/`idlePose`/`drawIdle` (per-sprite map idle), `WEAPON_FX`/`BARE_FX` (player attack per `G.weapon`), `BLADE_TINT`/`heroSprite` (Rho's blade by tier), `ENEMY_FX`/`enemyFx` (enemy attack by sprite → alias list → ability → default), `stairFacing`/`stairSprite`, `OILY`/`bleed`/`splat` (death decals), `drawKeyTip` |
+| `lab.html` | Dev page (§5) |
+| `tools/` | `genmaps.js`, `calibrate.js`, `checkmaps.js`, `playbot.js`, `load.js`, `seeds.json` (§4) |
 
 ### Map tokens (zone-relative)
 `#` wall · `.` floor · `%` fake wall (looks like a wall, bump to reveal) · `U`/`D` stairs · `^` vault stairs ·
@@ -186,141 +265,198 @@ Item and monster numbers come from `BALANCE[zone]`, so the same map token scales
 ### Engine notes (`js/game.js`)
 - Logical canvas **576×432** (4:3). Map origin `MX=192, MY=48`, 11×11 tiles of 32 px. Left panels start at x=24.
   The canvas scale snaps to half-steps of device pixels.
-- Modal UI types: `dialog | banner | battle | shop | book | help | fade | goal | fly | choice`.
+- Modal UI types: `dialog | banner | battle | shop | book | help | fade | goal | fly | choice`. `banner(text, color, label, then, lore, use)`.
 - Combat: the hero swings first unless the monster is `swift`. Per swing: miss/crit come from `hitChances` (CRIT% ×2, each AGI point of
   advantage adds 3% dodge, clamped 2–40%), damage is ±10%. `double` = two attacks per turn, `pierce` ignores DEF,
   `surge` = every 3rd hit ×2 (bosses), `corrupt` = poison for 60 steps (refreshed on re-infection, auto-cured by stored
   antivirus, never kills: minimum 1 HP), `aura` = damage when you step next to it (minimum 1 HP).
-- Save: `localStorage['stratum-save-v3']` holds the whole `G` state (maps included). `G.weapon` (zone index of best weapon, -1 = none) and
-  `G.decals[floor]` were added later; `load()` back-fills both for old saves.
-- Battle FX: every attack plays on the target portrait only (no projectiles or beams across the gap, no lunge).
-  The 48px portrait frames never move or get filled: only the sprite inside is knocked back/shaken (`b.sh`), flashed
-  white, or tinted (`fxFrame` = sprite silhouette). Box washes use `boxFill`/`fxOutside`, which cut the frames out.
-- Weapons are melee blades (`ZONES[z].gear.w`, Rebar Machete → Root Brand). Each tier has its own shape in `WEAPON_FX`
-  (`fxSlit` straight cuts, `fxArc` curved sweeps): bare jab, diagonal hack, flat electric cleave, bleeding X, falling
-  greatsword + shockwave, rapier thrust flurry, full-circle ring, burning Z, huge scythe hook, box-wide void tear, λ cut +
-  light pillar. Owning a weapon swaps Rho's gun arm for a blade tinted by tier (map, status panel and battle portrait).
-- New sprites just work: unknown sprite names fall back to the `breathe` idle and to an ability-based (or default) attack effect.
-  To give one a specific look, add it to `IDLE` or to the alias list after `ENEMY_FX`.
-- Keys: arrows, Enter/Space/Z, Q retreat, E re-read note, M scan (needs firmware), F Phase Compass, S/L, N mute, R twice restart, H help.
-  The touch pad appears on `(pointer: coarse)`.
+- Save: `localStorage['stratum-save-v3']` holds the whole `G` state (maps included). Fields added in session 2:
+  `G.weapon` (zone index of best weapon, -1 = none), `G.decals[floor]`, `G.read` (read notes); `load()` back-fills all three.
+  **Saves from before session 2 carry old maps; start a new game.**
 - Movement: one cell per key press (held keys only step again via OS key-repeat, and only when idle). Items are taken
   from the adjacent cell without moving. Changing floor puts the hero on the arrival stair tile itself.
-- Notes: shown automatically only the first time (`G.read`, keyed `floor:x,y`); after that they're dimmed and
-  E re-reads the note you're standing on.
-- `ABANDONED` (world.js): floors the Phase Compass can't reach (boss floors, vault-entrance floors, 45F/68F/87F), shown as
-  NO SIGNAL on the jump screen. The calibrator and playbot only phase back to shops on reachable floors.
-- Scan firmware and the Phase Compass banners carry a one-line usage (`use` arg of `banner`).
+- Notes: shown automatically only the first time (`G.read`, keyed `floor:x,y`); after that they're dimmed, an E keycap
+  shows over Rho when standing on one, and E re-reads it.
+- `ABANDONED` (world.js): floors the Phase Compass can't reach (boss floors 10…100, vault-entrance floors 15/33/48/66/84,
+  and 45F/68F/87F). Shown as `-- NO SIGNAL --` on the jump screen; Enter is refused. The calibrator and playbot only
+  phase back to shops on reachable floors.
+- Map idle: every monster/NPC has a style keyed by base sprite name (skitter, hover, glitch, shamble, stance, slither,
+  stomp, sentry, pant, dread, breathe, hop); creatures face Rho and glance away; bosses are slower with a red pulse.
+  Unknown sprites default to `breathe`.
+- Battle FX: every attack plays on the target portrait only (no projectiles or beams across the gap, no lunge/recoil).
+  The 48px portrait frames never move or get filled: only the sprite inside is knocked back/shaken (`b.sh`), flashed
+  white, or tinted (`fxFrame` = sprite silhouette). Box washes use `boxFill`/`fxOutside`, which cut the frames out.
+  Crits: hit-stop, white box flash (frames excluded), speed lines, 1.5× size.
+- Weapons are melee blades. Each tier has its own shape in `WEAPON_FX` (`fxSlit` straight cuts, `fxArc` curved sweeps):
+  bare jab, diagonal hack, flat electric cleave, bleeding X, falling greatsword + shockwave, rapier thrust flurry,
+  full-circle ring, burning Z, huge scythe hook, void tear, λ cut + light pillar. Owning a weapon swaps Rho's gun arm
+  for a blade tinted by tier (map, status panel and battle portrait). The Mirror boss copies Rho's current blade.
+- Enemy FX (`ENEMY_FX`): bite, zap crackle, slam + floor ring, purge splash, lash, falling slab, lock + burn, hit burst,
+  claws, static, scalpel X, sound rings, cleave, light pillar (WARDEN); ability fallbacks for pierce/corrupt/double/
+  surge/swift; newer sprites alias a base in the list after `ENEMY_FX`.
+- Keys: arrows, Enter/Space/Z, Q retreat, E re-read note, M scan (needs firmware), F Phase Compass, S/L, N mute, R twice restart, H help.
+  The touch pad appears on `(pointer: coarse)`.
 
 ---
 
 ## 4. Content pipeline & balance model
 
 ```
-node tools/genmaps.js     # js/maps.js from world.js (FLOOR_PLAN); per-floor seed overrides in tools/seeds.json
+node tools/genmaps.js     # js/maps.js from world.js (FLOOR_PLAN + AUTHORED); per-floor seed overrides in tools/seeds.json
 node tools/calibrate.js   # js/balance.js; must end with "balanced: all 10 zones cleared"
 TRACE=1 node tools/calibrate.js   # prints every simulated fight
 node tools/checkmaps.js [--all] [floor…]   # validates tokens, stair rules, specials, lore notes, key-order softlocks
 ```
 `tools/load.js` loads the browser scripts into one Node `vm` context, so the tools use exactly the game's data and formulas.
 
-**Generator** (`tools/genmaps.js`):
+**Authored floors:** `AUTHORED[floorNumber]` = an 11-row map; one line after `FLOOR_PLAN` applies it as `.map`.
+The floor's `FLOOR_PLAN` entry still decides its NPC (→ the map's `O`), vault link (→ `^`) and required specials.
+Authored: 4, 9–17, 19–33, 35, 37, 39–42, 44–46, 48–51, 53, 58–60, 64, 66, 68–71, 73, 79–81, 84, 87, 89–92, 99, 100,
+plus 1F–3F (`MAP_1F/2F/3F`) and the 5 `VAULT_MAPS`. Every authored main floor needs at least one ordinary `n` (its `LORE`
+fragment lands there). `checkmaps` enforces it and brute-forces every shutter-opening order for softlocks.
+
+**Generator** (`tools/genmaps.js`), for the remaining 37 floors:
 - Recursive division: walls on odd lines, doorway gaps on even cells, rooms with even bounds.
-- Down stairs go in a roomy region, up stairs in the farthest region. Stairs only go on room corners or corridor
-  dead ends away from doorways, because stairs trigger on touch; there was a bug here once.
-- Gaps on the main path get guard monsters or Amber shutters, and the keys for main-path shutters are placed where
-  you can reach them without opening any door. Side gaps get shutters (Y/B/R), guards, or stay open.
-- Secret rooms are dead-end regions sealed with `%`, holding loot, a hint note outside, and vault stairs where the plan
-  asks for them.
-- Specials are placed per `FLOOR_PLAN` (shops, gear, compass, NPCs). Monster tiers rise with the floor's position in its zone.
+- Down stairs go in a roomy region, up stairs in the farthest region, only on room corners or corridor dead ends.
+- Gaps on the main path get guard monsters or Amber shutters; main-path keys are reachable without opening any door.
+- Secret rooms are dead-end regions sealed with `%`, holding loot and a whisper note outside.
+- Monster tiers rise with the floor's position in its zone.
 
 **Calibrator** (`tools/calibrate.js`):
 - Works zone by zone from the hero's simulated state at the zone's start.
 - Each tier has targets (`TIERS`: swings to kill, DEF as a share of hero ATK, fight cost as a share of HP, and the
   floor it's tuned for). A binary search sets each monster's **ATK** so the luck-aware `battleCost` hits that target exactly.
-- The simulated player is realistic: it climbs floor by floor, takes cheap fights, prefers doors toward the stairs,
-  skips costly optional fights once the stairs are reachable, and only backtracks to spend credits at a Fabricator
-  or buy a key from a Broker.
-- Growth rates go through a fixed-point loop: simulate, measure growth, re-tune, repeat. If the simulated player gets
-  stuck, it backs off.
-- Bosses are tuned when first reached, against a reference hero with `BOSS_MARGIN` (85% HP, 95% ATK), so they cost
-  `BOSS.f` (45%) of that reference.
+- The simulated player climbs floor by floor, takes cheap fights, prefers doors toward the stairs, skips costly optional
+  fights once the stairs are reachable, and only backtracks (by compass, reachable floors only) to a Fabricator or Broker.
+- Bosses are tuned against a reference hero with `BOSS_MARGIN` (85% HP, 95% ATK), so they cost `BOSS.f` of that reference.
 - Secret rooms, vaults and NPC gifts are **not** in the simulation, so they are pure bonus.
 
-**Last verified numbers** (calibrator, realistic player):
+**Last verified numbers** (end of session 2, calibrator, realistic player):
 ```
-zone  1 hp 1000->3441  atk 10->41     zone  6 hp 3438->3667   atk 246->392
-zone  2 hp 3441->1690  atk 41->72     zone  7 hp 3667->7008   atk 392->592
-zone  3 hp 1690->2264  atk 72->104    zone  8 hp 7008->9980   atk 592->912
-zone  4 hp 2264->2353  atk 104->151   zone  9 hp 9980->27606  atk 912->1469
-zone  5 hp 2353->3438  atk 151->246   zone 10 hp 27606->62815 atk 1469->2381
-bosses cost 30–36% of HP; "balanced: all 10 zones cleared"
+zone  1 hp 1000->2897   atk 10->46      zone  6 hp 4228->10058  atk 342->541
+zone  2 hp 2897->3027   atk 46->80      zone  7 hp 10058->12368 atk 541->826
+zone  3 hp 3027->6994   atk 80->128     zone  8 hp 12368->22746 atk 826->1339
+zone  4 hp 6994->4559   atk 128->210    zone  9 hp 22746->25729 atk 1339->2117
+zone  5 hp 4559->4228   atk 210->342    zone 10 hp 25729->19145 atk 2117->3425
+bosses cost 31–36% of the reference HP; "balanced: all 10 zones cleared"; ~10k gold unspent at the end
 ```
-**In-engine bot** (`tools/playbot.js`, real game code with random combat) cleared **all 100 floors and WARDEN//ROOT**:
-1,193 kills, HP about 3.4k at 10F → 152k at 100F. The bot does better than the calibrator, so the game leans slightly easy for competent players.
+**In-engine bot** (`tools/playbot.js`, real engine, random combat, fresh page per run): after all session-2 merges it won
+7/8, then 4/4 and 2/2 after later fixes. Wins end with WARDEN//ROOT dead (`G.flags.boss99`); the bot can't walk to `L`, so its
+log ends "STUCK F100". The one loss stalled on 94F with no Cyan key and low HP. Typical run: ~1,120 kills, lowest HP between
+floors ~800–1,250, 20k–70k HP at the end.
 
 ---
 
 ## 5. Verification & testing tips
 
-- Serve locally for browser tests: `python -m http.server 8765 --bind 127.0.0.1` from the repo root.
-- Playwright MCP screenshots may only be saved under `D:\魔塔\.playwright-mcp` (delete it afterwards; it's not committed).
-- **Background tabs throttle `requestAnimationFrame`**, so fades and battles crawl in automation. Step the loop manually:
+- Serve locally: `python -m http.server 8765 --bind 127.0.0.1` from the repo root.
+- **Dev lab: `lab.html`** runs the real engine with a side panel:
+  - Rho's weapon tier and any of the 70 enemies
+  - forced outcome (hit, crit, miss, block)
+  - single swings (buttons or A / D) or auto-loop
+  - slow motion (0.05×–2×) and fast mode
+  - floor jump to any floor or vault
+  - idle gallery of every character
+  - sound toggle
+
+  Battles never end in the lab. It wraps `update`, `roll`, `updateBattle`, `render` and `resize` from outside, so game code needs no hooks.
+- **Headless verification that worked well** (session 2): Python `playwright` with your own Chromium and a private server port.
+  The Playwright MCP browser is shared between parallel agents, and they clobbered each other's tabs.
+- **Background tabs throttle `requestAnimationFrame`**, so step the loop manually in automation:
   `for (let i = 0; i < 40; i++) update(0.05); render();`
-- Top-level `let/const` in the scripts are reachable from `page.evaluate` (e.g. `G`, `ui`, `newGame()`, `changeFloor(f, 'D')`,
-  `tryMove(dx, dy, dir)`, `monsterAt(ch)`, `battleCost(G, m)`).
+- Top-level `let/const` are reachable from `page.evaluate` (e.g. `G`, `ui`, `newGame()`, `changeFloor(f, 'D')`,
+  `tryMove(dx, dy, dir)`, `monsterAt(ch)`, `battleCost(G, m)`, `startBattle(x, y, ch)`, `pickUp(ch, x, y)`).
 - Smoke test: `eval(await (await fetch('/tools/playbot.js')).text()); newGame(); await playbot(100)`.
-- **Dev lab: `lab.html`** (serve the repo, open `/lab.html`) runs the real engine with a side panel: pick Rho's weapon
-  tier and any enemy, force the swing outcome (hit/crit/miss/block), fire single swings (A / D) or auto-loop, slow motion,
-  fast mode, jump to any floor, and an idle-animation gallery of every character. It wraps `update`, `roll`,
-  `updateBattle`, `render` and `resize` from outside, so game code needs no lab hooks.
-- Mechanics individually verified: fake walls, notes, vault stairs both ways, shard pickup + dialog, Phase Compass,
-  NPC gifts/leave, corruption, field damage, twin attacks, Scan screen, Broker/Fabricator, boss intro/outro, both endings, save/load, death screen.
+- Console cheats for playtesting: `G.hp=1e6; G.atk=G.def=1e5; G.weapon=9; changeFloor(89,'D')` (floor index = floor − 1).
+  Floors reached this way are not in `G.visited`, so the compass won't list them.
+- Mechanics verified in session 2: one step per press (incl. OS key-repeat mid-move), item pickup from the adjacent cell,
+  arrival on stairs, re-entering stairs, note re-read + E keycap, save/load of `read`/`decals`/`weapon`, ABANDONED jump refusal,
+  Scan/Compass usage banners, every weapon tier and enemy FX (contact sheets), full bot runs.
 
 ---
 
 ## 6. Decisions & constraints
 
-- **No ripped 新新魔塔 assets.** The user asked about downloading the original PNG/audio. We declined because it's
-  unlicensed third-party work (partly taken from older games itself) and doesn't fit the cyber theme anyway. The user
-  accepted. Use **CC0 only** (Kenney, or OpenGameArt filtered to CC0).
-- Art is procedural and hand-drawn 16×16 character-grid sprites with an automatic dark outline and palette swaps. Maps are original.
-- Monster stats are hidden until the player buys **Scan firmware** (20 CR) from the Broker (2F). No damage numbers are shown on the map.
-- Retreat (Q) in battle restores nothing: the monster keeps full HP. This is borrowed from the remake.
-- Earlier iterations, now replaced: "PHAROS: The Drowned Lighthouse" (sea/lighthouse theme), then a 3-floor
-  STRATUM prototype with the sidebar UI. The prototype's balance is gone.
+- **No ripped 新新魔塔 assets.** The user asked about downloading the original PNG/audio; declined (unlicensed third-party
+  work, doesn't fit the theme). Use **CC0 only** (Kenney, or OpenGameArt filtered to CC0).
+- Art is procedural and hand-drawn 16×16 character-grid sprites with an automatic dark outline and palette swaps.
+- Monster stats are hidden until the player buys **Scan firmware** from the Broker (2F). No damage numbers on the map.
+- Retreat (Q) in battle restores nothing: the monster keeps full HP.
+- **Souls-style:** no tutorials or hints; only the H key list and the Scan/Compass one-line usage.
+- **Gore = cyber/psychological** (session 2 correction), not literal blood. See §0.
+- **Battle presentation:** melee only, effects on the target portrait, frames never move or fill, no lunge/recoil.
+- **Weapons are blades** (the pickup sprite is a sword; names were changed from guns to match).
+- **Abandoned floors** are deliberate (user design): compass can't reach boss, lore and hidden-passage floors.
+- Movement: one cell per press; items taken from the adjacent cell; arrival on the stair tile.
+- Earlier iterations, now replaced: "PHAROS: The Drowned Lighthouse", then a 3-floor STRATUM prototype.
 
 ---
 
 ## 7. Known issues & limitations
 
-- **Audio has never been heard by a human.** Samples decode and play (tested programmatically); the mix and volume are untuned.
-- Fonts (`Press Start 2P`, `VT323`) load from Google Fonts. Offline, the game falls back to monospace.
-- 63 of 100 main floors are hand-made (1F–3F + 60 in `AUTHORED`: every boss arena, zone intro, NPC floor) plus 5 unique vaults.
-  The other 37 are generated; 10 of those can softlock if keys are spent badly (Broker sells keys; `checkmaps --all` lists them).
+- **Audio has never been heard by a human.** Samples decode and play (tested programmatically); the mix and volume are
+  untuned. Six new synth sfx (`whoosh`, `laser`, `zap`, `thud`, `beam`, `chime`) were added for battle FX, also unheard.
+- **Nobody has watched the idle animations or battle FX at real speed**; they were verified frame by frame. Use `lab.html`.
+- **Literal blood** in sprites, decals and hit particles contradicts the user's cyber-gore direction (§0).
+- Weak sprite reads: Drowned Diver, Lantern Reader, the Foreman's hard hat; Builder Mk.II ≈ Builder; Janitor, Purge Sprayer
+  and Silicate Patient were the weakest of the new designs. Oil splats are faint on 81–90F floors.
+- Rho's dialog portrait (`PORTRAITS` in world.js) still shows the gun arm, not a blade.
+- Ghost and corrupt enemy FX draw scan-line/glitch marks over Rho's portrait cell (marks, not fills; user hasn't ruled on it).
+- 37 floors are still generated; 10 of them can softlock if keys are spent badly (the Broker sells keys; `checkmaps --all` lists them).
+  1F–3F are unchanged originals; 3F's up stair is open on three sides and can softlock with a bad door order (warning only).
 - 84F's diagonal stair and 100F's roots read as scattered blocks (walls touch only at corners).
-- Playbot (fresh page per run) won 7/8 after all the art/story/floor merges; the loss stalled on 94F with no Cyan key and low HP.
-  The bot can't walk to `L`, so a "win" = `G.flags.boss99`.
-- Grim sprite redraw: weakest reads are Drowned Diver, Lantern Reader, the Foreman's hat; Builder Mk.II ≈ Builder; oil splats are faint on 81–90F floors.
-- Gold piles up late (the sim ends with about 12k unspent). The Fabricator cost curve `20+10n+2n²` could be retuned, or more sinks added.
-- The Scan screen has room for about 7 monster rows. A floor with more distinct types would overflow (hasn't happened yet).
-- "Status" only shows NORMAL / CORRUPT. There are no other status effects yet.
-- No floor-0 / underground / mystery-floor structure like the original.
-- `~` renders as `≈`-ish in VT323 on the Scan screen (cosmetic).
-- Git warns about CRLF line endings on Windows (harmless).
-- The title screen has no credits page for Kenney (CC0 doesn't require one, but a credit is nice).
+- In battle, the damage floater can overlap the monster's name at the top of the box.
+- Late game may lean easy for competent players (the bot rarely drops below ~1,000 HP mid-game). Lever: `TIERS.f` / `BOSS.f` in the calibrator.
+- Gold piles up late (~10k unspent). The Fabricator cost curve `20+10n+2n²` could be retuned, or more sinks added.
+- The Scan screen has room for about 7 monster rows (fine: 6 tiers + boss per floor).
+- "Status" only shows NORMAL / CORRUPT.
+- The ending screen still shows "x/5 shards" (kept on purpose as post-game info).
+- Fonts load from Google Fonts; offline falls back to monospace. `~` renders oddly in VT323 on the Scan screen.
+- Git warns about CRLF line endings on Windows (harmless). No credits page for Kenney (CC0 doesn't require one).
 
 ---
 
-## 8. Polish ideas / next steps (suggested priority)
+## 8. Next steps and ideas
 
-1. **Listen and mix audio.** Balance music vs SFX volume and check each zone track. Consider more Kenney samples (pickups, level up).
-2. **Hand-design the remaining generated floors** (start with the 10 softlock-prone ones), then regenerate and recalibrate.
-3. **Watch the new animations/effects in real time** (idle, weapon FX, hit-stop were only checked frame-by-frame).
-4. **Original-style features** from §2: floor-teleport item as the 飛行 feather (already done: Phase Compass),
-   an 隨意門-style item, NPC-taught skills (e.g. reflect), and a hidden "mystery" floor chain like 神秘樓.
-5. **Sprite polish**: hero walk frames; the weak grim sprites listed in §7.
-6. **Difficulty options** (a scale on `TIERS.f` / `BOSS.f`) and a credits screen.
-7. **Offline fonts**: self-host OFL fonts in `assets/`.
-8. **Deploy** with GitHub Pages from `main` (not set up yet).
-9. Mobile: test the touch pad layout on real phones.
+### Session 3 plan (user-set order)
+1. **Story & lore polish**: tighten `LORE`/`STORY`/`ITEM_LORE`; weave in AI/computer vocabulary (§0 term bank) so the world
+   feels technical and familiar; keep the story bible consistent; make fragments pull the player forward (see hooks below).
+2. **SFX polish**: listen to every sfx and music track, balance volumes, replace weak synth sounds with CC0 samples.
+3. **Enemy sprite polish, cyber-gore**: redraw the blood-heavy sprites (§0 list) as failed conversions, glitch and machinery;
+   swap blood decals and hit particles for coolant, sparks and dead pixels; drop the unused blood palette letters.
+4. **Mechanics for richer gameplay**: discuss first. Candidates below.
+
+### Candidate hooks for "hollow and repetitive" after ~27F (for discussion, none built)
+- **Collect-to-understand:**
+  - an in-game **Archive/Codex** that stores every fragment found (notes, shard memories, item lore, boss last words),
+    ordered by *where found* with gaps shown as `[CORRUPTED]`, so missing pieces pull the player to explore
+  - a **bestiary** entry per monster, unlocked by Scan or first kill, each with a lore line
+- **Floor variety:**
+  - per-zone floor mechanics:
+    - dark floors with limited sight (Silent Stratum)
+    - conveyors or one-way corridors (Foundry)
+    - flooding tiles that drain HP (Drowned Archive)
+    - alarm tiles that wake a Sanitizer (Quarantine)
+    - switches that reroute shutters
+  - 新新魔塔-style puzzle rooms
+- **Build choices:**
+  - NPC-taught skills like the original's reflect damage (e.g. "backprop" = reflect, "dropout" = dodge)
+  - implants with trade-offs, or boss drops that grant a passive
+  - choosing between two rewards on authored floors
+- **Hidden chain:**
+  - a 神秘樓-style secret floor chain, e.g. "unallocated sectors" reached from special points
+  - an 隨意門-style item, e.g. a *loopback* that returns to the last stair
+- **Risk/reward:** cursed or corrupted items; optional elite monsters guarding lore; gold sinks such as buying fragments
+  from the Broker or restoring memories.
+- **Pacing:**
+  - a mid-zone event on every 5th floor (NPC, choice or ambush)
+  - shortcut doors that open back to earlier floors (Dark Souls style) to make the tower feel connected
+- **Enemy variety:** new abilities (shield/firewall absorbs the first hit, drain, summon/fork, explode on death, regen),
+  so fights change between zones and not only their numbers.
+
+### Also open
+- Hand-design the 37 generated floors (start with the 10 softlock-prone ones); readability pass on 84F/100F.
+- Hero walk frames; Rho's blade in the dialog portrait.
+- Difficulty options (scale `TIERS.f` / `BOSS.f`) and a credits screen.
+- Offline fonts: self-host OFL fonts in `assets/`.
+- Deploy with GitHub Pages from `main` (not set up yet). Mobile: test the touch pad on real phones.

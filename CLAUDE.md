@@ -10,3 +10,7 @@ Rules for this project:
   `node tools/genmaps.js && node tools/calibrate.js`, and the second command must print `balanced`.
 - `battleCost` in `js/data.js` is the single damage formula. The Scan screen and the calibrator must keep using it.
 - Keep scripts as classic globals (no ES modules) so `file://` keeps working.
+- Story delivery is Souls-style: no tutorials or hints, fragments out of order; keep new text consistent with the story bible (HANDOFF §1).
+- Gore means cyber/psychological horror (failed human→machine conversions, glitch, AI/computer terms), not literal blood.
+- Battle FX play on the target portrait only: no projectiles or beams across the gap, no lunge/recoil, portrait frames never move or fill.
+- Preview art/FX changes in `lab.html`; after map edits run `node tools/checkmaps.js`.
