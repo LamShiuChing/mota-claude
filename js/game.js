@@ -213,7 +213,8 @@ function shatter(tx, ty, spr) {
 }
 const flash = (k, up = true) => { statFlash[k] = { t: time, up }; };
 // Center banner that waits for Enter, like the original's 取得 message.
-const banner = (text, color = '#f2f0ea', label = 'ACQUIRED', then) => { ui = { type: 'banner', text, color, label, then }; };
+// `lore`: optional one-line flavor shown under the item name.
+const banner = (text, color = '#f2f0ea', label = 'ACQUIRED', then, lore) => { ui = { type: 'banner', text, color, label, then, lore }; };
 const hurt = v => { G.hp = Math.max(1, G.hp - v); flash('hp', false); };
 
 // ---------------------------------------------------------------- movement & interaction
@@ -239,14 +240,22 @@ function arrive() {
   if (G.status === 'CORRUPT') {
     hurt(BALANCE[zoneOf()].poison);
     if (G.steps % 4 === 0) floater(`-${BALANCE[zoneOf()].poison}`, mapX(G.x) + 16, mapY(G.y), '#b98cff', 8);
-    if (--G.corruptSteps <= 0) { G.status = 'NORMAL'; toast('The corruption burned out', '#39ff9e'); }
+    if (--G.corruptSteps <= 0) { G.status = 'NORMAL'; toast('The corruption fades', '#39ff9e'); }
   }
   fieldDamage();
   const ch = tile(G.x, G.y);
   if (ITEMS[ch]) pickUp(ch);
   else if (ch === 'U' || ch === 'D') changeFloor(G.floor + (ch === 'U' ? 1 : -1), ch === 'U' ? 'D' : 'U');
   else if (ch === '^') changeFloor(meta().links[metaKey(G.x, G.y)], '^');
-  else if (ch === 'n') say([{ text: 'A message is scrawled here:' }, { text: `"${meta().notes[metaKey(G.x, G.y)]}"` }]);
+  else if (ch === 'n') readNote();
+}
+
+// A floor's authored fragment (LORE, by floor number) replaces its first ordinary scrawl.
+function readNote() {
+  const notes = meta().notes, k = metaKey(G.x, G.y);
+  const spots = Object.keys(notes).filter(s => !SECRET_HINTS.includes(notes[s]));
+  const lore = spots.indexOf(k) === 0 && LORE[G.floor + 1];
+  say([].concat(lore || notes[k]).map(text => ({ text })));
 }
 
 // Turrets and similar hurt anything standing next to them (the original's 領域 damage).
@@ -268,7 +277,6 @@ function revealWall(x, y) {
   for (let i = 0; i < 30; i++) particles.push({ x: mapX(x) + Math.random() * 32, y: mapY(y) + Math.random() * 32, vx: (Math.random() - 0.5) * 40, vy: -Math.random() * 50, life: 0.8, max: 0.8, color: ZONES[zoneOf()].theme.wall, size: 2, grav: 80 });
   shake = 0.2;
   Sound.sfx.crumble();
-  toast('A hidden path!', '#ffc23a');
 }
 
 function gain(kind, v) {
@@ -285,25 +293,24 @@ function pickUp(ch) {
   if (it.kind === 'compass') {
     G.flags.compass = true;
     Sound.sfx.gear();
-    return banner('Phase Compass   Press F to jump to any floor you have visited', '#6ff7ff');
+    return banner('Phase Compass', '#6ff7ff', undefined, undefined, ITEM_LORE['Phase Compass']);
   }
   if (it.kind === 'antivirus') {
     Sound.sfx.gem();
-    if (G.status === 'CORRUPT') { G.status = 'NORMAL'; return banner('Antivirus Disk   Corruption purged', '#39ff9e'); }
-    G.antivirus++;
-    return banner(`Antivirus Disk   Stored (${G.antivirus}). Used automatically`, '#39ff9e');
+    if (G.status === 'CORRUPT') G.status = 'NORMAL'; else G.antivirus++;
+    return banner('Antivirus Disk', '#39ff9e');
   }
   gain(it.kind, v);
   floater(`${it.kind.toUpperCase()} +${v}`, cx, cy, it.kind === 'hp' ? '#39ff9e' : '#6ff7ff');
   (it.kind === 'hp' ? Sound.sfx.potion : it.gear ? Sound.sfx.gear : Sound.sfx.gem)();
-  banner(`${itemName(ch)}   ${it.kind.toUpperCase()} +${v}`, it.gear ? '#6ff7ff' : '#f2f0ea');
+  banner(`${itemName(ch)}   ${it.kind.toUpperCase()} +${v}`, it.gear ? '#6ff7ff' : '#f2f0ea', undefined, undefined, it.gear && ITEM_LORE[itemName(ch)]);
 }
 
 function takeShard() {
   G.shards++;
   Sound.sfx.lamp();
   shake = 0.2;
-  banner(`Memory Shard   ${G.shards} / 5`, '#ffc23a', 'RECOVERED', () => say(STORY.shards[G.shards - 1]));
+  banner('Memory Shard', '#ffc23a', 'RECOVERED', () => say(STORY.shards[G.shards - 1]));
 }
 
 function openDoor(x, y, ch) {
@@ -311,7 +318,7 @@ function openDoor(x, y, ch) {
   if (G.keys[k] <= 0) {
     hero.cooldown = 0.3;
     Sound.sfx.deny();
-    return toast(`Requires ${KEY_NAMES[k]} Keycard`, PAL[k]);
+    return toast('Locked', PAL[k]);
   }
   G.keys[k]--;
   flash('key' + k, false);
@@ -326,7 +333,7 @@ function engage(x, y, ch) {
   hero.cooldown = 0.3;
   if (G.atk <= m.def) {
     Sound.sfx.deny();
-    return toast(`Your shots can't breach the ${m.name}!`, '#ff3b4e');
+    return toast('Nothing gets through', '#ff3b4e');
   }
   if (m.intro && !G.flags['met' + G.floor]) {
     G.flags['met' + G.floor] = true;
@@ -353,11 +360,11 @@ function giveGift(gift) {
     const v = itemValue('drill');
     gain('atk', v);
     Sound.sfx.gear();
-    return banner(`Brann's Drill   ATK +${v}`, '#ffc23a');
+    return banner(`Brann's Drill   ATK +${v}`, '#ffc23a', undefined, undefined, ITEM_LORE["Brann's Drill"]);
   }
   const it = ITEMS[gift];
   if (it.kind === 'key') { G.keys[it.key]++; flash('key' + it.key); Sound.sfx.key(); return banner(`${it.name}   x1`, PAL[it.key]); }
-  if (it.kind === 'antivirus') { G.antivirus++; Sound.sfx.gem(); return banner(`${it.name}   Stored (${G.antivirus})`, '#39ff9e'); }
+  if (it.kind === 'antivirus') { G.antivirus++; Sound.sfx.gem(); return banner(it.name, '#39ff9e'); }
   const v = itemValue(gift);
   gain(it.kind, v);
   (it.kind === 'hp' ? Sound.sfx.potion : Sound.sfx.gem)();
@@ -469,8 +476,8 @@ function endBattle(b) {
   flash('exp');
   hero.cooldown = 0.25;
   if (m.corrupt && G.status !== 'CORRUPT') {
-    if (G.antivirus) { G.antivirus--; toast('Antivirus quarantined the infection', '#39ff9e'); }
-    else { G.status = 'CORRUPT'; toast('Corrupted! It drains HP as you walk', '#b98cff'); Sound.sfx.corrupt(); }
+    if (G.antivirus) { G.antivirus--; toast('Quarantined', '#39ff9e'); }
+    else { G.status = 'CORRUPT'; toast('Corrupted', '#b98cff'); Sound.sfx.corrupt(); }
   }
   if (G.status === 'CORRUPT' && m.corrupt) G.corruptSteps = CORRUPT_STEPS;
   checkLevel();
@@ -531,7 +538,7 @@ function advanceDialog(d) {
 function shopFor(ch) {
   const b = BALANCE[zoneOf()];
   if (ch === 'S') return {
-    name: 'FABRICATOR', sprite: 'fabricator', text: `Feed me ${fabricatorCost(G.buys)} credits. I'll print you an upgrade.`,
+    name: 'FABRICATOR', sprite: 'fabricator', text: 'INPUT: CREDIT. OUTPUT: YOU, AMENDED.',
     offers: [
       { label: `HP +${b.shop.hp}`, cost: fabricatorCost(G.buys), hp: b.shop.hp, fab: true },
       { label: `ATK +${b.shop.atk}`, cost: fabricatorCost(G.buys), atk: b.shop.atk, fab: true },
@@ -539,7 +546,7 @@ function shopFor(ch) {
     ],
   };
   return {
-    name: 'BROKER', sprite: 'broker', text: 'Firmware, keycards, disks. Credits only, no questions.',
+    name: 'BROKER', sprite: 'broker', text: G.flags['npc:broker3'] ? 'Thought I was closed? So did I.' : 'No names. No questions. Credits.',
     offers: [
       { label: 'Scan Firmware', cost: b.broker.scan, flag: 'scanner' },
       { label: 'Amber Keycard', cost: b.broker.y, key: 'y' },
@@ -561,7 +568,7 @@ function buy(s) {
   flash('gold', false);
   for (const k of ['hp', 'atk', 'def']) if (o[k]) gain(k, o[k]);
   if (o.key) { G.keys[o.key]++; flash('key' + o.key); }
-  if (o.flag) { G.flags[o.flag] = true; toast('Scan firmware installed. Press M.', '#6ff7ff'); }
+  if (o.flag) { G.flags[o.flag] = true; toast('Scan firmware installed', '#6ff7ff'); }
   if (o.antivirus) { if (G.status === 'CORRUPT') G.status = 'NORMAL'; else G.antivirus++; }
   if (o.fab) G.buys++;
   s.shop = shopFor(s.ch);
@@ -601,12 +608,12 @@ function handleKey(key) {
   if (DIRS[key]) { pendingDir = key; return; }
   const k = key.toLowerCase();
   if (k === 'm') {
-    if (!G.flags.scanner) { Sound.sfx.deny(); return toast('No Scan firmware. Find the Broker.', '#ff8a3c'); }
+    if (!G.flags.scanner) return Sound.sfx.deny();
     ui = { type: 'book' }; Sound.sfx.select();
   }
   else if (k === 'h') { ui = { type: 'help' }; Sound.sfx.select(); }
   else if (k === 'f') {
-    if (!G.flags.compass) { Sound.sfx.deny(); return toast('You need a Phase Compass', '#ff8a3c'); }
+    if (!G.flags.compass) return Sound.sfx.deny();
     const floors = G.visited.filter(f => !isVault(f)).sort((a, b) => a - b);
     ui = { type: 'fly', floors, sel: Math.max(0, floors.indexOf(G.floor)) };
     Sound.sfx.select();
@@ -971,10 +978,12 @@ function drawDialog(d) {
 }
 
 function drawBanner(b) {
-  const x = MX - 56, w = MW + 56 + 28, y = MY + 168, h = 34;
+  const x = MX - 56, w = MW + 56 + 28, y = MY + 168;
+  const lore = b.lore ? wrap(b.lore, w - 132, 16) : [], h = 34 + (lore.length ? lore.length * 15 + 4 : 0);
   panel(x, y, w, h);
   text(b.label, x + 12, y + 13, { size: 9, color: '#ffc23a' });
   body(b.text, x + 116, y + 7, { color: b.color });
+  lore.forEach((l, i) => body(l, x + 116, y + 29 + i * 15, { size: 16, color: '#9ea2ad' }));
   enterHint(x + w - 12, y + 8);
 }
 
@@ -1045,7 +1054,7 @@ function drawBook() {
     const special = Object.keys(ABILITIES).filter(k => m[k]).map(k => ABILITIES[k].split(':')[0]).join(' · ');
     body(`${m.gold} CR · ${m.exp} EXP${special ? '   ' + special : ''}${m.aura ? ` (${m.aura})` : ''}`, x + 52, ry + 26, { size: 15, color: special ? '#ff8a3c' : '#6e6b66' });
   });
-  body('Estimates only: misses and crits happen.', x + w / 2, y + h - 20, { size: 15, color: '#6e6b66', align: 'center' });
+  body('Estimates.', x + w / 2, y + h - 20, { size: 15, color: '#6e6b66', align: 'center' });
 }
 
 function drawShop(s) {
@@ -1063,15 +1072,14 @@ function drawShop(s) {
   body(`Credits: ${G.gold}`, x + w - 14, y + h - 26, { size: 18, color: '#ffc23a', align: 'right' });
 }
 
+// Keys only. M and F appear once there is something for them to do.
 function drawHelp() {
-  const x = MX + 30, y = MY + 30, w = MW - 60, h = 292;
+  const rows = [['Arrows', 'Move'], ['Enter', 'Confirm'], ['Q', 'Retreat'], G.flags.scanner && ['M', 'Scan'],
+    G.flags.compass && ['F', 'Compass'], ['S / L', 'Save / Load'], ['N', 'Sound'], ['R R', 'Restart']].filter(Boolean);
+  const x = MX + 30, y = MY + 30, w = MW - 60, h = 48 + rows.length * 24;
   panel(x, y, w, h);
   text('CONTROLS', x + w / 2, y + 12, { size: 9, color: '#6ff7ff', align: 'center' });
-  [['Arrows', 'Move / bump to fight'], ['Enter', 'Confirm / skip'], ['Q', 'Retreat from battle'], ['M', 'Scan (needs firmware)'],
-    ['F', 'Phase Compass: fly'], ['S / L', 'Save / Load'], ['N', 'Sound on/off'], ['R R', 'Restart']]
-    .forEach(([k, v], i) => { body(k, x + 20, y + 34 + i * 24, { color: '#ffd23f' }); body(v, x + 96, y + 34 + i * 24); });
-  body('Some walls are not walls.', x + w / 2, y + h - 58, { size: 17, color: '#6e6b66', align: 'center' });
-  body(`Memory shards: ${G.shards} / 5`, x + w / 2, y + h - 36, { size: 18, color: '#ffc23a', align: 'center' });
+  rows.forEach(([k, v], i) => { body(k, x + 20, y + 34 + i * 24, { color: '#ffd23f' }); body(v, x + 96, y + 34 + i * 24); });
 }
 
 // Phase Compass: pick any visited floor (Up/Down 1 floor, Left/Right 10).
@@ -1154,14 +1162,14 @@ function drawTitle() {
   const glitch = Math.random() < 0.06 ? (Math.random() - 0.5) * 6 : 0;
   text('STRATUM', W / 2 + glitch, 96, { size: 44, color: '#ff3b4e', align: 'center', alpha: 0.5 });
   text('STRATUM', W / 2 - glitch, 94, { size: 44, color: '#f2f0ea', align: 'center' });
-  body('ascent to the root terminal', W / 2, 150, { size: 24, color: '#6ff7ff', align: 'center' });
+  body('the builders never stopped', W / 2, 150, { size: 24, color: '#6ff7ff', align: 'center' });
   const opts = hasSave() ? ['NEW GAME', 'CONTINUE'] : ['NEW GAME'];
   opts.forEach((o, i) => {
     const on = i === titleSel;
     text((on ? '> ' : '  ') + o, W / 2 - 56, 220 + i * 24, { size: 11, color: on ? '#ffc23a' : '#6e6b66' });
   });
   if (Math.floor(time * 2) % 2) body('press ENTER', W / 2, 290, { color: '#9ea2ad', align: 'center' });
-  body('Arrows move · Bump to fight · H help', W / 2, H - 26, { size: 18, color: '#4f535e', align: 'center' });
+  body('H  controls', W / 2, H - 26, { size: 18, color: '#4f535e', align: 'center' });
 }
 
 function drawEnding() {
