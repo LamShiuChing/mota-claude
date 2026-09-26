@@ -6,7 +6,8 @@ what was verified, and what's next. **Read §0 first.**
 - Repo: https://github.com/LamShiuChing/mota-claude (branch `main`)
 - Local path: `D:\魔塔` (Windows 11, PowerShell + Git Bash)
 - Owner: LamShiuChing
-- Play: open `index.html` (works from `file://`; fonts need internet). Dev preview: `lab.html` (§5).
+- Play: `python tools/serve.py` then http://127.0.0.1:8765/index.html (or open `index.html` from `file://`; fonts need internet).
+  Dev preview: `lab.html` (§5).
 
 ---
 
@@ -32,8 +33,21 @@ The user asked for this order, and the first three steps are done and merged:
    - **LAMBDA** is the visible female AI companion: a projected cyan figure with an unfinished face. Her portrait frays
      from 81F (`lambdaFade`) and is only the λ strokes from 95F (`lambdaGlyph`). Her tic is "Noted."
    - Every NPC was redrawn (no cute/chibi), except the Broker, whose original sprite the user wanted kept.
-4. **Relay 0** (user request after the session): a quiet entrance floor below 1F where new games start. See §3 Engine notes.
    - The generator now places NPCs last, so adding one to a generated floor never reshapes the floor or moves the balance.
+4. **Relay 0** (user request after the session): a quiet entrance floor below 1F where new games start.
+   - What's on it: one forced Scrap Mite, one guarding a key, a cell, a door, and two story notes. See §1 and §3 Engine notes.
+   - The user asked for it "for player to know what to play and how to battle… also for a bit story telling".
+
+### Start of next session
+- **Serve with `python tools/serve.py`, not `python -m http.server`.**
+  - The plain server lets the browser cache the scripts. After Relay 0 was added, the user's browser kept running the old
+    `maps.js` (105 floors) on :8765, even on reload.
+  - `tools/serve.py` sends `Cache-Control: no-store`.
+  - If a browser still shows old code, empty the cache and hard reload (DevTools open, right-click reload), or use another port.
+  - Quick check in the console: `MAPS.length` should be **106**.
+- The user reviewed the session-3 art in the browser and approved it, except the Broker (reverted).
+- **Commits.** The user asks for commits and pushes explicitly; in session 3 they let Claude run unattended through
+  commit and push. Everything up to `0ad65af` (Relay 0) is on `origin/main`.
 
 **Still to do: step 4 and variation. Discuss with the user before building either.**
 - **Step 4: how the main story affects play mechanics** (the user wants this *after* lore is done). Deferred candidates are in
@@ -368,7 +382,8 @@ floors ~800–1,250, 20k–70k HP at the end.
 
 ## 5. Verification & testing tips
 
-- Serve locally: `python -m http.server 8765 --bind 127.0.0.1` from the repo root.
+- Serve locally: `python tools/serve.py [port]` (no-cache static server; default 8765). The plain `python -m http.server` lets the
+  browser cache scripts, so edits may not show (see §0).
 - **Dev lab: `lab.html`** runs the real engine with a side panel:
   - Rho's weapon tier and any of the 70 enemies
   - forced outcome (hit, crit, miss, block)
