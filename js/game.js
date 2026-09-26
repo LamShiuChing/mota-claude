@@ -1001,7 +1001,7 @@ Object.entries({
   leech: 'mite', specimen: 'mite', collector: 'mite', tangle: 'serpent', motherworm: 'serpent', drip: 'corrupt', syringe: 'surgeon', surgeonBoss: 'surgeon',
   slag: 'husk', furnace: 'sanitizer', sprayer: 'sanitizer', firewall: 'sanitizer', janitor: 'sanitizer', crane: 'mason', foreman: 'mason',
   angler: 'wisp', kernel: 'wisp', speaker: 'choir', monolith: 'choir', choirmother: 'choir', cage: 'drone', lacuna: 'ghost',
-  faceless: 'knight', gatekeeper: 'knight',
+  faceless: 'knight', gatekeeper: 'knight', masonII: 'mason', crawler: 'hound', bitrot: 'serpent', feedback: 'wisp',
 }).forEach(([k, base]) => { ENEMY_FX[k] = ENEMY_FX[base]; });
 const enemyFx = m => ENEMY_FX[m.sprite] || ENEMY_FX[['pierce', 'corrupt', 'double', 'surge', 'swift'].find(k => m[k])] || ENEMY_FX.default;
 
@@ -1399,6 +1399,11 @@ const IDLE = {
   ghost: { style: 'glitch' },
   surgeon: { style: 'stance', frame: 'surgeonB', legs: 12 },
   choir: { style: 'hover', frame: 'choirB', rate: 2.5 },
+  crawler: { style: 'skitter', frame: 'crawlerB' },
+  pages: { style: 'hover', frame: 'pagesB', rate: 3 },
+  angler: { style: 'stance', look: 'anglerL', legs: 12 },
+  feedback: { style: 'hover', frame: 'feedbackB', rate: 6, glitch: true },
+  slag: { style: 'breathe', cut: 12 },
   knight: { style: 'stance', look: 'knightL', legs: 11, slow: true },
   warden: { style: 'dread', frame: 'wardenE' },
   archivist: { style: 'glitch', still: true },
@@ -1408,13 +1413,13 @@ const IDLE = {
   pip: { style: 'hop' },
   broker: { style: 'breathe', face: 1 },
   ...Object.fromEntries([
-    ['hover', 'drip syringe cage crow seraph lacuna pages angler daemon'],
+    ['hover', 'drip syringe cage crow seraph lacuna daemon'],
     ['glitch', 'mirror mourner faceless'],
-    ['slither', 'leech motherworm burrow tangle'],
-    ['stomp', 'crab furnace tomb collector crane foreman gatekeeper janitor'],
+    ['slither', 'leech motherworm burrow tangle bitrot'],
+    ['stomp', 'crab furnace tomb collector crane foreman gatekeeper janitor masonII bell'],
     ['shamble', 'patient drowned specimen'],
     ['dread', 'heir choirmother librarian surgeonBoss monolith'],
-    ['hop', 'kernel slag'],
+    ['hop', 'kernel'],
   ].flatMap(([style, names]) => names.split(' ').map(n => [n, { style }]))),
 };
 const idleWave = (t, hz, seed) => Math.sin((t * hz + seed) * 2 * Math.PI);
@@ -1518,7 +1523,7 @@ function drawIdle(def, x, y, p, s = TS) {
 }
 
 // Gore left where something died: blood from flesh, black oil from machines. Pixel splats, cached per variant.
-const OILY = new Set('wisp sanitizer mason drone turret janitor syringe slag crab furnace crane foreman seraph speaker sprayer gatekeeper lacuna monolith daemon firewall collector'.split(' '));
+const OILY = new Set('wisp sanitizer mason drone turret janitor syringe slag crab furnace crane foreman seraph speaker sprayer gatekeeper lacuna monolith daemon firewall collector masonII crawler bitrot feedback'.split(' '));
 const bleed = m => (OILY.has(VARIANTS[m.sprite]?.[0] || m.sprite) ? 'oil' : 'blood');
 const GORE = { blood: ['#4a0a10', '#860e1a', '#c0121e'], oil: ['#050607', '#12181a', '#3f5c58'] }; // edge, pool, wet glint / spray
 function splat(kind, v) {
