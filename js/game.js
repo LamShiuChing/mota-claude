@@ -1411,8 +1411,14 @@ const IDLE = {
   lambda: { style: 'glitch', still: true },
   brann: { style: 'breathe', face: 1 },
   ohm: { style: 'breathe', face: 1 },
-  pip: { style: 'hop' },
+  pip: { style: 'stance', legs: 11, face: 1 },
   broker: { style: 'breathe', face: 1 },
+  lambdaFade: { style: 'glitch', still: true },
+  lambdaGlyph: { style: 'glitch', still: true },
+  wanderer: { style: 'stance', legs: 12, slow: true },
+  tallyman: { style: 'stomp', face: 1 },
+  tallymanCopy: { style: 'sentry' },
+  verity: { style: 'stance', legs: 12, face: 1 },
   cage: { style: 'hover', frame: 'cageB', rate: 14 },
   crow: { style: 'hover', face: 1 },
   pointer: { style: 'hover', frame: 'pointerB', rate: 3, glitch: true, face: 1 },
@@ -1435,7 +1441,6 @@ const idleBeat = (t, per, len, seed) => (t + seed * per) % per < len; // on for 
 const idleLift = (cut, d) => d > 0 ? [[cut - 1, 16, 0, 0], [0, cut, 0, -1]] : d < 0 ? [[cut + 1, 16, 0, 0], [0, cut, 0, 1]] : null;
 const IDLE_STYLES = {
   breathe: (p, t, s, c) => { p.bands = idleLift(c.cut || 7, idleWave(t, 0.45, s) > 0.2 ? 1 : 0); },
-  hop: (p, t, s) => { p.y = idleBeat(t, 1.8, 0.3, s) ? -2 : 0; if (idleBeat(t + 1.5, 1.8, 0.1, s)) p.bands = idleLift(8, -1); },
   skitter: (p, t, s, c) => {
     const run = idleBeat(t, 2.4, 0.7, s);
     p.frame = Math.floor(t * (run ? 12 : 1.5) + s * 4) % 2 ? c.frame : null;
