@@ -1389,12 +1389,12 @@ function glow(px, py, rgb, r = 30) {
 // look = frame glancing left (flipped to track the hero), face: 1 = the art faces right (flipped to face the hero).
 const IDLE = {
   mite: { style: 'skitter', frame: 'miteB' },
-  wisp: { style: 'hover', frame: 'wispB', rate: 4, glitch: true },
+  wisp: { style: 'slither', frame: 'wispB' },
   husk: { style: 'shamble', face: 1 },
   sanitizer: { style: 'stance', look: 'sanitizerL', legs: 11 },
   serpent: { style: 'slither', frame: 'serpentT', face: 1 },
   mason: { style: 'stomp', frame: 'masonB' },
-  drone: { style: 'hover', frame: 'droneB', rate: 14 },
+  drone: { style: 'hover', frame: 'droneB', rate: 14, face: 1 },
   turret: { style: 'sentry', look: 'turretL' },
   hound: { style: 'pant', frame: 'houndP', face: 1 },
   ghost: { style: 'glitch' },
@@ -1409,10 +1409,10 @@ const IDLE = {
   pip: { style: 'hop' },
   broker: { style: 'breathe', face: 1 },
   ...Object.fromEntries([
-    ['hover', 'drip syringe cage crow seraph lacuna pages angler daemon'],
+    ['hover', 'syringe cage crow seraph lacuna pages angler daemon'],
     ['glitch', 'mirror mourner faceless'],
     ['slither', 'leech motherworm burrow tangle'],
-    ['stomp', 'crab furnace tomb collector crane foreman gatekeeper janitor'],
+    ['stomp', 'crab furnace tomb collector crane foreman gatekeeper janitor drip'],
     ['shamble', 'patient drowned specimen'],
     ['dread', 'heir choirmother librarian surgeonBoss monolith'],
     ['hop', 'kernel slag'],
