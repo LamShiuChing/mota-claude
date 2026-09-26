@@ -12,52 +12,60 @@ what was verified, and what's next. **Read §0 first.**
 
 ## 0. Next session: brief
 
-**Scope the user set for the next session** (session 3):
-1. **Story & lore polish**
-2. **Sound-effect polish** (nothing has ever been heard by a human; see §7)
-3. **Enemy sprite polish**, redirected toward **cyber-gore** (below)
-4. **Then: more mechanics for richer gameplay.** Discuss with the user first; §8 has candidate ideas.
+### Where session 3 left off
+The user asked for this order, and the first three steps are done and merged:
+1. **Rename and rework every monster, visuals and names only** (stats and balance untouched).
+   - All 70 roster entries are grim machines now; brief in `docs/CONCEPTS.md`, the old art in `docs/roster-before.png`.
+   - 20 monsters were renamed and 6 got new sprites (`masonII crawler bitrot feedback citizen pointer`).
+   - The blood/flesh palette letters `X x m M` are gone.
+   - Death decals are oil, glitch (dead pixels, 0/1) or cut cable (`remains`/`DECAL_ART` in game.js), and hit sparks match them.
+2. **SFX:**
+   - levels set by meter (`LEVEL` table), colder pickups, blade-on-metal hits, Kenney Impact/Interface CC0 samples
+   - a **Sound Board** in `lab.html`
+   - **still unheard by a human** (§7)
+3. **Lore:** see `docs/LORE.md`, the cast bible, delivery rules and a floor-by-floor fragment map.
+   - Every `LORE[n]` ties to its floor's machines, boss or feature.
+   - `NOTES` is one graffiti pool per zone.
+   - New cast: **T., the Tallyman** (a Siegmeyer-style surveyor counting strata; 6/12/43/65F, his sealed rig at 84F,
+     his empty-reasoned **copy** at 88F) and **Verity** (a debugger AI who follows a hum into the Choir; 47/51/55F,
+     her headset at 59F).
+   - **LAMBDA** is the visible female AI companion: a projected cyan figure with an unfinished face. Her portrait frays
+     from 81F (`lambdaFade`) and is only the λ strokes from 95F (`lambdaGlyph`). Her tic is "Noted."
+   - Every NPC was redrawn (no cute/chibi).
+   - The generator now places NPCs last, so adding one to a generated floor never reshapes the floor or moves the balance.
 
-The user said "we will explore and discuss polish next session", so **propose and discuss before building**, especially
-for mechanics and art direction.
+**Still to do: step 4 and variation. Discuss with the user before building either.**
+- **Step 4: how the main story affects play mechanics** (the user wants this *after* lore is done). Deferred candidates are in
+  `docs/LORE.md` §Deferred:
+  - NPC fates that depend on the player and gate items
+  - LAMBDA's fading changing Scan/Compass
+  - LAMBDA taking a body for one zone
+  - missable meetings
+- **More variation across 100 floors**, since "100 levels is quite many". See §8.
 
-### User's playtest feedback (end of session 2, verbatim intent)
-- Played **up to 27F**: "the game feels good."
-- "As we progress somehow feels a bit **hollow and repetitive**. Need something to **attract or push the player to
-  continue explore the game and story**."
+### The user's direction (session 3, verbatim intent)
+- "a grim, highly technological, cyber world but lost control and abandon. dark, grim, psychological horror (the style
+  only), but somehow warm in lore can be found, like interaction with npc can have different personality" (the Onion Knight
+  from Dark Souls as the model).
+- "no medieval, no cute, no chibi". Enemies fit best as robotic; humans can exist, "but not the enemy maybe".
+- Coolant vs oil: "no need to specify… it's just an AI, cyber, grim universe, where main character is like Killy in BLAME!.
+  not too much should be explained."
+- Lore must connect: "if that floor is around some horrible enemy, the message lore would talk about something related".
+- "a protagonist along with player, maybe a female AI that looks cool"; all lore interconnected, grim, fragmented, "leave some
+  blank for imagination".
+- Earlier (session 2): the game feels good to 27F, then "hollow and repetitive". Gore means **cyber/psychological, not blood**.
 
-### Gore direction: correction from the user (important)
-> "the gore i mean is **cyber gore, psychologically**, not explicit blood gore etc. so the worm, nurse, etc should all be
-> related to **AI, computer and a kinda cyber thing**, or can just be a bit gore, like **half cyborg, failed experiment
-> to turn into robot**, etc. can use some **technical terms** to add a familiarity, like **transformer is for AI**, or some
-> terms idk, but need to fit."
-
-Session 2 overshot into literal blood. What's there now and needs redirecting:
-- **Palette** (`js/data.js` line ~11): `X` blood, `x` dried blood, `m`/`M` flesh, plus bone/bile/corpse/rust/oil letters.
-- **Sprites with the most blood/flesh pixels**: motherworm (106), drip (35), serpentT/serpent (~28), speaker (26),
-  surgeonBoss (20), janitor (17), surgeon/surgeonB (16), crane (16), sanitizer, warden, choirmother, specimen (12 each).
-  Also houndP ("bloody drool"), the crane's meat-hook carcass, the specimen jar fetus, blood-filled IV Drip.
-- **Death decals** (`js/game.js` ~1520): `OILY` / `bleed()` / `GORE` / `splat()`. Flesh monsters leave **red blood pools**.
-  Suggested direction: coolant/oil, sparks, burnt circuitry, dead-pixel glitch squares, spilled data (0/1), cable ends.
-- **Battle hit particles** (`landFx`) spray blood red for "flesh" monsters.
-- Suggested art direction: failed human→machine conversions (half-cyborg, grafted chassis, cables sewn into skin,
-  faces replaced by screens/lenses), glitch/corruption rather than wounds, uncanny rather than bloody, horror of being
-  *processed*. Psychological, not splatter.
-
-### Technical-term bank for names and lore (brainstorm; must fit the world, and use sparingly)
-Unverified brainstorm from general CS/ML vocabulary; check meanings before relying on a nuance.
-- **AI/ML:** transformer, attention head, token, embedding, latent space, weights, gradient, backprop(agation),
-  loss, overfitting, hallucination, checkpoint, fine-tune, dropout, epoch, inference, prompt, context window, seed.
+### Technical-term bank (use sparingly, must fit)
+- **AI/ML:** transformer, attention head, token, embedding, latent space, weights, gradient, loss, overfitting,
+  hallucination, checkpoint, fine-tune, dropout, epoch, inference, prompt, context window, seed.
 - **Systems:** kernel panic, segfault, null pointer, stack overflow, heap, memory leak, garbage collector, zombie process,
-  orphan process, daemon, fork bomb, deadlock, race condition, watchdog, bootloader, POST, firmware, cache miss.
-- **Data/storage:** bit rot, checksum, CRC, parity, RAID, sector, fragmentation, tombstone (deleted record), orphaned
-  inode, cold storage, backup, rollback, diff, merge conflict.
-- **Network:** handshake, packet loss, ping, TTL (time to live), timeout, 404, broadcast storm, loopback.
-- Already used in-game: Daemon, Garbage Collector, Kernel Bug, Firewall, Root, Sanitizer, Signature/countersign,
-  checksum-ish "reason field", Candidate Copy, Work Order #1.
-- Examples of fit: Mother Worm → something that *self-replicates* (worm = self-spreading malware); Nurse Unit →
-  a *fine-tuning* nurse "correcting" patients; the Choir → purged voices stuck in a *training set*; the Mirror → an
-  *overfit* copy; Silicate Husks → people *quantized* into glass; hallucination for the Silent Stratum.
+  orphan process, daemon, fork bomb, deadlock, race condition, watchdog, bootloader, firmware, cache miss.
+- **Data/network:** bit rot, checksum, parity, sector, tombstone, orphaned inode, cold storage, rollback, merge conflict,
+  handshake, packet loss, TTL, timeout, 404, loopback.
+- **Now in-game:**
+  - Fine-Tuner, Packet Worm, Bit Rot, Zombie Process, Null Pointer, Kernel Panic, Watchdog, Afterimage, Feedback
+  - Daemon, Garbage Collector, Firewall, Mother Worm (fork bomb)
+  - COPY SELF, `warden.d`, tombstone manifest, loss values on a treatment chart
 
 ---
 
@@ -140,18 +148,19 @@ Abilities: swift = strikes first, double = attacks twice, pierce = ignores DEF, 
 
 | # | Floors | Zone | Weapon / Armor | Tiers 1–6 | Boss |
 |---|---|---|---|---|---|
-| 1 | 1–10 | Dead Concrete | Rebar Machete / Faraday Vest | Bug, Power Surge (swift), Silicate Husk, Watch Drone (swift), Sanitizer, Builder | The Janitor |
-| 2 | 11–20 | Cable Nave | Arc Cleaver / Cable Mesh | Cable Leech, Worm (corrupt), Spark Drone (swift), Tangle, Sentry (aura), Sanitizer Mk.II | Mother Worm |
-| 3 | 21–30 | Silicate Wards | Scalpel Edge / Ceramic Plate | IV Drip, Silicate Patient (corrupt), Orderly, Needle Drone (swift), Crystal Hound (double), Nurse Unit (corrupt) | The Surgeon |
-| 4 | 31–40 | The Foundry | Rivet Greatsword / Slag Armor | Slag Crawler, Welder Drone (swift), Rivet Crab (double), Walking Furnace (aura), Builder Mk.II, Crane Frame | The Foreman |
-| 5 | 41–50 | Drowned Archive | Index Rapier / Archive Cloak | Data Wraith (pierce), Index Hound (double), Archive Worm (corrupt), Drowned Diver (corrupt), Page Moth (swift), Lantern Reader | The Librarian |
-| 6 | 51–60 | Choir of Static | Resonance Blade / Choir Shroud | Static Choir (pierce), Arc Seraph (swift, pierce), Surge Wisp (swift), Hymn Horn (aura), Bell Knight (double), Echo (pierce) | The Choir Mother |
+| 1 | 1–10 | Dead Concrete | Rebar Machete / Faraday Vest | Scrap Mite, Live Wire (swift), Silicate Husk, Watch Drone (swift), Sanitizer, Builder | The Janitor |
+| 2 | 11–20 | Cable Nave | Arc Cleaver / Cable Mesh | Cable Leech, Packet Worm (corrupt), Spark Drone (swift), Tangle, Sentry (aura), Sanitizer Mk.II | Mother Worm |
+| 3 | 21–30 | Silicate Wards | Scalpel Edge / Ceramic Plate | Infuser, Silicate Patient (corrupt), Orderly, Needle Drone (swift), Glass Hound (double), Fine-Tuner (corrupt) | The Surgeon |
+| 4 | 31–40 | The Foundry | Rivet Greatsword / Slag Armor | Slag Crawler, Welder Drone (swift), Riveter (double), Walking Furnace (aura), Builder Mk.II, Crane Frame | The Foreman |
+| 5 | 41–50 | Drowned Archive | Index Rapier / Archive Cloak | Afterimage (pierce), Index Crawler (double), Bit Rot (corrupt), Salvage Diver (corrupt), Page Swarm (swift), Read Head | The Librarian |
+| 6 | 51–60 | Choir of Static | Resonance Blade / Choir Shroud | Chorus Array (pierce), Arc Emitter (swift, pierce), Feedback (swift), Broadcast Horn (aura), Resonator (double), Echo (pierce) | The Choir Mother |
 | 7 | 61–70 | Quarantine | Purge Saber / Quarantine Suit | Specimen, Sanitizer Mk.III, Containment Cage (swift), Purge Sprayer (aura), Enforcer (double), Hunter Hound (swift, double) | The Gatekeeper |
-| 8 | 71–80 | Graveyard of Signatures | Grave Scythe / Mourning Coat | Signed Ghost (pierce), Hollow Citizen (corrupt), Grave Worm (corrupt), Mourner (pierce), Tombkeeper (double), Obituary Crow (swift) | The Last Heir |
-| 9 | 81–90 | Silent Stratum | Null Edge / Silence Weave | Lacuna, Void Wisp (swift, pierce), Dust Husk, Stilt Stalker (swift, double), Monolith (aura), Faceless | The Mirror |
-| 10 | 91–100 | The Root | Root Brand / Kernel Plate | Kernel Bug, Daemon (pierce), Root Sanitizer, Firewall (aura), Root Hound (swift, double), Garbage Collector | WARDEN//ROOT |
+| 8 | 71–80 | Graveyard of Signatures | Grave Scythe / Mourning Coat | Dead Record (pierce), Hollow Citizen (corrupt), Zombie Process (corrupt), Mourner (pierce), Caretaker (double), Obituary Crow (swift) | The Last Heir |
+| 9 | 81–90 | Silent Stratum | Null Edge / Silence Weave | Lacuna, Null Pointer (swift, pierce), Dust Husk, Stilt Stalker (swift, double), Monolith (aura), Faceless | The Mirror |
+| 10 | 91–100 | The Root | Root Brand / Kernel Plate | Kernel Panic, Daemon (pierce), Root Sanitizer, Firewall (aura), Watchdog (swift, double), Garbage Collector | WARDEN//ROOT |
 
-Every boss has unique art; ≤2 tiers per zone reuse an older base sprite with a palette swap.
+Every monster is a machine (session 3 rework, `docs/CONCEPTS.md`). Palette-swap families: the Sanitizer line (Mk.II, Orderly,
+Mk.III, Root), drones (Spark, Welder), hounds (Glass, Hunter, Watchdog), ghosts (Echo, Dead Record), husks (Dust Husk).
 
 ---
 
@@ -286,7 +295,7 @@ Item and monster numbers come from `BALANCE[zone]`, so the same map token scales
   and 45F/68F/87F). Shown as `-- NO SIGNAL --` on the jump screen; Enter is refused. The calibrator and playbot only
   phase back to shops on reachable floors.
 - Map idle: every monster/NPC has a style keyed by base sprite name (skitter, hover, glitch, shamble, stance, slither,
-  stomp, sentry, pant, dread, breathe, hop); creatures face Rho and glance away; bosses are slower with a red pulse.
+  stomp, sentry, pant, dread, breathe); creatures face Rho and glance away; bosses are slower with a red pulse.
   Unknown sprites default to `breathe`.
 - Battle FX: every attack plays on the target portrait only (no projectiles or beams across the gap, no lunge/recoil).
   The 48px portrait frames never move or get filled: only the sprite inside is knocked back/shaken (`b.sh`), flashed
@@ -404,9 +413,9 @@ floors ~800–1,250, 20k–70k HP at the end.
   pickups, attack launches, blows, big moments loudest; stacked hits peak about -2 dBFS before the limiter), and pickups were
   made colder (relays, servos, fourths and suspended chords). Nobody has listened yet: use the lab Sound Board.
 - **Nobody has watched the idle animations or battle FX at real speed**; they were verified frame by frame. Use `lab.html`.
-- **Literal blood** in sprites, decals and hit particles contradicts the user's cyber-gore direction (§0).
-- Weak sprite reads: Drowned Diver, Lantern Reader, the Foreman's hard hat; Builder Mk.II ≈ Builder; Janitor, Purge Sprayer
-  and Silicate Patient were the weakest of the new designs. Oil splats are faint on 81–90F floors.
+- Weakest reads after the rework: Chorus Array (looks like a lattice), Resonator's small hammers, and the dark-grey bodies of
+  Scrap Mite / Mother Worm / Janitor on dark floors (readable, dim). The Archivist is deliberately faint.
+- Monster *thought lines* on Scan (a Dream-Nail-style line per enemy) were proposed in research but not built.
 - Rho's dialog portrait (`PORTRAITS` in world.js) still shows the gun arm, not a blade.
 - Ghost and corrupt enemy FX draw scan-line/glitch marks over Rho's portrait cell (marks, not fills; user hasn't ruled on it).
 - 37 floors are still generated; 10 of them can softlock if keys are spent badly (the Broker sells keys; `checkmaps --all` lists them).
@@ -425,13 +434,11 @@ floors ~800–1,250, 20k–70k HP at the end.
 
 ## 8. Next steps and ideas
 
-### Session 3 plan (user-set order)
-1. **Story & lore polish**: tighten `LORE`/`STORY`/`ITEM_LORE`; weave in AI/computer vocabulary (§0 term bank) so the world
-   feels technical and familiar; keep the story bible consistent; make fragments pull the player forward (see hooks below).
-2. **SFX polish**: listen to every sfx and music track, balance volumes, replace weak synth sounds with CC0 samples.
-3. **Enemy sprite polish, cyber-gore**: redraw the blood-heavy sprites (§0 list) as failed conversions, glitch and machinery;
-   swap blood decals and hit particles for coolant, sparks and dead pixels; drop the unused blood palette letters.
-4. **Mechanics for richer gameplay**: discuss first. Candidates below.
+### Session 4: discuss first
+1. **Story → mechanics** (see §0 and `docs/LORE.md` §Deferred).
+2. **Variation over 100 floors**: the hooks below are still all unbuilt; zone floor mechanics and new enemy abilities
+   were the session-3 recommendation (plus an Archive/Codex for collected fragments).
+3. Human listening pass on the Sound Board; tune `LEVEL` in `js/audio.js`.
 
 ### Candidate hooks for "hollow and repetitive" after ~27F (for discussion, none built)
 - **Collect-to-understand:**
