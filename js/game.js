@@ -491,7 +491,7 @@ function landFx(b, r, target) {
   if (r.block) {
     floater('BLOCK', pos.x, pos.y - 34, '#6ff7ff', 10);
     fxAdd(b, 0.2, p => fxSigil(pos, 20 + 6 * p, '#6ff7ff', 1 - p, 0));
-    return Sound.sfx.bump();
+    return Sound.sfx.block();
   }
   b.fx[target] = 0.22;
   b.sh[target] = big ? 0.3 : 0.15;
@@ -683,7 +683,7 @@ const BARE_FX = (b, P) => { // bare hands: a weak jab, a few specks of dust
 };
 const WEAPON_FX = [
   (b, P) => { // Rebar Machete: one heavy diagonal hack; rust and grit fly
-    Sound.sfx.whoosh();
+    Sound.sfx.swing();
     const k = P.k;
     fxAdd(b, 0.3, p => fxSlit(P, fxAt(P.z, 5, -5), 54 * k, 2.25, 8, ['#4f535e'], p), 0.02);
     fxAdd(b, 0.34, p => fxSlit(P, P.z, 56 * k, 2.25, 22 * k, ['#6e6b66', '#c9c6bd', '#ffffff'], p), 0.03, () => {
@@ -694,7 +694,7 @@ const WEAPON_FX = [
     return 0.04;
   },
   (b, P) => { // Arc Cleaver: a wide flat cleave that drags live current through the target
-    Sound.sfx.zap();
+    Sound.sfx.swing(); Sound.sfx.zap();
     const k = P.k;
     fxAdd(b, 0.36, p => fxArc(P, P.z, 64 * k, -0.35, Math.PI + 0.7, 30 * k, ['#1a5a9e', '#4ec3ff', '#6ff7ff', '#ffffff'], p, 0.42), 0.02);
     fxAdd(b, 0.3, () => [0, 1, 2, 3, 4].forEach(() => {
@@ -706,7 +706,7 @@ const WEAPON_FX = [
     return 0.05;
   },
   (b, P) => { // Scalpel Edge: two long surgical strokes in an X (four on a crit), then the incisions spark
-    Sound.sfx.whoosh();
+    Sound.sfx.swing();
     const line = rot => { const ux = -P.d * Math.cos(rot) * 40 * P.k, uy = Math.sin(rot) * 40 * P.k; return [fxAt(P.z, -ux, -uy), fxAt(P.z, ux, uy)]; };
     (P.c ? [2.3, 0.84, Math.PI, Math.PI / 2] : [2.3, 0.84]).forEach((rot, i) => {
       fxAdd(b, 0.26, p => fxSlit(P, P.z, 60 * P.k, rot, 9, ['#8aa2b8', '#dfe9f2', '#ffffff'], p), 0.01 + i * 0.04);
@@ -716,7 +716,7 @@ const WEAPON_FX = [
     return 0.03;
   },
   (b, P) => { // Rivet Greatsword: the whole slab comes down like a guillotine; the floor answers
-    Sound.sfx.whoosh();
+    Sound.sfx.swing();
     const t = 0.08, k = P.k, g = fxAt(P.z, 0, 26);
     fxAdd(b, 0.3, p => { // the blade falls in the first quarter, stays planted, then fades
       const s = Math.min(1, p * 4), x = P.z.x, tip = P.z.y + 26 - 120 * (1 - s), w = 14 * k, L = 110 * k;
@@ -745,7 +745,7 @@ const WEAPON_FX = [
     return t;
   },
   (b, P) => { // Index Rapier: a flurry of thrusts straight through, then the target is filed away as bits
-    Sound.sfx.whoosh();
+    Sound.sfx.swing();
     const offs = P.c ? [-14, 12, -4, 7, 0] : [-14, 12, 0], T = 0.02 + (offs.length - 1) * 0.03;
     offs.forEach((o, i) => {
       const c = fxAt(P.z, 0, o);
@@ -761,7 +761,7 @@ const WEAPON_FX = [
     return T;
   },
   (b, P) => { // Resonance Blade: a spinning full-circle sweep, and the target rings like a bell
-    Sound.sfx.chime();
+    Sound.sfx.swing(); Sound.sfx.chime();
     const t = 0.05;
     (P.c ? [0, 1, 2] : [0, 1]).forEach(i => fxAdd(b, 0.38, p => fxArc(P, P.z, (46 + i * 14) * P.k, -1.2 + i * 2, Math.PI * 2.2, (22 - i * 5) * P.k, ['#5a3a8f', '#b98cff', '#ffffff'], p, 0.5 + i * 0.15), 0.01 + i * 0.05));
     fxAdd(b, 0.5, p => { for (let i = 0; i < 3; i++) { const q = (p * 2 + i / 3) % 1; fxRing(P.z, 8 + q * 60 * P.k, '#b98cff', 2.5, (1 - q) * (1 - p)); } }, t);
@@ -769,7 +769,7 @@ const WEAPON_FX = [
     return t;
   },
   (b, P) => { // Purge Saber: a white-hot Z of three strokes that stays burning; the target is scorched
-    Sound.sfx.beam();
+    Sound.sfx.swing(); Sound.sfx.beam();
     const t = 0.03, T = t + 0.05, cols = ['#8f1626', '#ff3b4e', '#ffc9c9', '#ffffff'];
     [[fxAt(P.z, 0, -24), Math.PI, 44], [P.z, 2.45, 58], [fxAt(P.z, 0, 24), Math.PI, 44]].forEach(([c, rot, L], i) => {
       const ux = -P.d * Math.cos(rot) * L * P.k, uy = Math.sin(rot) * L * P.k, seg = [fxAt(c, -ux, -uy), fxAt(c, ux, uy)];
@@ -782,7 +782,7 @@ const WEAPON_FX = [
     return T;
   },
   (b, P) => { // Grave Scythe: one enormous reaping hook around the target; what it takes rises
-    Sound.sfx.whoosh();
+    Sound.sfx.swing();
     const t = 0.07, c = fxAt(P.z, P.d * 30, -24), cols = ['#4e5650', '#8e9a8a', '#b8d8c0', '#e8fff0'];
     fxAdd(b, 0.46, p => fxArc(P, c, 84 * P.k, -0.5, 2.9, 38 * P.k, cols, p, 0.9), t - 0.05);
     if (P.c) fxAdd(b, 0.44, p => fxArc(P, fxAt(P.z, P.d * 14, 14), 70 * P.k, 2.6, -2.9, 24 * P.k, cols, p, 0.9), t + 0.05);
@@ -797,7 +797,7 @@ const WEAPON_FX = [
     return t;
   },
   (b, P) => { // Null Edge: the box goes dark and a tear splits space open across the target
-    Sound.sfx.whoosh();
+    Sound.sfx.swing();
     fxAdd(b, 0.55, p => { ctx.globalAlpha = 0.8 * Math.min(1, p * 6) * (1 - p); boxFill('#000000'); });
     const t = 0.08;
     const tear = (rot, delay) => fxAdd(b, 0.46, p => {
@@ -825,7 +825,7 @@ const WEAPON_FX = [
     return t;
   },
   (b, P) => { // Root Brand: the light drains, Rho cuts a λ into the target, and the Root answers with a pillar
-    Sound.sfx.chime();
+    Sound.sfx.swing(); Sound.sfx.chime();
     Sound.sfx.beam();
     fxAdd(b, 0.7, p => { ctx.globalAlpha = 0.7 * Math.min(1, p * 5) * (1 - p); boxFill('#000000'); });
     const t = 0.1, T = t + 0.05, k = P.k, cols = ['#1a8fa0', '#6ff7ff', '#ffc23a', '#ffffff'];
@@ -937,7 +937,7 @@ const ENEMY_FX = {
     return 0.02;
   },
   surgeon: (b, P) => { // crossing scalpel cuts
-    Sound.sfx.whoosh();
+    Sound.sfx.swing();
     fxCut(b, P, -0.7, '#8aa2b8', 0.02);
     fxCut(b, P, 0.7, '#8aa2b8', 0.05);
     return 0.02;
@@ -948,7 +948,7 @@ const ENEMY_FX = {
     return 0.02;
   },
   knight: (b, P) => { // wide cleave
-    Sound.sfx.whoosh();
+    Sound.sfx.swing();
     fxCrescent(b, P, '#dfe9f2', 0.03, P.flip > 0 ? 0.3 : 2.8, 34);
     fxCrescent(b, P, '#8aa2b8', 0.06, P.flip > 0 ? 0.3 : 2.8, 42);
     return 0.03;
@@ -994,7 +994,7 @@ const ENEMY_FX = {
     return 0.02;
   },
   swift: (b, P) => { // dash: afterimage streaks, then a slash
-    Sound.sfx.whoosh();
+    Sound.sfx.swing();
     fxAdd(b, 0.14, p => [-10, 0, 10].forEach(o => fxPath([fxAt(P.z, (-50 + 60 * p) * P.d, o), fxAt(P.z, (-20 + 60 * p) * P.d, o)], '#dfe9f2', 2, 1 - p)));
     fxCrescent(b, P, '#ffffff', 0.06, 0.4);
     return 0.06;

@@ -162,7 +162,7 @@
   });
 
   // Sound board: every sfx, a few sounds that land together in play, and every track, metered at Sound's master.
-  const STACKS = { 'whoosh+hit': ['whoosh', 'hit'], 'whoosh+crit': ['whoosh', 'crit'], 'hit+crit+roar': ['hit', 'crit', 'roar'], 'kill+coin+level': ['kill', 'coin', 'level'] };
+  const STACKS = { 'swing+hit': ['swing', 'hit'], 'swing+crit': ['swing', 'crit'], 'swing+block': ['swing', 'block'], 'whoosh+hurt': ['whoosh', 'hurt'], 'hit+crit+roar': ['hit', 'crit', 'roar'], 'kill+coin+level': ['kill', 'coin', 'level'] };
   const SFX = { ...Sound.sfx, 'stairs up': () => Sound.sfx.stairs(true), 'stairs down': () => Sound.sfx.stairs(false) };
   delete SFX.stairs;
   const meter = { peak: 0, rms: 0, sum: 0, n: 0, out: null };

@@ -1,7 +1,7 @@
 'use strict';
 // WebAudio sound: synth SFX layered with Kenney CC0 samples (samples.js), plus a tiny step sequencer for music.
 const Sound = (() => {
-  let ac, master, sfxBus, musicBus, noiseBuf, muted = false;
+  let ac, master, sfxBus, musicBus, verb, noiseBuf, muted = false;
   let song = null, songName = null, step = 0, nextTime = 0, timer = null;
   let dest; // where tone/noise/sample go by default: the playing sfx's level gain (see LEVEL)
 
@@ -14,6 +14,12 @@ const Sound = (() => {
     sfxBus = ac.createGain(); sfxBus.gain.value = 0.5; sfxBus.connect(master);
     musicBus = ac.createGain(); musicBus.gain.value = 0.16; musicBus.connect(master);
     dest = sfxBus;
+    // A short synthetic hall (decaying stereo noise) so blows and pickups sit in a space instead of a void.
+    const ir = ac.createBuffer(2, ac.sampleRate * 1.4, ac.sampleRate);
+    for (let c = 0; c < 2; c++) ir.getChannelData(c).forEach((_, i, d) => { d[i] = (Math.random() * 2 - 1) * (1 - i / d.length) ** 4; });
+    verb = ac.createConvolver(); verb.buffer = ir; // fill first: the node takes the buffer's contents on assignment
+    const wet = ac.createGain(); wet.gain.value = 0.12;
+    verb.connect(wet).connect(master);
     decodeSamples();
     noiseBuf = ac.createBuffer(1, ac.sampleRate, ac.sampleRate);
     const d = noiseBuf.getChannelData(0);
@@ -70,80 +76,97 @@ const Sound = (() => {
 
   const arp = (notes, gap, opts = {}) => notes.forEach((f, i) => tone(f, gap * 1.6, { ...opts, at: (opts.at || 0) + i * gap }));
   const tick = (at = 0, vol = 0.3, f = 3500) => noise(0.012, { vol, type: 'bandpass', f, at });
+  // Struck metal: inharmonic partials of a free bar, the high ones dying first.
+  const ring = (f, dur, { vol = 0.1, at = 0 } = {}) =>
+    [[1, 1], [2.76, 0.5], [5.4, 0.25], [8.93, 0.12]].forEach(([r, a]) => tone(f * r, dur / Math.sqrt(r), { type: 'sine', vol: vol * a, at, attack: 0.002 }));
+  // A machine losing power: pitch and brightness fall together.
+  const powerDown = (f, dur, { vol = 0.1, at = 0 } = {}) => { tone(f, dur, { type: 'sawtooth', vol, f2: f / 12, at }); noise(dur, { vol: vol * 1.5, f: 3000, f2: 80, at }); };
+  const crackle = (dur, { vol = 0.2, at = 0, f = 3000 } = {}) => { for (let t = 0; t < dur; t += 0.012 + Math.random() * 0.03) noise(0.008, { vol: vol * (0.4 + Math.random() * 0.6), type: 'bandpass', f: f * (0.6 + Math.random()), at: at + t }); };
 
-  // Machines only: pickups and progress are relays, servos and data chirps on fourths, fifths and suspended chords.
+  // Rho fights with a blade: real swings, bites and clashes (samples.js), with synth weight and ring layered in.
+  // The world is machines: pickups are cards, cells and chips clicking into slots; kills are power failing.
   const SFX = {
     step: () => sample('step', 0.6, 0.9) || noise(0.04, { vol: 0.08, type: 'bandpass', f: 900 }),
-    bump: () => sample('bump', 0.8, 0.8) || tone(90, 0.08, { type: 'triangle', vol: 0.25, f2: 60 }),
+    bump: () => { sample('metal', 0.35, 0.55); tone(70, 0.1, { type: 'sine', vol: 0.3, f2: 45 }); },
     deny: () => sample('deny', 0.5) || (tone(140, 0.09, { vol: 0.15 }), tone(110, 0.12, { vol: 0.15, at: 0.09 })),
-    door: () => { sample('clunk', 0.5, 0.8) || tick(0, 0.4, 900); sample('door', 0.6, 1, 0.05) || noise(0.25, { vol: 0.2, f: 600, f2: 3000, at: 0.05 }); },
-    key: () => { sample('relay', 0.6, 1.3) || (tick(0), tick(0.08)); arp([1175, 1568], 0.06, { vol: 0.06, at: 0.05 }); },
-    gem: () => { tick(0, 0.12, 5000); arp([1760, 1319, 1760], 0.035, { vol: 0.06 }); },
-    potion: () => {
-      noise(0.25, { vol: 0.15, type: 'bandpass', f: 1200, f2: 3500 });
-      tone(160, 0.3, { type: 'sine', vol: 0.3, f2: 320 });
-      arp([622, 740], 0.08, { vol: 0.09, type: 'triangle', at: 0.18 });
-    },
+    door: () => { sample('latch', 0.7, 0.8); tone(55, 0.5, { type: 'sawtooth', vol: 0.08, f2: 80, at: 0.08 }); sample('slide', 0.7, 0.85, 0.08) || noise(0.4, { vol: 0.2, f: 600, f2: 3000, at: 0.08 }); sample('metal', 0.5, 0.7, 0.5); },
+    key: () => { sample('latch', 0.6, 1.4); tone(1318, 0.06, { type: 'sine', vol: 0.1, at: 0.06 }); tone(1760, 0.12, { type: 'sine', vol: 0.1, at: 0.12 }); },
+    gem: () => { sample('latch', 0.4, 1.8); sample('glass', 0.5, 1.4, 0.03); arp([2637, 3520, 4186], 0.03, { type: 'sine', vol: 0.05, at: 0.05 }); ring(2200, 0.5, { vol: 0.06, at: 0.05 }); },
+    potion: () => sample('latch', 0.6, 1.1),
     gear: () => {
-      tone(90, 0.28, { type: 'sawtooth', vol: 0.08, f2: 260 });
-      sample('clunk', 0.8, 0.9, 0.26) || tone(110, 0.15, { type: 'sine', vol: 0.4, f2: 50, at: 0.26 });
-      [294, 392, 440].forEach(f => tone(f, 0.6, { type: 'triangle', vol: 0.09, at: 0.3, attack: 0.02 }));
+      sample('draw', 0.8);
+      tone(55, 0.5, { type: 'sine', vol: 0.3, f2: 110, at: 0.05 });
+      sample('metal', 0.6, 0.8, 0.3);
+      ring(587, 1.2, { vol: 0.08, at: 0.32 }); ring(880, 1, { vol: 0.05, at: 0.36 });
     },
-    coin: () => { tick(0, 0.3); tick(0.035, 0.3); tick(0.07, 0.3); tone(2093, 0.05, { vol: 0.04, at: 0.1 }); },
-    hit: () => { sample('blade', 0.7) || tone(220, 0.08, { vol: 0.15, f2: 80 }); noise(0.07, { vol: 0.2, f: 3000, f2: 500 }); },
-    crit: () => {
-      sample('crit', 0.8) || noise(0.22, { vol: 0.5, f: 5000, f2: 200 });
-      sample('blade', 0.5, 0.7);
-      tone(80, 0.25, { type: 'sine', vol: 0.4, f2: 40 });
-    },
-    miss: () => noise(0.14, { vol: 0.18, type: 'highpass', f: 6000, f2: 1500 }),
-    hurt: () => sample('hurt', 0.6) || (tone(180, 0.12, { vol: 0.2, f2: 90, type: 'sawtooth' }), noise(0.08, { vol: 0.25, f: 1200 })),
-    kill: () => { sample('kill', 0.55) || noise(0.4, { vol: 0.3, f: 2500, f2: 100 }); tone(880, 0.5, { type: 'sawtooth', vol: 0.05, f2: 55 }); },
-    battle: () => { sample('battle', 0.5); tone(622, 0.05, { vol: 0.07, at: 0.02 }); tone(880, 0.07, { vol: 0.07, at: 0.09 }); },
+    coin: () => { sample('coin', 0.7) || (tick(0), tick(0.035)); ring(3136, 0.25, { vol: 0.03, at: 0.01 }); },
+    // Blows: single CC0 recordings picked by ear from an audition, played dry as auditioned.
+    hit: () => sample('hit', 0.8),
+    crit: () => sample('crit', 0.8),
+    miss: () => sample('swing', 0.35, 1.5, 0.02) || noise(0.14, { vol: 0.18, type: 'highpass', f: 6000, f2: 1500 }),
+    block: () => { sample('clash', 0.7, 1.15); ring(1661, 0.7, { vol: 0.05 }); },
+    hurt: () => sample('hurt', 0.8),
+    kill: () => sample('kill', 0.8),
+    battle: () => sample('battle', 0.8),
     level: () => {
-      tone(110, 0.45, { type: 'sawtooth', vol: 0.1, f2: 440 });
-      noise(0.45, { vol: 0.1, type: 'bandpass', f: 400, f2: 4000 });
-      [220, 330, 494].forEach(f => tone(f, 0.9, { type: 'triangle', vol: 0.14, at: 0.42, attack: 0.01 }));
-      arp([1319, 1760], 0.08, { vol: 0.04, at: 0.45 });
+      noise(0.5, { vol: 0.1, type: 'bandpass', f: 300, f2: 6000 });
+      tone(110, 0.5, { type: 'sawtooth', vol: 0.07, f2: 440 });
+      sample('boom', 0.35, 1.6, 0.48);
+      [220, 330, 440, 659].forEach((f, i) => ring(f, 1.6, { vol: 0.07, at: 0.48 + i * 0.03 }));
     },
     stairs: up => {
-      tone(up ? 70 : 140, 0.35, { type: 'sawtooth', vol: 0.06, f2: up ? 140 : 70 });
-      noise(0.35, { vol: 0.1, type: 'bandpass', f: up ? 400 : 900, f2: up ? 900 : 400 });
-      sample('clunk', 0.5, up ? 1 : 0.8, 0.3);
+      sample('slide', 0.35, up ? 0.6 : 0.5);
+      tone(up ? 60 : 120, 0.45, { type: 'sawtooth', vol: 0.06, f2: up ? 120 : 60 });
+      sample('metal', 0.5, up ? 0.75 : 0.6, 0.38);
     },
     blip: () => tone(1400, 0.02, { vol: 0.03 }),
-    select: () => { tone(880, 0.04, { vol: 0.08 }); tick(0, 0.15, 4000); },
-    buy: () => { sample('relay', 0.6) || tick(0); sample('clunk', 0.7, 0.8, 0.12) || tone(110, 0.15, { type: 'sine', vol: 0.4, f2: 50, at: 0.12 }); },
-    roar: () => { sample('roar', 0.9, 0.7); tone(70, 1.2, { type: 'sawtooth', vol: 0.25, f2: 40 }); noise(1.2, { vol: 0.2, f: 400, f2: 80 }); },
-    field: () => sample('field', 0.5) || tone(300, 0.2, { vol: 0.15, f2: 120, type: 'sawtooth' }),
-    corrupt: () => sample('corrupt', 0.7) || tone(200, 0.3, { vol: 0.2, f2: 60, type: 'sawtooth' }),
-    crumble: () => sample('crumble', 0.6) || noise(0.4, { vol: 0.3, f: 800, f2: 100 }),
-    death: () => { arp([392, 370, 349, 330, 262, 196], 0.18, { vol: 0.15, type: 'triangle' }); tone(220, 1.4, { type: 'sawtooth', vol: 0.06, f2: 30 }); },
-    // Attack launch variants (game.js WEAPON_FX / ENEMY_FX).
-    whoosh: () => noise(0.09, { vol: 0.14, type: 'bandpass', f: 700, f2: 3000 }),
-    laser: () => tone(1500, 0.09, { vol: 0.07, f2: 220 }),
-    zap: () => { tone(1800, 0.1, { type: 'sawtooth', vol: 0.07, f2: 300 }); noise(0.08, { vol: 0.1, type: 'highpass', f: 4000 }); },
-    thud: () => { tone(90, 0.12, { type: 'sine', vol: 0.35, f2: 40 }); noise(0.05, { vol: 0.18, f: 900 }); },
-    beam: () => { tone(200, 0.22, { type: 'sawtooth', vol: 0.07, f2: 800 }); noise(0.2, { vol: 0.1, type: 'bandpass', f: 1500, f2: 400 }); },
-    chime: () => { tone(988, 0.25, { type: 'triangle', vol: 0.08 }); tone(1482, 0.2, { type: 'triangle', vol: 0.05, at: 0.03 }); },
-    lamp: () => { arp([294, 440, 587, 659, 880, 1175], 0.12, { vol: 0.12, type: 'triangle' }); noise(1.5, { vol: 0.12, type: 'highpass', f: 3000, at: 0.3 }); },
+    select: () => { tone(1320, 0.03, { type: 'sine', vol: 0.1 }); tick(0, 0.12, 5000); },
+    buy: () => { sample('coin', 0.5); sample('latch', 0.6, 0.9, 0.15); ring(1976, 0.3, { vol: 0.04, at: 0.15 }); },
+    roar: () => {
+      sample('roar', 0.8, 0.7);
+      sample('clash', 0.5, 0.45); // metal screaming
+      sample('boom', 0.8, 0.8);
+      tone(55, 1.3, { type: 'sawtooth', vol: 0.2, f2: 35 });
+      noise(1.2, { vol: 0.2, f: 500, f2: 80 });
+    },
+    field: () => { sample('field', 0.5) || tone(300, 0.2, { vol: 0.15, f2: 120, type: 'sawtooth' }); crackle(0.2, { vol: 0.1, f: 5000 }); },
+    corrupt: () => { sample('corrupt', 0.6) || tone(200, 0.3, { vol: 0.2, f2: 60, type: 'sawtooth' }); for (let i = 0; i < 8; i++) tone(200 + Math.random() * 2000, 0.03, { vol: 0.05, at: i * 0.035 }); },
+    crumble: () => { sample('crumble', 0.6) || noise(0.4, { vol: 0.3, f: 800, f2: 100 }); sample('crunch', 0.3, 0.7); },
+    death: () => {
+      sample('crunch', 0.5, 0.8); sample('boom', 0.8, 0.7);
+      powerDown(440, 1.6, { vol: 0.08 });
+      arp([392, 370, 349, 330, 262, 196], 0.2, { vol: 0.12, type: 'triangle', at: 0.3 });
+    },
+    // Attack launches (game.js WEAPON_FX / ENEMY_FX). swing: Rho's blade; whoosh: claws, bites and lashes.
+    swing: () => { sample('swing', 0.8) || noise(0.12, { vol: 0.3, type: 'bandpass', f: 600, f2: 3000 }); ring(3520, 0.18, { vol: 0.012, at: 0.04 }); },
+    whoosh: () => sample('swing', 0.5, 0.8) || noise(0.09, { vol: 0.14, type: 'bandpass', f: 700, f2: 3000 }),
+    laser: () => { sample('laser', 0.5) || tone(1500, 0.09, { vol: 0.07, f2: 220 }); },
+    zap: () => { tone(1800, 0.12, { type: 'sawtooth', vol: 0.05, f2: 300 }); crackle(0.18, { vol: 0.25, f: 4000 }); },
+    thud: () => { sample('punch', 0.7, 0.6); sample('boom', 0.5, 1.4); },
+    beam: () => { sample('field', 0.35, 1.3); tone(200, 0.3, { type: 'sawtooth', vol: 0.06, f2: 900 }); noise(0.3, { vol: 0.1, type: 'bandpass', f: 1500, f2: 400 }); },
+    chime: () => ring(988, 1.2, { vol: 0.12 }),
+    lamp: () => { arp([294, 440, 587, 659, 880, 1175], 0.12, { vol: 0.1, type: 'triangle' }); ring(1175, 2, { vol: 0.05, at: 0.72 }); noise(1.5, { vol: 0.08, type: 'highpass', f: 3000, at: 0.3 }); },
   };
 
   // Per-sfx level in dB, set from the lab.html Sound Board meters: UI and steps quiet, pickups under combat,
   // crit / boss roar / level-up / death loudest. Listen and nudge these first.
   const LEVEL = {
-    step: -10, blip: 16, select: 9, bump: -12, deny: -5, miss: 1, // UI and movement
-    key: -2, gem: 14, coin: 13, potion: 2, gear: -5, buy: -5, door: -1, stairs: -1, field: -5, corrupt: -1, crumble: 0, // pickups, world
-    whoosh: 22, laser: 14, zap: 9, beam: 12, chime: 12, thud: 2, // attack launches
-    battle: 4, hit: 0, hurt: 1, kill: 3, // blows
-    crit: 1, roar: 1, level: 12, death: 17, lamp: 15, // big moments
+    step: -10, blip: 16, select: 8, bump: -3, deny: -5, miss: 0, // UI and movement
+    key: 6, gem: 2, coin: 2, potion: 5, gear: -3, buy: 3, door: 1, stairs: 1, field: -6, corrupt: 5, crumble: -2, // pickups, world
+    swing: -3, whoosh: -2, laser: 0, zap: 15, beam: -1, chime: 7, thud: -2, // attack launches
+    battle: 7, hit: 4, block: 4, hurt: 4, kill: 5, // blows
+    crit: 7, roar: 0, level: 4, death: 0, lamp: 13, // big moments
   };
+  const DRY = new Set(['step', 'blip', 'deny', 'hit', 'crit', 'hurt', 'kill', 'battle']); // everything else gets a little of the tower's hall
   const levels = {};
   const sfx = {};
   for (const [name, f] of Object.entries(SFX)) {
     sfx[name] = (...args) => {
       if (!ac) return;
-      if (!levels[name]) { levels[name] = ac.createGain(); levels[name].gain.value = 10 ** ((LEVEL[name] || 0) / 20); levels[name].connect(sfxBus); }
+      if (!levels[name]) {
+        levels[name] = ac.createGain(); levels[name].gain.value = 10 ** ((LEVEL[name] || 0) / 20); levels[name].connect(sfxBus);
+        if (!DRY.has(name)) levels[name].connect(verb);
+      }
       dest = levels[name];
       f(...args);
       dest = sfxBus;
