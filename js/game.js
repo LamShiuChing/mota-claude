@@ -421,18 +421,16 @@ const frameCenter = who => ({ x: FRAME[who].x + 24, y: FRAME[who].y + 24 });
 
 function startBattle(x, y, ch) {
   const m = monsterAt(ch);
-  ui = { type: 'battle', m, x, y, mhp: m.hp, heroTurn: !m.swift, timer: 0.45, mHits: 0, second: false, over: false, fast: false, lunge: null, fx: { H: 0, M: 0 }, sh: { H: 0, M: 0 }, mFlash: 0, fxs: [], stop: 0, white: 0, quake: 0 };
+  ui = { type: 'battle', m, x, y, mhp: m.hp, heroTurn: !m.swift, timer: 0.45, mHits: 0, second: false, over: false, fast: false, fx: { H: 0, M: 0 }, sh: { H: 0, M: 0 }, spr: {}, mFlash: 0, fxs: [], stop: 0, white: 0 };
   Sound.sfx.battle();
 }
 
 function updateBattle(b, dt) {
   for (const k of ['H', 'M']) b.sh[k] = Math.max(0, b.sh[k] - dt);
   b.white = Math.max(0, b.white - dt);
-  b.quake = Math.max(0, b.quake - dt);
   if (b.stop > 0) { b.stop -= dt; return; } // hit-stop: only the shake keeps moving
   for (const k of ['H', 'M']) b.fx[k] = Math.max(0, b.fx[k] - dt);
   b.mFlash = Math.max(0, b.mFlash - dt);
-  if (b.lunge && (b.lunge.t -= dt) <= 0) b.lunge = null;
   // Attack effects age at battle speed (3x when fast, so they stay visible between 4x swings).
   const due = [];
   b.fxs = b.fxs.filter(e => {
@@ -468,12 +466,12 @@ function updateBattle(b, dt) {
 }
 
 // One swing: the attacker's effect plays, and the blow lands (numbers, flash, sound) when it arrives.
-// P: a = muzzle, z = impact point (above the frame on a miss), d = travel direction, k = size, c = crit.
+// Everything plays on the target; the portrait frames never move. P: z = impact point (above the frame on a miss),
+// d = attack direction, k = size, c = crit.
 function hitFx(b, r, target) {
   const who = target === 'M' ? 'H' : 'M', z = frameCenter(target), d = who === 'H' ? -1 : 1, big = !!(r.crit || r.surge);
-  b.lunge = { who, t: 0.14 };
   const P = {
-    a: fxAt(frameCenter(who), d * 26, 0), z: r.miss ? fxAt(z, 0, -36) : z, to: target, d, c: big, miss: !!(r.miss || r.block),
+    z: r.miss ? fxAt(z, 0, -36) : z, to: target, d, c: big, miss: !!(r.miss || r.block),
     k: (big ? 1.5 : 1) * (who === 'M' && b.m.boss ? 1.3 : 1), flip: b.second ? -1 : 1,
   };
   const fx = who === 'H' ? heroFx() : enemyFx(b.m);
@@ -497,11 +495,11 @@ function landFx(b, r, target) {
   if (label) floater(label, pos.x, pos.y - 48, r.surge ? '#6ff7ff' : r.pierce ? '#b98cff' : '#ff8a3c', 9);
   floater(`-${r.v}`, pos.x, pos.y - 34, big ? '#ffc23a' : target === 'H' ? '#ff3b4e' : '#f2f0ea', big ? 14 : 11);
   burst(pos.x, pos.y, target === 'H' ? '#ff3b4e' : GORE[bleed(b.m)][2], r.crit ? 22 : 10, r.crit ? 140 : 80);
-  fxAdd(b, 0.16, p => fxOrb(pos, (big ? 44 : 30) * (1 - p * 0.3), '#ffffff', 0.8 * (1 - p)));
+  fxAdd(b, 0.16, p => fxOrb(pos, (big ? 26 : 18) * (1 - p * 0.3), '#ffffff', 0.8 * (1 - p)));
   if (target === 'H' && b.m.boss) fxAdd(b, 0.3, p => fxRing(pos, 10 + 50 * p, '#ff3b4e', 4 * (1 - p) + 1, 1 - p));
   if (!big) return (target === 'H' ? Sound.sfx.hurt : Sound.sfx.hit)();
-  // Crits: freeze-frame, white-out, box quake and speed lines.
-  shake = 0.25; b.quake = 0.25; b.white = 0.1;
+  // Crits: freeze-frame, white-out around the frames, screen shake and speed lines.
+  shake = 0.25; b.white = 0.1;
   fxAdd(b, 0.3, p => {
     for (let i = 0; i < 16; i++) {
       const a = i / 16 * Math.PI * 2 + i, r0 = 30 + p * 34 + (i % 3) * 6;
@@ -575,16 +573,6 @@ function fxSparks(c, color, n, speed, grav = 160) {
 }
 
 // Reusable moves; times are seconds after the swing.
-const fxShot = (b, P, dur, head, delay = 0) => (fxAdd(b, dur, p => head(fxAlong(P.a, P.z, p), p), delay), delay + dur);
-const fxBeam = (b, P, cols, w, dur, delay = 0, to = P.z) => fxAdd(b, dur, p => {
-  const k = Math.sin(Math.PI * Math.min(1, p * 1.3));
-  cols.forEach((c, i) => fxPath([P.a, to], c, Math.max(1, w * P.k * k * (1 - i / cols.length))));
-}, delay);
-const fxBolt = (b, P, color, dur, amp, delay = 0) => fxAdd(b, dur, () => {
-  const pts = fxJag(P.a, P.z, 10, amp * P.k), a = Math.random() < 0.25 ? 0.35 : 1;
-  fxPath(pts, color, 4 * P.k, a);
-  fxPath(pts, '#ffffff', 1.5, a);
-}, delay);
 const fxClaws = (b, P, color, n, delay = 0, flip = P.flip) => fxAdd(b, 0.2, p => {
   const r = Math.min(1, p * 3) * 52 * P.k;
   for (let i = 0; i < n; i++) {
@@ -615,136 +603,207 @@ const fxCut = (b, P, rot, color, delay) => fxAdd(b, 0.32, p => {
 const fxRings = (b, c, color, n, r, dur, delay = 0) => {
   for (let i = 0; i < n; i++) fxAdd(b, dur, p => fxRing(c, 4 + r * p, color, 3 * (1 - p) + 1, 1 - p), delay + i * 0.05);
 };
+// Tints the target's sprite (not its frame) with a fading silhouette, wherever drawFighter last put it.
 const fxFrame = (b, P, color, dur, a, delay = 0) => fxAdd(b, dur, p => {
-  if (P.miss) return;
-  ctx.globalAlpha = a * (1 - p);
-  ctx.fillStyle = color;
-  ctx.fillRect(FRAME[P.to].x, FRAME[P.to].y, 48, 48);
+  const s = b.spr[P.to];
+  if (P.miss || !s) return;
+  ctx.globalAlpha = a * (1 - p) * s.a;
+  ctx.drawImage(spriteFx(s.name, color), s.x, s.y, 36, 36);
 }, delay);
-// Signature beam: glyph at the muzzle, layered beam, then a light pillar and glyph on the target.
-function fxRoot(b, P, c1, c2) {
-  fxAdd(b, 0.12, p => fxSigil(P.a, 12 + 8 * p, c1, 1, time * 6));
-  fxBeam(b, P, [c2, c1, '#ffffff'], 14, 0.2, 0.08);
-  fxAdd(b, 0.36, p => {
-    const w = 26 * P.k * (1 - p);
-    ctx.globalAlpha = 0.5 * (1 - p);
-    ctx.fillStyle = c2;
-    ctx.fillRect(P.z.x - w / 2, BOX.y, w, BOX.h);
-    fxSigil(P.z, (18 + 22 * p) * P.k, c1, 1 - p, -time * 5);
-  }, 0.1, () => fxSparks(P.z, c1, 18, 150));
-  return 0.1;
+// Blade shapes are drawn in Rho's frame (striking leftwards) and mirrored when the attacker is on the left (the Mirror).
+// Straight cut through c: a lens that runs end to end, then thins and fades. cols: outer glow first, core last.
+function fxSlit(P, c, L, rot, w, cols, p) {
+  const s = Math.min(1, p * 5), ux = -P.d * Math.cos(rot), uy = Math.sin(rot), h = w * Math.min(1, (1 - p) * 1.6);
+  const A = { x: c.x - ux * L, y: c.y - uy * L }, B = { x: A.x + 2 * ux * L * s, y: A.y + 2 * uy * L * s }, m = fxAlong(A, B, 0.5);
+  cols.forEach((col, i) => {
+    const k = h * (1 - i / cols.length);
+    ctx.globalAlpha = Math.max(0, (1 - p) * (i ? 1 : 0.6));
+    ctx.fillStyle = col;
+    ctx.beginPath();
+    ctx.moveTo(A.x, A.y);
+    ctx.quadraticCurveTo(m.x - uy * k, m.y + ux * k, B.x, B.y);
+    ctx.quadraticCurveTo(m.x + uy * k, m.y - ux * k, A.x, A.y);
+    ctx.fill();
+  });
+}
+// Curved blade trail around c, sweeping from angle a0 through sw radians (y squashed by sq); thickest behind the edge.
+function fxArc(P, c, r, a0, sw, w, cols, p, sq = 1) {
+  const s = Math.min(1, p * 4), h = w * Math.min(1, (1 - p) * 1.6) / 2, n = 28;
+  const at = (j, o) => {
+    const u = j / n, a = a0 + sw * s * u, rr = r + o * Math.sin(Math.PI * u ** 1.8);
+    return { x: c.x - P.d * Math.cos(a) * rr, y: c.y + Math.sin(a) * rr * sq };
+  };
+  cols.forEach((col, i) => {
+    const k = h * (1 - i / cols.length);
+    ctx.globalAlpha = Math.max(0, (1 - p) * (i ? 1 : 0.6));
+    ctx.fillStyle = col;
+    ctx.beginPath();
+    for (let j = 0; j <= n; j++) { const q = at(j, k); ctx[j ? 'lineTo' : 'moveTo'](q.x, q.y); }
+    for (let j = n; j >= 0; j--) { const q = at(j, -k); ctx.lineTo(q.x, q.y); }
+    ctx.fill();
+  });
+}
+// Draws with the target's portrait cell cut out, so pillars and washes never fill the frame.
+function fxOutside(P, draw) {
+  const f = FRAME[P.to];
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(BOX.x, BOX.y, BOX.w, BOX.h);
+  ctx.rect(f.x, f.y, 48, 48);
+  ctx.clip('evenodd');
+  draw();
+  ctx.restore();
 }
 
+// Rho's sprite shows the best blade owned: heroDw/Uw/Rw with the blade's e/E swapped per tier (-1 = the old gun arm).
+const BLADE_TINT = [['q', 'f'], ['c', 'b'], ['w', 'E'], ['O', 'o'], ['v', 'V'], ['p', 'P'], ['w', 'r'], ['u', 'a'], ['w', 'h'], ['O', 'y']];
+const heroSprite = (dir = 'D') => {
+  const t = BLADE_TINT[G.weapon];
+  return t ? spriteKey({ sprite: `hero${dir}w`, swap: { e: t[0], E: t[1] } }) : 'hero' + dir;
+};
+
 // Rho's attack follows the best weapon owned: G.weapon = zone index of its ZONES[z].gear.w, -1 = none yet.
-// Each entry spawns its effects and returns when the blow lands.
-const BARE_FX = (b, P) => { // energy slash
+// All melee and all on the target: no projectile crosses the gap. Each entry returns when the blow lands.
+const BARE_FX = (b, P) => { // bare hands: a weak jab, a few specks of dust
   Sound.sfx.whoosh();
-  const t = fxShot(b, P, 0.07, q => { fxOrb(q, 10, '#6ff7ff', 0.8); fxPath([q, fxAt(q, -24 * P.d, 4)], '#6ff7ff', 3); });
-  fxCrescent(b, P, '#6ff7ff', t, 0.2, 28);
-  if (P.c) fxCrescent(b, P, '#ffffff', t + 0.04, 2.6, 30);
-  return t;
+  const c = fxAt(P.z, -P.d * 8, 0);
+  fxAdd(b, 0.16, p => {
+    for (let i = 0; i < 5; i++) {
+      const a = i * 1.26 + 0.3, r = (5 + 9 * p) * P.k;
+      fxPath([fxAt(c, Math.cos(a) * r, Math.sin(a) * r), fxAt(c, Math.cos(a) * (r + 5), Math.sin(a) * (r + 5))], P.c ? '#f2f0ea' : '#9ea2ad', 2, 1 - p);
+    }
+    fxRing(c, (4 + 10 * p) * P.k, '#9ea2ad', 1.5, 0.7 * (1 - p));
+  }, 0.03, () => fxSparks(c, '#6e6b66', 5, 50));
+  return 0.03;
 };
 const WEAPON_FX = [
-  (b, P) => { // Coilgun: magnetic rail slug through coil rings, recoil streak behind Rho
-    Sound.sfx.laser();
-    fxAdd(b, 0.14, p => {
-      ctx.globalAlpha = 1 - p;
-      ctx.strokeStyle = '#6ff7ff';
-      ctx.lineWidth = 2;
-      for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.ellipse(P.a.x + P.d * (4 + i * 8 + p * 12), P.a.y, 3, 11 - i * 2, 0, 0, Math.PI * 2); ctx.stroke(); }
-    });
-    fxAdd(b, 0.25, p => [-6, 4].forEach(o => fxPath([fxAt(P.a, -P.d * 52, o), fxAt(P.a, -P.d * (52 + 30 * (1 - p)), o)], '#6ff7ff', 2, 1 - p)));
-    const t = fxShot(b, P, 0.06, q => { fxOrb(q, 12 * P.k, '#6ff7ff', 0.9); fxPath([fxAt(q, -P.d * 90, 0), q], '#1ea4d4', 6 * P.k, 0.7); fxPath([fxAt(q, -P.d * 40, 0), q], '#ffffff', 3); }, 0.02);
-    fxAdd(b, 0.16, p => fxRing(P.z, 4 + 36 * p * P.k, '#6ff7ff', 3 * (1 - p) + 1, 1 - p), t, () => fxSparks(P.z, '#6ff7ff', 14, 130));
-    return t;
-  },
-  (b, P) => { // Arc Welder: crackling arc and molten sparks
-    Sound.sfx.zap();
-    fxBolt(b, P, '#9fe8ff', 0.24, 26);
-    if (P.c) fxBolt(b, P, '#ffffff', 0.2, 36, 0.04);
-    fxAdd(b, 0.24, p => fxOrb(P.a, 14, '#9fe8ff', 1 - p));
-    fxAdd(b, 0.22, p => fxOrb(P.z, 22 * P.k, '#ffffff', 1 - p), 0.03, () => fxSparks(P.z, '#ffc23a', 18, 120, 260));
-    return 0.03;
-  },
-  (b, P) => { // Scalpel Laser: hair-thin beam, then a clean cut
-    Sound.sfx.laser();
-    fxBeam(b, P, ['#ff4d6d', '#ffffff'], 3, 0.1);
-    fxAdd(b, 0.1, p => fxOrb(P.a, 12, '#ff4d6d', 1 - p));
-    fxCut(b, P, -0.7, '#ff4d6d', 0.03);
-    if (P.c) fxCut(b, P, 0.7, '#ff4d6d', 0.09);
-    return 0.03;
-  },
-  (b, P) => { // Rivet Driver: a burst of heavy rivets, each one hammering home
-    Sound.sfx.thud();
-    for (let i = 0, n = P.c ? 5 : 3; i < n; i++) {
-      const o = (i - (n - 1) / 2) * 8, Q = { ...P, a: fxAt(P.a, 0, o), z: fxAt(P.z, 0, o) };
-      const t = fxShot(b, Q, 0.07, q => { fxPath([q, fxAt(q, -P.d * 30, 0)], '#ff8a3c', 3, 0.8); ctx.globalAlpha = 1; rect(ctx, '#dfe9f2', q.x - 5, q.y - 3, 10, 6); rect(ctx, '#ffc23a', q.x + (P.d > 0 ? 3 : -5), q.y - 3, 2, 6); }, i * 0.035);
-      fxAdd(b, 0.14, p => fxRing(Q.z, 3 + 18 * p, '#ffc23a', 3 * (1 - p) + 1, 1 - p), t, () => {
-        fxSparks(Q.z, '#ffc23a', 8, 140, 300);
-        if (!P.miss) b.sh[P.to] = 0.12;
-        if (i) Sound.sfx.thud();
-      });
-    }
-    return 0.07;
-  },
-  (b, P) => { // Data Lance: a spear of live bits that bursts into a data storm
-    Sound.sfx.laser();
-    const bit = () => (Math.random() < 0.5 ? '0' : '1'), o = { font: BODY, align: 'center', shadow: false };
-    const t = fxShot(b, P, 0.08, q => { fxOrb(q, 14, '#39ff9e', 0.7); for (let i = 0; i < 11; i++) text(bit(), q.x - P.d * i * 9, q.y - 11, { ...o, size: 24 - i, color: i ? '#39ff9e' : '#ffffff', alpha: 1 - i / 12 }); });
-    const bits = Array.from({ length: P.c ? 24 : 12 }, () => ({ a: Math.random() * 6.3, s: 24 + Math.random() * 30, g: bit() }));
-    fxAdd(b, 0.32, p => bits.forEach(g => text(g.g, P.z.x + Math.cos(g.a) * g.s * p * P.k, P.z.y - 8 + Math.sin(g.a) * g.s * p * P.k, { ...o, size: 20, color: '#39ff9e', alpha: 1 - p })), t);
-    fxFrame(b, P, '#39ff9e', 0.2, 0.5, t);
-    if (P.c) fxAdd(b, 0.36, p => { // the storm: bits rain over the target
-      const f = FRAME[P.to];
-      for (let c = 0; c < 6; c++) for (let r = 0; r < 3; r++) text(bit(), f.x + 4 + c * 8, f.y - 12 + (p * 70 + r * 22 + c * 9) % 66, { ...o, size: 14, color: '#b6ffd8', alpha: 1 - p });
-    }, t);
-    return t;
-  },
-  (b, P) => { // Resonance Blade: stacked sound-wave blades; the target rings like a bell
-    Sound.sfx.chime();
-    const ang = P.d > 0 ? 0 : Math.PI;
-    for (let i = 0; i < 3; i++) fxShot(b, P, 0.09, q => {
-      ctx.globalAlpha = 1 - i * 0.25;
-      ctx.strokeStyle = i ? '#b98cff' : '#ffffff';
-      ctx.lineWidth = 4;
-      ctx.beginPath();
-      ctx.arc(q.x - P.d * 16, q.y, 20 * P.k, ang - 1.1, ang + 1.1);
-      ctx.stroke();
-    }, i * 0.03);
-    fxAdd(b, 0.4, p => { for (let i = 0; i < 3; i++) { const q = (p * 2 + i / 3) % 1; fxRing(P.z, 6 + q * 34 * P.k, '#b98cff', 2, (1 - q) * (1 - p)); } }, 0.09);
-    fxFrame(b, P, '#b98cff', 0.3, 0.45, 0.09);
-    return 0.09;
-  },
-  (b, P) => { // Purge Cannon: charge, then a white-hot purge beam and blast
-    Sound.sfx.beam();
-    fxAdd(b, 0.08, p => { fxOrb(P.a, 8 + 18 * p, '#ff3b4e', 1); fxOrb(P.a, 4 + 8 * p, '#ffffff', 1); });
-    fxBeam(b, P, ['#ff3b4e', '#ffc9c9', '#ffffff'], 16, 0.18, 0.07);
-    fxAdd(b, 0.28, p => { fxOrb(P.z, 34 * P.k, '#ff3b4e', 1 - p); fxRing(P.z, 8 + 44 * p * P.k, '#ffffff', 5 * (1 - p) + 1, 1 - p); }, 0.08, () => fxSparks(P.z, '#ff8a3c', 22, 170));
-    return 0.08;
-  },
-  (b, P) => { // Grave Rail: a spectral slug trailing its own ghosts; lands as a grave-marker flash
-    Sound.sfx.laser();
-    const t = fxShot(b, P, 0.08, q => { for (let i = 5; i >= 0; i--) { ctx.globalAlpha = 1 - i * 0.16; rect(ctx, i ? '#7fa08a' : '#e8fff0', q.x - P.d * i * 14 - 5, q.y - 4, 10, 8); } fxOrb(q, 14, '#b8d8c0', 0.6); });
-    fxAdd(b, 0.34, p => {
-      const h = 30 * P.k * Math.min(1, p * 5), w = 3 * (1 - p) + 1;
-      fxOrb(P.z, 28, '#b8d8c0', 0.6 * (1 - p));
-      fxPath([fxAt(P.z, 0, -h), fxAt(P.z, 0, h)], '#e8fff0', w, 1 - p);
-      fxPath([fxAt(P.z, -h * 0.6, -h * 0.35), fxAt(P.z, h * 0.6, -h * 0.35)], '#e8fff0', w, 1 - p);
-    }, t, () => fxSparks(P.z, '#b8d8c0', 16, 60, -80));
-    return t;
-  },
-  (b, P) => { // Null Edge: the world dims and space itself is cut open
+  (b, P) => { // Rebar Machete: one heavy diagonal hack; rust and grit fly
     Sound.sfx.whoosh();
-    fxAdd(b, 0.3, p => { ctx.globalAlpha = 0.6 * (1 - p); ctx.fillStyle = '#000000'; ctx.fillRect(BOX.x, BOX.y, BOX.w, BOX.h); });
-    fxAdd(b, 0.1, p => fxPath([P.a, P.z], '#ffffff', 1, 0.7 * (1 - p)));
-    const tear = (rot, delay) => fxAdd(b, 0.34, p => {
-      const L = 40 * P.k, x2 = -L + 2 * L * Math.min(1, p * 8), open = Math.sin(Math.min(1, p * 1.5) * Math.PI) * 10 * P.k;
-      fxOrb(P.z, 40 * P.k, '#b98cff', 0.7 * (1 - p));
+    const k = P.k;
+    fxAdd(b, 0.3, p => fxSlit(P, fxAt(P.z, 5, -5), 54 * k, 2.25, 8, ['#4f535e'], p), 0.02);
+    fxAdd(b, 0.34, p => fxSlit(P, P.z, 56 * k, 2.25, 22 * k, ['#6e6b66', '#c9c6bd', '#ffffff'], p), 0.03, () => {
+      fxSparks(P.z, '#ff8a3c', 12, 130, 320);
+      fxSparks(P.z, '#c9c6bd', 8, 90, 300);
+    });
+    if (P.c) fxAdd(b, 0.3, p => fxSlit(P, fxAt(P.z, 0, 8), 62 * k, 2.5, 12, ['#ff8a3c', '#ffffff'], p), 0.09);
+    return 0.04;
+  },
+  (b, P) => { // Arc Cleaver: a wide flat cleave that drags live current through the target
+    Sound.sfx.zap();
+    const k = P.k;
+    fxAdd(b, 0.36, p => fxArc(P, P.z, 64 * k, -0.35, Math.PI + 0.7, 30 * k, ['#1a5a9e', '#4ec3ff', '#6ff7ff', '#ffffff'], p, 0.42), 0.02);
+    fxAdd(b, 0.3, () => [0, 1, 2, 3, 4].forEach(() => {
+      const a = Math.random() * 6.3, pts = fxJag(P.z, fxAt(P.z, Math.cos(a) * 50 * k, Math.sin(a) * 34 * k), 6, 12);
+      fxPath(pts, '#4ec3ff', 4, 0.8);
+      fxPath(pts, '#ffffff', 1.5, 1);
+    }), 0.05, () => fxSparks(P.z, '#6ff7ff', 18, 150));
+    if (P.c) fxAdd(b, 0.34, p => fxArc(P, fxAt(P.z, 0, -12), 70 * k, Math.PI + 0.35, -(Math.PI + 0.7), 18, ['#6ff7ff', '#ffffff'], p, 0.42), 0.1);
+    return 0.05;
+  },
+  (b, P) => { // Scalpel Edge: two long surgical strokes in an X (four on a crit), then the incisions bleed
+    Sound.sfx.whoosh();
+    const line = rot => { const ux = -P.d * Math.cos(rot) * 40 * P.k, uy = Math.sin(rot) * 40 * P.k; return [fxAt(P.z, -ux, -uy), fxAt(P.z, ux, uy)]; };
+    (P.c ? [2.3, 0.84, Math.PI, Math.PI / 2] : [2.3, 0.84]).forEach((rot, i) => {
+      fxAdd(b, 0.26, p => fxSlit(P, P.z, 60 * P.k, rot, 9, ['#8aa2b8', '#dfe9f2', '#ffffff'], p), 0.01 + i * 0.04);
+      if (!P.miss) fxAdd(b, 0.55, p => fxPath(line(rot), '#ff3b4e', 2.5, 1 - p), 0.06 + i * 0.04);
+    });
+    if (!P.miss) fxAdd(b, 0, null, 0.07, () => fxSparks(P.z, '#ff3b4e', 16, 100, 380));
+    return 0.03;
+  },
+  (b, P) => { // Rivet Greatsword: the whole slab comes down like a guillotine; the floor answers
+    Sound.sfx.whoosh();
+    const t = 0.08, k = P.k, g = fxAt(P.z, 0, 26);
+    fxAdd(b, 0.3, p => { // the blade falls in the first quarter, stays planted, then fades
+      const s = Math.min(1, p * 4), x = P.z.x, tip = P.z.y + 26 - 120 * (1 - s), w = 14 * k, L = 110 * k;
+      ctx.globalAlpha = 1 - Math.max(0, p - 0.4) / 0.6;
+      ctx.fillStyle = '#6e6b66';
+      ctx.beginPath();
+      [[0, 0], [-w, -18], [-w, -L], [w, -L], [w, -18]].forEach(([dx, dy], i) => ctx[i ? 'lineTo' : 'moveTo'](x + dx, tip + dy));
+      ctx.fill();
+      rect(ctx, '#ffc23a', x - 3, tip - L, 6, L - 16);
+      for (let i = 1; i < 5; i++) { rect(ctx, '#dfe9f2', x - w + 3, tip - i * L / 5.5, 3, 3); rect(ctx, '#dfe9f2', x + w - 6, tip - i * L / 5.5, 3, 3); }
+      if (s < 1) [-w, 0, w].forEach(o => fxPath([{ x: x + o, y: tip - L }, { x: x + o, y: tip - L - 60 }], '#ff8a3c', 3, 0.7));
+    }, t - 0.07);
+    fxAdd(b, 0.34, p => fxSlit(P, P.z, 56 * k, Math.PI / 2, 26 * k, ['#b97a12', '#ff8a3c', '#fff1b0'], p), t);
+    fxAdd(b, 0.38, p => {
+      ctx.globalAlpha = 1 - p;
+      ctx.strokeStyle = '#ff8a3c';
+      ctx.lineWidth = 5 * (1 - p) + 1;
+      ctx.beginPath();
+      ctx.ellipse(g.x, g.y, (12 + 90 * p) * k, (4 + 14 * p) * k, 0, 0, Math.PI * 2);
+      ctx.stroke();
+    }, t, () => {
+      fxSparks(g, '#ffc23a', 24, 180, 420);
+      fxSparks(g, '#dfe9f2', 8, 140, 420);
+      Sound.sfx.thud();
+    });
+    return t;
+  },
+  (b, P) => { // Index Rapier: a flurry of thrusts straight through, then the target is filed away as bits
+    Sound.sfx.whoosh();
+    const offs = P.c ? [-14, 12, -4, 7, 0] : [-14, 12, 0], T = 0.02 + (offs.length - 1) * 0.03;
+    offs.forEach((o, i) => {
+      const c = fxAt(P.z, 0, o);
+      fxAdd(b, 0.18, p => { fxSlit(P, c, 64 * P.k, Math.PI, 10, ['#0f5a3c', '#39ff9e', '#ffffff'], p); fxOrb(fxAt(c, P.d * 58 * P.k, 0), 14, '#39ff9e', 1 - p); }, 0.02 + i * 0.03, () => {
+        fxSparks(fxAt(c, P.d * 30, 0), '#39ff9e', 6, 100);
+        if (!P.miss) b.sh[P.to] = 0.1;
+      });
+    });
+    const bit = () => (Math.random() < 0.5 ? '0' : '1'), o = { font: BODY, align: 'center', shadow: false, size: 22, color: '#39ff9e' };
+    const bits = Array.from({ length: P.c ? 28 : 16 }, () => ({ a: Math.random() * 6.3, s: 30 + Math.random() * 40, g: bit() }));
+    fxAdd(b, 0.4, p => bits.forEach(g => text(g.g, P.z.x + Math.cos(g.a) * g.s * p * P.k, P.z.y - 8 + Math.sin(g.a) * g.s * p * P.k, { ...o, alpha: 1 - p })), T);
+    fxFrame(b, P, '#39ff9e', 0.25, 0.7, T);
+    return T;
+  },
+  (b, P) => { // Resonance Blade: a spinning full-circle sweep, and the target rings like a bell
+    Sound.sfx.chime();
+    const t = 0.05;
+    (P.c ? [0, 1, 2] : [0, 1]).forEach(i => fxAdd(b, 0.38, p => fxArc(P, P.z, (46 + i * 14) * P.k, -1.2 + i * 2, Math.PI * 2.2, (22 - i * 5) * P.k, ['#5a3a8f', '#b98cff', '#ffffff'], p, 0.5 + i * 0.15), 0.01 + i * 0.05));
+    fxAdd(b, 0.5, p => { for (let i = 0; i < 3; i++) { const q = (p * 2 + i / 3) % 1; fxRing(P.z, 8 + q * 60 * P.k, '#b98cff', 2.5, (1 - q) * (1 - p)); } }, t);
+    fxFrame(b, P, '#b98cff', 0.35, 0.6, t);
+    return t;
+  },
+  (b, P) => { // Purge Saber: a white-hot Z of three strokes that stays burning; the target is scorched
+    Sound.sfx.beam();
+    const t = 0.03, T = t + 0.05, cols = ['#8f1626', '#ff3b4e', '#ffc9c9', '#ffffff'];
+    [[fxAt(P.z, 0, -24), Math.PI, 44], [P.z, 2.45, 58], [fxAt(P.z, 0, 24), Math.PI, 44]].forEach(([c, rot, L], i) => {
+      const ux = -P.d * Math.cos(rot) * L * P.k, uy = Math.sin(rot) * L * P.k, seg = [fxAt(c, -ux, -uy), fxAt(c, ux, uy)];
+      fxAdd(b, 0.3, p => fxSlit(P, c, L * P.k, rot, 16 * P.k, cols, p), t + i * 0.025, () => { if (!P.miss && i < 2) b.sh[P.to] = 0.1; });
+      fxAdd(b, 0.6, p => { fxPath(seg, '#ff3b4e', 7 * (1 - p) + 1, 0.6 * (1 - p)); fxPath(seg, '#ffc23a', 2, (1 - p) * (0.6 + 0.4 * Math.random())); }, t + i * 0.025 + 0.06);
+    });
+    fxAdd(b, 0, null, T, () => { fxSparks(P.z, '#ff8a3c', 26, 130, -140); fxSparks(P.z, '#ffffff', 10, 90, -60); });
+    fxFrame(b, P, '#ff3b4e', 0.45, 0.75, T);
+    if (P.c) fxAdd(b, 0.34, p => { fxSlit(P, P.z, 70 * P.k, 2.3, 14, cols, p); fxSlit(P, P.z, 70 * P.k, 0.84, 14, cols, p); }, T + 0.04);
+    return T;
+  },
+  (b, P) => { // Grave Scythe: one enormous reaping hook around the target; what it takes rises
+    Sound.sfx.whoosh();
+    const t = 0.07, c = fxAt(P.z, P.d * 30, -24), cols = ['#4e5650', '#8e9a8a', '#b8d8c0', '#e8fff0'];
+    fxAdd(b, 0.46, p => fxArc(P, c, 84 * P.k, -0.5, 2.9, 38 * P.k, cols, p, 0.9), t - 0.05);
+    if (P.c) fxAdd(b, 0.44, p => fxArc(P, fxAt(P.z, P.d * 14, 14), 70 * P.k, 2.6, -2.9, 24 * P.k, cols, p, 0.9), t + 0.05);
+    const souls = Array.from({ length: P.c ? 7 : 5 }, (_, i) => ({ x: (i - 2) * 11 + (Math.random() - 0.5) * 8, s: Math.random() * 6 }));
+    if (!P.miss) fxAdd(b, 0.7, p => souls.forEach(g => {
+      const q = fxAt(P.z, g.x + Math.sin(p * 9 + g.s) * 6, 10 - p * 90);
+      fxOrb(q, 13, '#b8d8c0', 0.9 * (1 - p));
+      ctx.globalAlpha = 1 - p;
+      rect(ctx, '#e8fff0', q.x - 2, q.y - 3, 4, 6);
+    }), t, () => fxSparks(P.z, '#b8d8c0', 16, 80, -90));
+    fxFrame(b, P, '#4e5650', 0.5, 0.8, t);
+    return t;
+  },
+  (b, P) => { // Null Edge: the box goes dark and one cut splits the whole space open through the target
+    Sound.sfx.whoosh();
+    fxAdd(b, 0.55, p => { ctx.globalAlpha = 0.8 * Math.min(1, p * 6) * (1 - p); boxFill('#000000'); });
+    const t = 0.08;
+    const tear = (rot, delay) => fxAdd(b, 0.46, p => {
+      const L = 160 * P.k, x2 = -L + 2 * L * Math.min(1, p * 8), open = Math.sin(Math.min(1, p * 1.5) * Math.PI) * 18 * P.k;
+      fxOrb(P.z, 50 * P.k, '#b98cff', 0.7 * (1 - p));
       ctx.save();
       ctx.translate(P.z.x, P.z.y);
+      ctx.scale(P.d, 1);
       ctx.rotate(rot);
       fxPath([{ x: -L - 8, y: 0 }, { x: x2 + 8, y: 0 }], '#ffffff', 2, 1 - p);
-      [[open + 4, '#ffffff'], [open, '#000000']].forEach(([h, c]) => {
+      [[open + 6, '#b98cff'], [open + 2.5, '#ffffff'], [open, '#000000']].forEach(([h, c]) => {
         ctx.globalAlpha = 1 - p * p;
         ctx.fillStyle = c;
         ctx.beginPath();
@@ -755,11 +814,35 @@ const WEAPON_FX = [
       });
       ctx.restore();
     }, delay);
-    tear(-0.5, 0.05);
-    if (P.c) tear(0.6, 0.1);
-    return 0.05;
+    tear(-0.3, t - 0.02);
+    if (P.c) tear(0.45, t + 0.05);
+    fxFrame(b, P, '#000000', 0.4, 0.8, t);
+    return t;
   },
-  (b, P) => { Sound.sfx.beam(); Sound.sfx.chime(); return fxRoot(b, P, '#ffc23a', '#6ff7ff'); }, // Root Key: the Signature beam
+  (b, P) => { // Root Brand: the light drains, Rho cuts a λ into the target, and the Root answers with a pillar
+    Sound.sfx.chime();
+    Sound.sfx.beam();
+    fxAdd(b, 0.7, p => { ctx.globalAlpha = 0.7 * Math.min(1, p * 5) * (1 - p); boxFill('#000000'); });
+    const t = 0.1, T = t + 0.05, k = P.k, cols = ['#1a8fa0', '#6ff7ff', '#ffc23a', '#ffffff'];
+    fxAdd(b, 0.11, p => fxSigil(P.z, (60 - 34 * p) * k, '#ffc23a', p, time * 6), 0);
+    fxAdd(b, 0.46, p => fxSlit(P, P.z, 64 * k, 1.0, 20 * k, cols, p), t);
+    fxAdd(b, 0.42, p => fxSlit(P, fxAt(P.z, P.d * 16 * k, 26 * k), 31 * k, 2.13, 16 * k, cols, p), T);
+    fxAdd(b, 0.5, p => {
+      fxOutside(P, () => {
+        const w = 40 * k * (1 - p);
+        ctx.globalAlpha = 0.6 * (1 - p);
+        ctx.fillStyle = '#6ff7ff';
+        ctx.fillRect(P.z.x - w / 2, BOX.y, w, BOX.h);
+        ctx.globalAlpha = 0.9 * (1 - p);
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(P.z.x - w / 6, BOX.y, w / 3, BOX.h);
+      });
+      fxSigil(P.z, (22 + 40 * p) * k, '#ffc23a', 1 - p, -time * 5);
+    }, T, () => { fxSparks(P.z, '#ffc23a', 28, 180); fxSparks(P.z, '#6ff7ff', 14, 130); });
+    fxRings(b, P.z, '#ffc23a', 3, 80 * k, 0.4, T);
+    fxFrame(b, P, '#ffc23a', 0.45, 0.7, T);
+    return T;
+  },
 ];
 const heroFx = () => WEAPON_FX[Math.min(G.weapon ?? -1, WEAPON_FX.length - 1)] ?? BARE_FX;
 
@@ -1229,7 +1312,7 @@ function portraitFrame(name, x, y, size = 48) {
   ctx.strokeStyle = CYAN;
   ctx.lineWidth = 2;
   ctx.strokeRect(x + 1, y + 1, size - 2, size - 2);
-  ctx.drawImage(sprite(name), x + 6, y + 6, size - 12, size - 12);
+  if (name) ctx.drawImage(sprite(name), x + 6, y + 6, size - 12, size - 12);
 }
 const spr = (name, x, y, s = 32) => ctx.drawImage(sprite(name), x, y, s, s);
 const enterHint = (x, y) => body('-Enter-', x, y, { size: 18, color: '#8a8f9c', align: 'right', shadow: false, alpha: 0.6 + 0.4 * Math.sin(time * 4) });
@@ -1402,13 +1485,13 @@ function idlePose(name, t, seed = 0, face = 0, heavy = false) {
   if (heavy) { const k = (t + seed * 3.5) % 3.5; if (k < 0.6) p.pulse = Math.sin(k / 0.6 * Math.PI); }
   return p;
 }
-// Cached derived canvases of a cached sprite: '#f' mirrored, '#r' flat red silhouette.
+// Cached derived canvases of a cached sprite: '#f' mirrored, '#r' flat red silhouette, '#rrggbb' silhouette in that color.
 function spriteFx(key, fx) {
   return spriteCache[key + fx] ??= canvasOf(16, 16, g => {
     if (fx === '#f') { g.scale(-1, 1); g.drawImage(sprite(key), -16, 0); return; }
     g.drawImage(sprite(key), 0, 0);
     g.globalCompositeOperation = 'source-in';
-    g.fillStyle = '#ff3b4e';
+    g.fillStyle = fx === '#r' ? '#ff3b4e' : fx;
     g.fillRect(0, 0, 16, 16);
   });
 }
@@ -1501,7 +1584,7 @@ function heroPos() {
 function drawHero() {
   const [x, y] = heroPos();
   const walk = hero.move ? -Math.abs(Math.sin(hero.move.t * Math.PI)) * 3 : 0;
-  const name = { D: 'heroD', U: 'heroU', L: 'heroR', R: 'heroR' }[G.dir];
+  const name = heroSprite({ D: 'D', U: 'U', L: 'R', R: 'R' }[G.dir]);
   ctx.save();
   if (G.dir === 'L') { ctx.translate(x + TS, 0); ctx.scale(-1, 1); spr(name, 0, y + walk); }
   else spr(name, x, y + walk);
@@ -1577,7 +1660,7 @@ function drawChrome() {
   // Status panel.
   const sx = 24, sy = MY, sw = 144;
   panel(sx, sy, sw, 216);
-  spr('heroD', sx + 8, sy + 8);
+  spr(heroSprite(), sx + 8, sy + 8);
   body('Status:', sx + 48, sy + 4, { size: 18 });
   ctx.strokeStyle = CYAN;
   ctx.lineWidth = 1.5;
@@ -1649,14 +1732,13 @@ function drawBattle(b) {
   ctx.fillStyle = 'rgba(2,3,8,0.45)';
   ctx.fillRect(MX, MY, MW, MW);
   ctx.save();
-  if (b.quake) ctx.translate((Math.random() - 0.5) * b.quake * 24, (Math.random() - 0.5) * b.quake * 16);
   panel(BOX.x, BOX.y, BOX.w, BOX.h, b.m.boss ? '#ff3b4e' : CYAN);
   body(b.m.name, FRAME.M.x, BOX.y + 8, { size: 22, color: b.m.boss ? '#ff3b4e' : '#f2f0ea' });
   text('VS', BOX.x + BOX.w / 2, BOX.y + 12 + Math.sin(time * 6), { size: 14, color: '#f2f0ea', align: 'center' });
   body('Rho', FRAME.H.x + 48, BOX.y + 8, { size: 22, align: 'right' });
 
   drawFighter(b, 'M', spriteKey(b.m));
-  drawFighter(b, 'H', 'heroD');
+  drawFighter(b, 'H', heroSprite());
 
   const rows = [['HP', b.mhp, G.hp], ['ATK', b.m.atk, G.atk], ['DEF', b.m.def, G.def], ['CRIT', b.m.crit, G.crit], ['AGI', b.m.agi, G.agi]];
   rows.forEach(([label, mv, hv], i) => {
@@ -1679,22 +1761,36 @@ function drawBattle(b) {
   ctx.lineCap = 'round';
   b.fxs.forEach(e => e.draw && e.t >= 0 && e.draw(Math.min(1, e.t / e.dur)));
   ctx.restore();
-  if (b.white) { ctx.fillStyle = `rgba(255,255,255,${b.white * 3.5})`; ctx.fillRect(BOX.x, BOX.y, BOX.w, BOX.h); }
+  if (b.white) boxFill(`rgba(255,255,255,${b.white * 3.5})`);
   ctx.restore();
 }
 
-// Portrait frame with lunge, shake and white hit-flash.
+// Fills the battle box except the two portrait cells (crit white-out, dimming).
+function boxFill(color) {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.rect(BOX.x, BOX.y, BOX.w, BOX.h);
+  for (const f of [FRAME.M, FRAME.H]) ctx.rect(f.x, f.y, 48, 48);
+  ctx.fill('evenodd');
+}
+
+// Portrait: the frame stays put; only the sprite inside is knocked back, shaken, flashed white and faded on deletion.
 function drawFighter(b, who, name) {
-  const f = FRAME[who], dir = who === 'H' ? -1 : 1;
-  const lunge = b.lunge?.who === who ? Math.sin((1 - b.lunge.t / 0.14) * Math.PI) * 10 * dir : 0;
-  const sx = b.sh[who] ? (Math.random() - 0.5) * 6 : 0, sy = b.sh[who] ? (Math.random() - 0.5) * 4 : 0;
-  const x = f.x + lunge + sx, y = f.y + sy;
-  ctx.globalAlpha = who === 'M' && b.over && !b.dead ? Math.max(0, b.timer / 0.7) : 1;
-  portraitFrame(name, x, y, 48);
+  const f = FRAME[who], k = b.sh[who] / 0.3, a = who === 'M' && b.over && !b.dead ? Math.max(0, b.timer / 0.7) : 1;
+  const x = f.x + 6 + (k ? (Math.random() - 0.5) * 5 + k * 5 * (who === 'H' ? 1 : -1) : 0), y = f.y + 6 + (k ? (Math.random() - 0.5) * 4 : 0);
+  portraitFrame(null, f.x, f.y, 48);
+  b.spr[who] = { name, x, y, a };
+  ctx.save();
+  ctx.beginPath();
+  ctx.rect(f.x + 2, f.y + 2, 44, 44);
+  ctx.clip();
+  ctx.globalAlpha = a;
+  ctx.drawImage(sprite(name), x, y, 36, 36);
   if (b.fx[who]) {
-    ctx.globalAlpha = b.fx[who] / 0.22;
-    ctx.drawImage(whiteSprite(name), x + 6, y + 6, 36, 36);
+    ctx.globalAlpha = a * b.fx[who] / 0.22;
+    ctx.drawImage(whiteSprite(name), x, y, 36, 36);
   }
+  ctx.restore();
   ctx.globalAlpha = 1;
 }
 

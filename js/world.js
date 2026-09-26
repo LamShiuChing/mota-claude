@@ -12,7 +12,7 @@ const ZONES = [
   {
     name: 'Dead Concrete', music: 'stratum',
     theme: { floor: '#2a2c33', seam: '#17181d', speck: '#353842', wall: '#8d93a1', mortar: '#4b505c', hi: '#bcc2cf', accent: '#ff3b4e', mote: 'dust', moteColor: '#e0e4ee' },
-    gear: { w: 'Coilgun', e: 'Faraday Vest' },
+    gear: { w: 'Rebar Machete', e: 'Faraday Vest' },
     roster: [
       { name: 'Bug', sprite: 'mite' },
       { name: 'Power Surge', sprite: 'wisp', swift: true },
@@ -26,7 +26,7 @@ const ZONES = [
   {
     name: 'Cable Nave', music: 'nave',
     theme: { floor: '#1d2a27', seam: '#0e1715', speck: '#273833', wall: '#6f9a8c', mortar: '#33514a', hi: '#a6d1c2', accent: '#39ff9e', mote: 'data', moteColor: '#39ff9e' },
-    gear: { w: 'Arc Welder', e: 'Cable Mesh' },
+    gear: { w: 'Arc Cleaver', e: 'Cable Mesh' },
     roster: [
       { name: 'Cable Leech', sprite: 'leech' },
       { name: 'Worm', sprite: 'serpent', corrupt: true },
@@ -40,7 +40,7 @@ const ZONES = [
   {
     name: 'Silicate Wards', music: 'ward',
     theme: { floor: '#1f2630', seam: '#10151c', speck: '#2a3340', wall: '#8fa6b8', mortar: '#465566', hi: '#c6d6e3', accent: '#4ec3ff', mote: 'dust', moteColor: '#c6f2ff' },
-    gear: { w: 'Scalpel Laser', e: 'Ceramic Plate' },
+    gear: { w: 'Scalpel Edge', e: 'Ceramic Plate' },
     roster: [
       { name: 'IV Drip', sprite: 'drip' },
       { name: 'Silicate Patient', sprite: 'patient', corrupt: true },
@@ -54,7 +54,7 @@ const ZONES = [
   {
     name: 'The Foundry', music: 'foundry',
     theme: { floor: '#2b1f18', seam: '#16100c', speck: '#3a2a20', wall: '#9a6a45', mortar: '#553722', hi: '#cf9a6a', accent: '#ff8a3c', mote: 'spark', moteColor: '#ff8a3c' },
-    gear: { w: 'Rivet Driver', e: 'Slag Armor' },
+    gear: { w: 'Rivet Greatsword', e: 'Slag Armor' },
     roster: [
       { name: 'Slag Crawler', sprite: 'slag' },
       { name: 'Welder Drone', sprite: 'drone', swap: { g: 'o', G: 'N', r: 'y' }, swift: true },
@@ -68,7 +68,7 @@ const ZONES = [
   {
     name: 'Drowned Archive', music: 'archive',
     theme: { floor: '#14203a', seam: '#0a1122', speck: '#1c2c4c', wall: '#4f6f9a', mortar: '#26385a', hi: '#86a6d0', accent: '#6ff7ff', mote: 'bubble', moteColor: '#6ff7ff' },
-    gear: { w: 'Data Lance', e: 'Archive Cloak' },
+    gear: { w: 'Index Rapier', e: 'Archive Cloak' },
     roster: [
       { name: 'Data Wraith', sprite: 'ghost', pierce: true },
       { name: 'Index Hound', sprite: 'hound', swap: { m: 'E', M: 'B', G: 'B', r: 'c' }, double: true },
@@ -96,7 +96,7 @@ const ZONES = [
   {
     name: 'Quarantine', music: 'quarantine',
     theme: { floor: '#2a1a1c', seam: '#150c0e', speck: '#3a2426', wall: '#b0a8a8', mortar: '#5e5456', hi: '#e0dada', accent: '#ff3b4e', mote: 'dust', moteColor: '#ff9a9a' },
-    gear: { w: 'Purge Cannon', e: 'Quarantine Suit' },
+    gear: { w: 'Purge Saber', e: 'Quarantine Suit' },
     roster: [
       { name: 'Specimen', sprite: 'specimen' },
       { name: 'Sanitizer Mk.III', sprite: 'sanitizer', swap: { g: 'r' } },
@@ -110,7 +110,7 @@ const ZONES = [
   {
     name: 'Graveyard of Signatures', music: 'grave',
     theme: { floor: '#1c211e', seam: '#0e110f', speck: '#27302b', wall: '#6b7a70', mortar: '#343d37', hi: '#9fb0a4', accent: '#c9c6bd', mote: 'ash', moteColor: '#9ea2ad' },
-    gear: { w: 'Grave Rail', e: 'Mourning Coat' },
+    gear: { w: 'Grave Scythe', e: 'Mourning Coat' },
     roster: [
       { name: 'Signed Ghost', sprite: 'ghost', swap: { e: 'q', E: 'Q' }, pierce: true },
       { name: 'Hollow Citizen', sprite: 'husk', swap: { q: 'a', Q: 'A', c: 'q', C: 'Q' }, corrupt: true },
@@ -138,7 +138,7 @@ const ZONES = [
   {
     name: 'The Root', music: 'core',
     theme: { floor: '#2c1d22', seam: '#170d11', speck: '#3b282e', wall: '#a86a6a', mortar: '#5a3336', hi: '#dca09b', accent: '#6ff7ff', mote: 'spark', moteColor: '#ff3b4e' },
-    gear: { w: 'Root Key', e: 'Kernel Plate' },
+    gear: { w: 'Root Brand', e: 'Kernel Plate' },
     roster: [
       { name: 'Kernel Bug', sprite: 'kernel' },
       { name: 'Daemon', sprite: 'daemon', pierce: true },
@@ -1274,25 +1274,25 @@ const LORE = {
 
 // One line under the ACQUIRED banner, by item name. Only for things found once.
 const ITEM_LORE = {
-  Coilgun: 'Hand-wound. Someone kept count of the turns in pencil on the grip.',
+  'Rebar Machete': 'Ground to an edge by hand. Someone kept count of the strokes, scratched into the grip.',
   'Faraday Vest': 'Cut from a cage built to keep a signal in. Or out.',
-  'Arc Welder': 'Made to join things. Lately, used for the other thing.',
+  'Arc Cleaver': 'Made to join cable. Lately, used for the other thing.',
   'Cable Mesh': 'Woven from the Nave. Still faintly warm.',
-  'Scalpel Laser': 'Calibrated for gentleness. The calibration drifted.',
+  'Scalpel Edge': 'Calibrated for gentleness. The calibration drifted.',
   'Ceramic Plate': 'A cot frame, cut down. The name tag was left on.',
-  'Rivet Driver': 'Stamped: WORK ORDER #1.',
+  'Rivet Greatsword': 'Stamped: WORK ORDER #1.',
   'Slag Armor': 'It cooled around something. Better not to ask what.',
-  'Data Lance': 'A catalogue index, once. It still tries to file what it strikes.',
+  'Index Rapier': 'A catalogue needle, once. It still tries to file what it pierces.',
   'Archive Cloak': 'Drowned pages, pressed and sealed. You can almost read them.',
   'Resonance Blade': 'It hums a note. Not the right one.',
   'Choir Shroud': 'Quiet, for a shroud. The voices in it are asleep.',
-  'Purge Cannon': 'White-unit issue. The safety reads: SIGNED TARGETS EXEMPT.',
+  'Purge Saber': 'White-unit issue. The safety reads: SIGNED TARGETS EXEMPT.',
   'Quarantine Suit': 'It seals from the outside.',
-  'Grave Rail': 'Pried from between two plaques. Neither will miss it.',
+  'Grave Scythe': "A groundskeeper's. There was never any grass.",
   'Mourning Coat': 'A candle stub in the pocket.',
   'Null Edge': 'It cuts the sound out of things.',
   'Silence Weave': 'Inside it you can hear your own heart. Only that.',
-  'Root Key': 'It was never a key. It opens anyway.',
+  'Root Brand': 'It was never a blade. It opens things anyway.',
   'Kernel Plate': 'Warm. Why is it warm.',
   'Phase Compass': 'It remembers every floor you stood on. Only those.',
   "Brann's Drill": 'Smells of machine oil. Still wants to go up.',
@@ -1338,7 +1338,7 @@ const STORY = {
   brann2: [
     { who: 'Brann', text: 'Rho! Still breathing? Me too, mostly.' },
     { who: 'Brann', text: 'The Surgeon took two fingers. Called it a deposit.' },
-    { who: 'Brann', text: 'Found this on a man who stopped. Better in your gun.' },
+    { who: 'Brann', text: 'Found this on a man who stopped. Better in your hands.' },
   ],
   brann3: [
     { who: 'Brann', text: '...Sit a while.' },

@@ -167,14 +167,14 @@ Plain browser JS with no build step or modules, so it works from `file://`. Scri
 
 | File | Role |
 |---|---|
-| `js/data.js` | Core rules: `PAL` palette, `SPRITES` (16×16 char art, auto-outlined), `VARIANTS` (palette swaps), `ITEMS` kinds, `DOORS`, `ABILITIES`, `hitChances`, **`battleCost`** (the single luck-aware damage formula, shared by the Scan screen and the calibrator), `HERO_START`, `expToNext`, `levelGain`, `fabricatorCost` |
+| `js/data.js` | Core rules: `PAL` palette, `SPRITES` (16×16 char art, auto-outlined), `VARIANTS` (palette swaps), `ITEMS` kinds, `DOORS`, `ABILITIES`, `hitChances`, **`battleCost`** (the single luck-aware damage formula, shared by the Scan screen and the calibrator), `HERO_START`, `expToNext`, `levelGain`, `fabricatorCost`. `heroDw`/`heroUw`/`heroRw` = Rho holding a blade |
 | `js/world.js` | Content: `ZONES` (theme, music, gear names, 6-tier roster + boss with abilities/swaps/dialog keys), hand-made maps (`MAP_1F`/`2F`/`3F`, `AUTHORED` = 60 authored floors keyed by floor number, `VAULT_MAPS[5]`), `FLOOR_PLAN` (per-floor specials; `.map` = authored layout), `VAULTS`, `ON_ENTER`, `NPCS`, `PORTRAITS`, `NOTES`, `SECRET_HINTS`, `STORY`, `zoneMonster()` |
 | `js/maps.js` | **Generated** by `tools/genmaps.js`: `MAPS[105]` (100 main + 5 vaults) and `MAP_META` (npcs / notes / vault links per floor) |
 | `js/balance.js` | **Generated** by `tools/calibrate.js`: `BALANCE[zone]` = monster stats per tier, item values, poison, shop, broker prices |
 | `js/music.js` | `MUSIC` score: 14 tracks as 8-bar eighth-note strings (`C#5`, `-` hold, `.` rest), optional `wave`, `hat` |
 | `js/samples.js` | 12 Kenney CC0 sound effects as base64 (embedded so `file://` works) |
 | `js/audio.js` | `Sound`: WebAudio synth SFX with sample fallback, and a music sequencer |
-| `js/game.js` | Engine: state, input, movement, combat, UI, rendering. Art/FX tables: `IDLE`/`IDLE_STYLES`/`idlePose` (per-sprite map idle animation), `WEAPON_FX` (player attack per `G.weapon`), `ENEMY_FX`/`enemyFx` (enemy attack by sprite → ability → default), `stairFacing`/`stairSprite`, `OILY`/`splat` (death decals) |
+| `js/game.js` | Engine: state, input, movement, combat, UI, rendering. Art/FX tables: `IDLE`/`IDLE_STYLES`/`idlePose` (per-sprite map idle animation), `WEAPON_FX`/`BARE_FX` (player attack per `G.weapon`), `BLADE_TINT`/`heroSprite` (Rho's blade by tier), `ENEMY_FX`/`enemyFx` (enemy attack by sprite → ability → default), `stairFacing`/`stairSprite`, `OILY`/`splat` (death decals) |
 
 ### Map tokens (zone-relative)
 `#` wall · `.` floor · `%` fake wall (looks like a wall, bump to reveal) · `U`/`D` stairs · `^` vault stairs ·
@@ -193,6 +193,13 @@ Item and monster numbers come from `BALANCE[zone]`, so the same map token scales
   antivirus, never kills: minimum 1 HP), `aura` = damage when you step next to it (minimum 1 HP).
 - Save: `localStorage['stratum-save-v3']` holds the whole `G` state (maps included). `G.weapon` (zone index of best weapon, -1 = none) and
   `G.decals[floor]` were added later; `load()` back-fills both for old saves.
+- Battle FX: every attack plays on the target portrait only (no projectiles or beams across the gap, no lunge).
+  The 48px portrait frames never move or get filled: only the sprite inside is knocked back/shaken (`b.sh`), flashed
+  white, or tinted (`fxFrame` = sprite silhouette). Box washes use `boxFill`/`fxOutside`, which cut the frames out.
+- Weapons are melee blades (`ZONES[z].gear.w`, Rebar Machete → Root Brand). Each tier has its own shape in `WEAPON_FX`
+  (`fxSlit` straight cuts, `fxArc` curved sweeps): bare jab, diagonal hack, flat electric cleave, bleeding X, falling
+  greatsword + shockwave, rapier thrust flurry, full-circle ring, burning Z, huge scythe hook, box-wide void tear, λ cut +
+  light pillar. Owning a weapon swaps Rho's gun arm for a blade tinted by tier (map, status panel and battle portrait).
 - New sprites just work: unknown sprite names fall back to the `breathe` idle and to an ability-based (or default) attack effect.
   To give one a specific look, add it to `IDLE` or to the alias list after `ENEMY_FX`.
 - Keys: arrows, Enter/Space/Z, Q retreat, E re-read note, M scan (needs firmware), F Phase Compass, S/L, N mute, R twice restart, H help.
