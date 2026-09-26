@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>STRATUM Lab</title>
+  <link rel="icon" href="data:,">
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+  <style>
+    html, body { margin: 0; height: 100%; background: #030306; color: #c9c6bd; font: 18px 'VT323', monospace; }
+    body { display: flex; }
+    #stage { flex: 1; display: flex; align-items: center; justify-content: center; min-width: 0; }
+    canvas { display: block; image-rendering: pixelated; }
+    #pad { display: none; }
+    aside { width: 300px; padding: 12px 14px; background: #0b0c12; border-left: 2px solid #1ea4d4; overflow-y: auto; box-sizing: border-box; }
+    h1 { font: 12px 'Press Start 2P', monospace; color: #6ff7ff; margin: 4px 0 12px; }
+    h2 { font: 9px 'Press Start 2P', monospace; color: #ffc23a; margin: 18px 0 8px; }
+    label { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 6px 0; }
+    select, button { font: inherit; background: #15171e; color: #f2f0ea; border: 1px solid #4f535e; border-radius: 3px; padding: 2px 6px; }
+    select { max-width: 170px; }
+    button { width: 100%; margin: 4px 0; padding: 6px; cursor: pointer; }
+    button:hover { border-color: #6ff7ff; color: #6ff7ff; }
+    input[type=range] { width: 130px; }
+    .keys { color: #6e6b66; font-size: 16px; margin-top: 16px; line-height: 1.2; }
+  </style>
+</head>
+<body>
+  <div id="stage"><canvas id="game"></canvas></div>
+  <div id="pad"></div>
+  <aside>
+    <h1>STRATUM LAB</h1>
+
+    <h2>BATTLE FX</h2>
+    <label>Rho weapon <select id="weapon"></select></label>
+    <label>Enemy <select id="enemy"></select></label>
+    <label>Outcome <select id="outcome">
+      <option value="random">random</option><option value="normal">hit</option><option value="crit">crit</option>
+      <option value="miss">miss</option><option value="block">block</option>
+    </select></label>
+    <button id="heroHit">Rho attacks (A)</button>
+    <button id="enemyHit">Enemy attacks (D)</button>
+    <label>Auto-loop swings <input type="checkbox" id="loop"></label>
+    <label>Fast mode (4x) <input type="checkbox" id="fast"></label>
+    <button id="close">Close battle</button>
+
+    <h2>TIME</h2>
+    <label>Speed <input type="range" id="speed" min="0.05" max="2" step="0.05" value="1"><span id="speedVal">1.00x</span></label>
+
+    <h2>VIEW</h2>
+    <label>Floor <select id="floor"></select></label>
+    <label>Idle gallery <input type="checkbox" id="gallery"></label>
+    <label>Sound <input type="checkbox" id="sound" checked></label>
+
+    <div class="keys">Arrows walk the map as in the game. A / D swing. Changes to js/ files show on reload.</div>
+  </aside>
+
+  <script src="js/data.js"></script>
+  <script src="js/world.js"></script>
+  <script src="js/maps.js"></script>
+  <script src="js/balance.js"></script>
+  <script src="js/music.js"></script>
+  <script src="js/samples.js"></script>
+  <script src="js/audio.js"></script>
+  <script src="js/game.js"></script>
+  <script>
+  'use strict';
+  // Dev lab: drives the real engine (same scripts as index.html) through a few wrapped globals.
+  const lab = { speed: 1, loop: false, outcome: 'random', gallery: false };
+  const $ = id => document.getElementById(id);
+  const opt = (sel, value, text) => sel.add(new Option(text, value));
+
+  // Canvas fits the stage, not the whole window.
+  removeEventListener('resize', resize);
+  resize = () => {
+    const dpr = devicePixelRatio || 1, st = $('stage');
+    scale = Math.max(1, Math.floor(Math.min(st.clientWidth / W, st.clientHeight / H) * dpr * 2) / 2);
+    cv.width = W * scale; cv.height = H * scale;
+    cv.style.width = W * scale / dpr + 'px'; cv.style.height = H * scale / dpr + 'px';
+    panelPattern = null;
+  };
+  addEventListener('resize', resize);
+  resize();
+
+  // Engine hooks: slow motion, forced outcomes, one swing per click unless looping.
+  const baseUpdate = update, baseRoll = roll, baseUpdateBattle = updateBattle, baseRender = render;
+  update = dt => baseUpdate(dt * lab.speed);
+  roll = (base, chances) => {
+    const v = Math.max(1, base);
+    return { random: () => baseRoll(base, chances), normal: () => ({ v }), crit: () => ({ v: v * 2, crit: true }),
+      miss: () => ({ v: 0, miss: true }), block: () => ({ v: 0, block: true }) }[lab.outcome]();
+  };
+  updateBattle = (b, dt) => {
+    const before = b.timer;
+    baseUpdateBattle(b, dt);
+    if (b.timer > before && !lab.loop && !b.second) b.timer = Infinity; // a swing just happened: wait for the next click
+    if (b.mhp < 1000) b.mhp = 99999;
+    if (G.hp < 1000) G.hp = 99999;
+  };
+  render = () => (lab.gallery ? drawGallery() : baseRender());
+
+  // Idle gallery: every character animating with its map idle.
+  const GALLERY = [{ name: 'Rho', sprite: 'heroD' }, ...['archivist', 'lambda', 'brann', 'ohm', 'pip', 'broker', 'wanderer'].map(s => ({ name: s, sprite: s })),
+    ...ZONES.flatMap(z => [...z.roster, { ...z.boss, boss: true }])];
+  function drawGallery() {
+    ctx.setTransform(scale, 0, 0, scale, 0, 0);
+    ctx.imageSmoothingEnabled = false;
+    ctx.fillStyle = '#101218';
+    ctx.fillRect(0, 0, W, H);
+    GALLERY.forEach((d, i) => {
+      const x = 6 + (i % 12) * 47, y = 6 + Math.floor(i / 12) * 60, face = Math.sign(Math.sin(time * 0.7 + i));
+      if (d.sprite === 'heroD') spr(heroSprite('D'), x + 7, y);
+      else drawIdle(d, x + 7, y, idlePose(d.sprite, time, (i * 0.137) % 1, face, d.boss));
+      body(d.name.slice(0, 8), x + 23, y + 34, { size: 12, align: 'center', color: d.boss ? '#ff3b4e' : '#9ea2ad', shadow: false });
+    });
+  }
+
+  // Controls
+  const enemies = ZONES.flatMap((z, zi) => ['1', '2', '3', '4', '5', '6', '9'].map(ch => ({ zi, ch })));
+  const enemyDef = ({ zi, ch }) => ({ ...zoneMonster(zi, ch), ...BALANCE[zi].monsters[ch], boss: ch === '9' });
+  enemies.forEach((e, i) => opt($('enemy'), i, `${e.zi + 1}.${e.ch === '9' ? 'B' : e.ch} ${enemyDef(e).name}`));
+  opt($('weapon'), -1, 'bare hands');
+  ZONES.forEach((z, i) => opt($('weapon'), i, `${i}: ${z.gear.w}`));
+  MAPS.forEach((_, f) => opt($('floor'), f, floorLabel(f) + (isVault(f) ? ` ${f - MAIN_FLOORS + 1}` : '')));
+
+  function battle() {
+    Sound.init();
+    lab.gallery = $('gallery').checked = false;
+    if (ui?.type !== 'battle') startBattle(G.x, G.y, '1');
+    Object.assign(ui, { m: enemyDef(enemies[$('enemy').value]), mhp: 99999, fast: $('fast').checked });
+    if (ui.timer !== Infinity && !lab.loop) ui.timer = Infinity;
+    G.hp = 99999;
+    return ui;
+  }
+  const swing = hero => { const b = battle(); b.heroTurn = hero; b.second = false; b.timer = 0; };
+  $('heroHit').onclick = () => swing(true);
+  $('enemyHit').onclick = () => swing(false);
+  $('close').onclick = () => { ui = null; floaters = []; particles = []; };
+  $('enemy').onchange = () => ui?.type === 'battle' && battle();
+  $('weapon').onchange = e => { G.weapon = +e.target.value; };
+  $('outcome').onchange = e => { lab.outcome = e.target.value; };
+  $('loop').onchange = e => { lab.loop = e.target.checked; if (lab.loop && ui?.type === 'battle') ui.timer = 0; };
+  $('fast').onchange = e => { if (ui?.type === 'battle') ui.fast = e.target.checked; };
+  $('speed').oninput = e => { lab.speed = +e.target.value; $('speedVal').textContent = lab.speed.toFixed(2) + 'x'; };
+  $('floor').onchange = e => { ui = null; changeFloor(+e.target.value, 'D'); };
+  $('gallery').onchange = e => { lab.gallery = e.target.checked; };
+  $('sound').onchange = e => { if (Sound.muted === e.target.checked) Sound.toggleMute(); };
+  addEventListener('keydown', e => {
+    if (e.target.tagName === 'SELECT') return;
+    if (e.key === 'a' || e.key === 'A') swing(true);
+    if (e.key === 'd' || e.key === 'D') swing(false);
+  });
+
+  // Start on 1F with the intro skipped.
+  newGame();
+  ui = null;
+  G.hp = 99999;
+  </script>
+</body>
+</html>

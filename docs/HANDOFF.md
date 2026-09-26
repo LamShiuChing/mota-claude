@@ -270,6 +270,10 @@ bosses cost 30–36% of HP; "balanced: all 10 zones cleared"
 - Top-level `let/const` in the scripts are reachable from `page.evaluate` (e.g. `G`, `ui`, `newGame()`, `changeFloor(f, 'D')`,
   `tryMove(dx, dy, dir)`, `monsterAt(ch)`, `battleCost(G, m)`).
 - Smoke test: `eval(await (await fetch('/tools/playbot.js')).text()); newGame(); await playbot(100)`.
+- **Dev lab: `lab.html`** (serve the repo, open `/lab.html`) runs the real engine with a side panel: pick Rho's weapon
+  tier and any enemy, force the swing outcome (hit/crit/miss/block), fire single swings (A / D) or auto-loop, slow motion,
+  fast mode, jump to any floor, and an idle-animation gallery of every character. It wraps `update`, `roll`,
+  `updateBattle`, `render` and `resize` from outside, so game code needs no lab hooks.
 - Mechanics individually verified: fake walls, notes, vault stairs both ways, shard pickup + dialog, Phase Compass,
   NPC gifts/leave, corruption, field damage, twin attacks, Scan screen, Broker/Fabricator, boss intro/outro, both endings, save/load, death screen.
 
