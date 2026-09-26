@@ -195,10 +195,12 @@ Item and monster numbers come from `BALANCE[zone]`, so the same map token scales
   `G.decals[floor]` were added later; `load()` back-fills both for old saves.
 - New sprites just work: unknown sprite names fall back to the `breathe` idle and to an ability-based (or default) attack effect.
   To give one a specific look, add it to `IDLE` or to the alias list after `ENEMY_FX`.
-- Keys: arrows, Enter/Space/Z, Q retreat, M scan (needs firmware), F Phase Compass, S/L, N mute, R twice restart, H help.
+- Keys: arrows, Enter/Space/Z, Q retreat, E re-read note, M scan (needs firmware), F Phase Compass, S/L, N mute, R twice restart, H help.
   The touch pad appears on `(pointer: coarse)`.
 - Movement: one cell per key press (held keys only step again via OS key-repeat, and only when idle). Items are taken
   from the adjacent cell without moving. Changing floor puts the hero on the arrival stair tile itself.
+- Notes: shown automatically only the first time (`G.read`, keyed `floor:x,y`); after that they're dimmed and
+  E re-reads the note you're standing on.
 
 ---
 

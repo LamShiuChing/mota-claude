@@ -161,7 +161,7 @@ const itemName = (ch, f = G.floor) => ITEMS[ch].name ?? ZONES[zoneOf(f)].gear[ch
 function newGame() {
   G = {
     ...structuredClone(HERO_START), floor: 0, x: 0, y: 0, dir: 'D', maps: MAPS.map(m => m.map(r => [...r])),
-    flags: {}, buys: 0, steps: 0, kills: 0, status: 'NORMAL', antivirus: 0, shards: 0, visited: [0], weapon: -1, decals: {},
+    flags: {}, buys: 0, steps: 0, kills: 0, status: 'NORMAL', antivirus: 0, shards: 0, visited: [0], weapon: -1, decals: {}, read: {},
   };
   [G.x, G.y] = findTile(0, 'P');
   setTile(G.x, G.y, '.');
@@ -253,11 +253,13 @@ function arrive() {
   const ch = tile(G.x, G.y);
   if (ch === 'U' || ch === 'D') changeFloor(G.floor + (ch === 'U' ? 1 : -1), ch === 'U' ? 'D' : 'U');
   else if (ch === '^') changeFloor(meta().links[metaKey(G.x, G.y)], '^');
-  else if (ch === 'n') readNote();
+  else if (ch === 'n' && !G.read[noteKey(G.x, G.y)]) readNote(); // read notes stay silent; E re-reads
 }
 
+const noteKey = (x, y) => `${G.floor}:${metaKey(x, y)}`;
 // A floor's authored fragment (LORE, by floor number) replaces its first ordinary scrawl.
 function readNote() {
+  G.read[noteKey(G.x, G.y)] = true;
   const notes = meta().notes, k = metaKey(G.x, G.y);
   const spots = Object.keys(notes).filter(s => !SECRET_HINTS.includes(notes[s]));
   const lore = spots.indexOf(k) === 0 && LORE[G.floor + 1];
@@ -1028,6 +1030,7 @@ function load() {
   // Older saves lack G.weapon: infer it from the weapon tiles already taken.
   G.weapon ??= MAPS.reduce((best, m, f) => (m.some((r, y) => [...r].some((c, x) => c === 'w' && G.maps[f][y][x] !== 'w')) ? Math.max(best, FLOOR_ZONE[f]) : best), -1);
   G.decals ??= {}; // older saves have no death decals
+  G.read ??= {};
   enterPlay();
   toast('State restored', '#39ff9e');
 }
@@ -1054,6 +1057,7 @@ function handleKey(key) {
     ui = { type: 'book' }; Sound.sfx.select();
   }
   else if (k === 'h') { ui = { type: 'help' }; Sound.sfx.select(); }
+  else if (k === 'e') { if (tile(G.x, G.y) === 'n') readNote(); else Sound.sfx.deny(); }
   else if (k === 'f') {
     if (!G.flags.compass) return Sound.sfx.deny();
     const floors = G.visited.filter(f => !isVault(f)).sort((a, b) => a - b);
@@ -1455,7 +1459,7 @@ function drawMap() {
       drawIdle(def, px, py, p);
       continue;
     }
-    if (ch === 'n') ctx.globalAlpha = 0.55 + 0.35 * Math.sin(time * 2 + x);
+    if (ch === 'n') ctx.globalAlpha = G.read[noteKey(x, y)] ? 0.35 : 0.55 + 0.35 * Math.sin(time * 2 + x);
     spr(tileSpriteName(ch, x, y), px, py);
     ctx.globalAlpha = 1;
   }
@@ -1700,7 +1704,7 @@ function drawShop(s) {
 // Keys only. M and F appear once there is something for them to do.
 function drawHelp() {
   const rows = [['Arrows', 'Move'], ['Enter', 'Confirm'], ['Q', 'Retreat'], G.flags.scanner && ['M', 'Scan'],
-    G.flags.compass && ['F', 'Compass'], ['S / L', 'Save / Load'], ['N', 'Sound'], ['R R', 'Restart']].filter(Boolean);
+    G.flags.compass && ['F', 'Compass'], Object.keys(G.read).length && ['E', 'Read'], ['S / L', 'Save / Load'], ['N', 'Sound'], ['R R', 'Restart']].filter(Boolean);
   const x = MX + 30, y = MY + 30, w = MW - 60, h = 48 + rows.length * 24;
   panel(x, y, w, h);
   text('CONTROLS', x + w / 2, y + 12, { size: 9, color: '#6ff7ff', align: 'center' });
