@@ -168,13 +168,13 @@ Plain browser JS with no build step or modules, so it works from `file://`. Scri
 | File | Role |
 |---|---|
 | `js/data.js` | Core rules: `PAL` palette, `SPRITES` (16×16 char art, auto-outlined), `VARIANTS` (palette swaps), `ITEMS` kinds, `DOORS`, `ABILITIES`, `hitChances`, **`battleCost`** (the single luck-aware damage formula, shared by the Scan screen and the calibrator), `HERO_START`, `expToNext`, `levelGain`, `fabricatorCost` |
-| `js/world.js` | Content: `ZONES` (theme, music, gear names, 6-tier roster + boss with abilities/swaps/dialog keys), hand-made maps (`MAP_1F`/`2F`/`3F`/`MAP_BOSS`/`MAP_FINAL`/`MAP_VAULT`), `FLOOR_PLAN` (per-floor specials), `VAULTS`, `ON_ENTER`, `NPCS`, `PORTRAITS`, `NOTES`, `SECRET_HINTS`, `STORY`, `zoneMonster()` |
+| `js/world.js` | Content: `ZONES` (theme, music, gear names, 6-tier roster + boss with abilities/swaps/dialog keys), hand-made maps (`MAP_1F`/`2F`/`3F`, `AUTHORED` = 60 authored floors keyed by floor number, `VAULT_MAPS[5]`), `FLOOR_PLAN` (per-floor specials; `.map` = authored layout), `VAULTS`, `ON_ENTER`, `NPCS`, `PORTRAITS`, `NOTES`, `SECRET_HINTS`, `STORY`, `zoneMonster()` |
 | `js/maps.js` | **Generated** by `tools/genmaps.js`: `MAPS[105]` (100 main + 5 vaults) and `MAP_META` (npcs / notes / vault links per floor) |
 | `js/balance.js` | **Generated** by `tools/calibrate.js`: `BALANCE[zone]` = monster stats per tier, item values, poison, shop, broker prices |
 | `js/music.js` | `MUSIC` score: 14 tracks as 8-bar eighth-note strings (`C#5`, `-` hold, `.` rest), optional `wave`, `hat` |
 | `js/samples.js` | 12 Kenney CC0 sound effects as base64 (embedded so `file://` works) |
 | `js/audio.js` | `Sound`: WebAudio synth SFX with sample fallback, and a music sequencer |
-| `js/game.js` | Engine: state, input, movement, combat, UI, rendering |
+| `js/game.js` | Engine: state, input, movement, combat, UI, rendering. Art/FX tables: `IDLE`/`IDLE_STYLES`/`idlePose` (per-sprite map idle animation), `WEAPON_FX` (player attack per `G.weapon`), `ENEMY_FX`/`enemyFx` (enemy attack by sprite → ability → default), `stairFacing`/`stairSprite`, `OILY`/`splat` (death decals) |
 
 ### Map tokens (zone-relative)
 `#` wall · `.` floor · `%` fake wall (looks like a wall, bump to reveal) · `U`/`D` stairs · `^` vault stairs ·
@@ -191,7 +191,10 @@ Item and monster numbers come from `BALANCE[zone]`, so the same map token scales
   advantage adds 3% dodge, clamped 2–40%), damage is ±10%. `double` = two attacks per turn, `pierce` ignores DEF,
   `surge` = every 3rd hit ×2 (bosses), `corrupt` = poison for 60 steps (refreshed on re-infection, auto-cured by stored
   antivirus, never kills: minimum 1 HP), `aura` = damage when you step next to it (minimum 1 HP).
-- Save: `localStorage['stratum-save-v3']` holds the whole `G` state (maps included).
+- Save: `localStorage['stratum-save-v3']` holds the whole `G` state (maps included). `G.weapon` (zone index of best weapon, -1 = none) and
+  `G.decals[floor]` were added later; `load()` back-fills both for old saves.
+- New sprites just work: unknown sprite names fall back to the `breathe` idle and to an ability-based (or default) attack effect.
+  To give one a specific look, add it to `IDLE` or to the alias list after `ENEMY_FX`.
 - Keys: arrows, Enter/Space/Z, Q retreat, M scan (needs firmware), F Phase Compass, S/L, N mute, R twice restart, H help.
   The touch pad appears on `(pointer: coarse)`.
 
@@ -203,6 +206,7 @@ Item and monster numbers come from `BALANCE[zone]`, so the same map token scales
 node tools/genmaps.js     # js/maps.js from world.js (FLOOR_PLAN); per-floor seed overrides in tools/seeds.json
 node tools/calibrate.js   # js/balance.js; must end with "balanced: all 10 zones cleared"
 TRACE=1 node tools/calibrate.js   # prints every simulated fight
+node tools/checkmaps.js [--all] [floor…]   # validates tokens, stair rules, specials, lore notes, key-order softlocks
 ```
 `tools/load.js` loads the browser scripts into one Node `vm` context, so the tools use exactly the game's data and formulas.
 
@@ -274,13 +278,16 @@ bosses cost 30–36% of HP; "balanced: all 10 zones cleared"
 
 - **Audio has never been heard by a human.** Samples decode and play (tested programmatically); the mix and volume are untuned.
 - Fonts (`Press Start 2P`, `VT323`) load from Google Fonts. Offline, the game falls back to monospace.
-- Most floors are generated, so they may lack the hand-crafted puzzle feel of the original. Hand-made: 1F–3F, boss floors
-  (one template, vertically flipped on odd zones), 100F, vaults (one template, flipped).
-- The boss/vault templates repeat. `MAP_FINAL` is just the boss template with `L`.
+- 63 of 100 main floors are hand-made (1F–3F + 60 in `AUTHORED`: every boss arena, zone intro, NPC floor) plus 5 unique vaults.
+  The other 37 are generated; 10 of those can softlock if keys are spent badly (Broker sells keys; `checkmaps --all` lists them).
+- 84F's diagonal stair and 100F's roots read as scattered blocks (walls touch only at corners).
+- Playbot (fresh page per run) won 7/8 after all the art/story/floor merges; the loss stalled on 94F with no Cyan key and low HP.
+  The bot can't walk to `L`, so a "win" = `G.flags.boss99`.
+- Grim sprite redraw: weakest reads are Drowned Diver, Lantern Reader, the Foreman's hat; Builder Mk.II ≈ Builder; oil splats are faint on 81–90F floors.
 - Gold piles up late (the sim ends with about 12k unspent). The Fabricator cost curve `20+10n+2n²` could be retuned, or more sinks added.
 - The Scan screen has room for about 7 monster rows. A floor with more distinct types would overflow (hasn't happened yet).
 - "Status" only shows NORMAL / CORRUPT. There are no other status effects yet.
-- No blood/scorch decals, no floor-0 / underground / mystery-floor structure like the original.
+- No floor-0 / underground / mystery-floor structure like the original.
 - `~` renders as `≈`-ish in VT323 on the Scan screen (cosmetic).
 - Git warns about CRLF line endings on Windows (harmless).
 - The title screen has no credits page for Kenney (CC0 doesn't require one, but a credit is nice).
@@ -290,11 +297,11 @@ bosses cost 30–36% of HP; "balanced: all 10 zones cleared"
 ## 8. Polish ideas / next steps (suggested priority)
 
 1. **Listen and mix audio.** Balance music vs SFX volume and check each zone track. Consider more Kenney samples (pickups, level up).
-2. **Hand-design key floors.** Replace some generated floors with authored puzzles (start with zone intros and NPC floors), then regenerate and recalibrate.
-3. **More boss arenas and vault layouts** (currently one template each).
+2. **Hand-design the remaining generated floors** (start with the 10 softlock-prone ones), then regenerate and recalibrate.
+3. **Watch the new animations/effects in real time** (idle, weapon FX, hit-stop were only checked frame-by-frame).
 4. **Original-style features** from §2: floor-teleport item as the 飛行 feather (already done: Phase Compass),
-   an 隨意門-style item, NPC-taught skills (e.g. reflect), death decals, and a hidden "mystery" floor chain like 神秘樓.
-5. **Sprite polish**, especially the hero walk frames, bosses (unique 16×16 art instead of palette swaps), and the Mirror.
+   an 隨意門-style item, NPC-taught skills (e.g. reflect), and a hidden "mystery" floor chain like 神秘樓.
+5. **Sprite polish**: hero walk frames; the weak grim sprites listed in §7.
 6. **Difficulty options** (a scale on `TIERS.f` / `BOSS.f`) and a credits screen.
 7. **Offline fonts**: self-host OFL fonts in `assets/`.
 8. **Deploy** with GitHub Pages from `main` (not set up yet).
