@@ -203,10 +203,11 @@ function toast(text, color = '#f2f0ea') {
 function floater(text, x, y, color = '#fff', size = 8) {
   floaters.push({ text, x, y, color, size, life: 1, max: 1 });
 }
-function burst(x, y, color, n = 12, speed = 60) {
+function burst(x, y, color, n = 12, speed = 60) { // color: one color, or a list to cycle through
+  const cols = [].concat(color);
   for (let i = 0; i < n; i++) {
     const a = Math.random() * Math.PI * 2, s = speed * (0.4 + Math.random());
-    particles.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 0.6, max: 0.6, color, size: 2, grav: 60 });
+    particles.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 0.6, max: 0.6, color: cols[i % cols.length], size: 2, grav: 60 });
   }
 }
 // Something dissolves pixel by pixel into rising data.
@@ -494,7 +495,7 @@ function landFx(b, r, target) {
   const label = r.surge ? 'OVERFLOW' : r.crit ? 'CRIT!' : r.pierce ? 'PIERCE' : null;
   if (label) floater(label, pos.x, pos.y - 48, r.surge ? '#6ff7ff' : r.pierce ? '#b98cff' : '#ff8a3c', 9);
   floater(`-${r.v}`, pos.x, pos.y - 34, big ? '#ffc23a' : target === 'H' ? '#ff3b4e' : '#f2f0ea', big ? 14 : 11);
-  burst(pos.x, pos.y, target === 'H' ? '#ff3b4e' : GORE[bleed(b.m)][2], r.crit ? 22 : 10, r.crit ? 140 : 80);
+  burst(pos.x, pos.y, target === 'H' ? '#ff3b4e' : SPRAY[remains(b.m)], r.crit ? 22 : 10, r.crit ? 140 : 80);
   fxAdd(b, 0.16, p => fxOrb(pos, (big ? 26 : 18) * (1 - p * 0.3), '#ffffff', 0.8 * (1 - p)));
   if (target === 'H' && b.m.boss) fxAdd(b, 0.3, p => fxRing(pos, 10 + 50 * p, '#ff3b4e', 4 * (1 - p) + 1, 1 - p));
   if (!big) return (target === 'H' ? Sound.sfx.hurt : Sound.sfx.hit)();
@@ -700,14 +701,14 @@ const WEAPON_FX = [
     if (P.c) fxAdd(b, 0.34, p => fxArc(P, fxAt(P.z, 0, -12), 70 * k, Math.PI + 0.35, -(Math.PI + 0.7), 18, ['#6ff7ff', '#ffffff'], p, 0.42), 0.1);
     return 0.05;
   },
-  (b, P) => { // Scalpel Edge: two long surgical strokes in an X (four on a crit), then the incisions bleed
+  (b, P) => { // Scalpel Edge: two long surgical strokes in an X (four on a crit), then the incisions spark
     Sound.sfx.whoosh();
     const line = rot => { const ux = -P.d * Math.cos(rot) * 40 * P.k, uy = Math.sin(rot) * 40 * P.k; return [fxAt(P.z, -ux, -uy), fxAt(P.z, ux, uy)]; };
     (P.c ? [2.3, 0.84, Math.PI, Math.PI / 2] : [2.3, 0.84]).forEach((rot, i) => {
       fxAdd(b, 0.26, p => fxSlit(P, P.z, 60 * P.k, rot, 9, ['#8aa2b8', '#dfe9f2', '#ffffff'], p), 0.01 + i * 0.04);
       if (!P.miss) fxAdd(b, 0.55, p => fxPath(line(rot), '#ff3b4e', 2.5, 1 - p), 0.06 + i * 0.04);
     });
-    if (!P.miss) fxAdd(b, 0, null, 0.07, () => fxSparks(P.z, '#ff3b4e', 16, 100, 380));
+    if (!P.miss) fxAdd(b, 0, null, 0.07, () => fxSparks(P.z, '#dfe9f2', 16, 100, 380));
     return 0.03;
   },
   (b, P) => { // Rivet Greatsword: the whole slab comes down like a guillotine; the floor answers
@@ -1011,7 +1012,7 @@ function endBattle(b) {
   if (b.dead) return gameOver();
   const m = b.m, cx = mapX(b.x) + 16, cy = mapY(b.y);
   setTile(b.x, b.y, '.');
-  (G.decals[G.floor] ??= []).push([b.x, b.y, bleed(m), Math.floor(Math.random() * 4)]);
+  (G.decals[G.floor] ??= []).push([b.x, b.y, remains(m), Math.floor(Math.random() * 4)]);
   shatter(b.x, b.y, spriteKey(m));
   G.kills++;
   if (m.gold) { G.gold += m.gold; flash('gold'); floater(`+${m.gold} CR`, cx, cy, '#ffc23a'); Sound.sfx.coin(); }
@@ -1517,29 +1518,64 @@ function drawIdle(def, x, y, p, s = TS) {
   if (p.spark) rect(ctx, '#fff', x + p.spark[0] * u, y + p.spark[1] * u, 2 * u, u);
 }
 
-// Gore left where something died: blood from flesh, black oil from machines. Pixel splats, cached per variant.
-const OILY = new Set('wisp sanitizer mason drone turret janitor syringe slag crab furnace crane foreman seraph speaker sprayer gatekeeper lacuna monolith daemon firewall collector'.split(' '));
-const bleed = m => (OILY.has(VARIANTS[m.sprite]?.[0] || m.sprite) ? 'oil' : 'blood');
-const GORE = { blood: ['#4a0a10', '#860e1a', '#c0121e'], oil: ['#050607', '#12181a', '#3f5c58'] }; // edge, pool, wet glint / spray
-function splat(kind, v) {
-  return spriteCache['splat' + kind + v] ??= canvasOf(16, 16, g => {
-    const [edge, pool, wet] = GORE[kind], r = i => hash(v, i, 31);
-    const cx = 6 + r(1) * 4, cy = 6 + r(2) * 4, a = 3 + r(3) * 2, b = 2 + r(4) * 2, th = r(5) * Math.PI * 2;
+// What's left where something died, by base sprite: machines leak oil, glitch things leave dead pixels, cable things
+// leave cut ends. Pixel decals, cached per variant. Old saves hold 'blood' decals; unknown kinds draw as oil.
+const GLITCHY = new Set('ghost lacuna pointer mirror faceless daemon feedback bitrot'.split(' '));
+const CABLED = new Set('wisp leech serpent tangle motherworm burrow'.split(' '));
+const remains = m => { const k = VARIANTS[m.sprite]?.[0] || m.sprite; return GLITCHY.has(k) ? 'glitch' : CABLED.has(k) ? 'cable' : 'oil'; };
+const SPRAY = { oil: ['#ffc23a', '#ff8a3c', '#fff3d0'], glitch: ['#6ff7ff', '#f2f0ea', '#2f8c99'], cable: ['#e0904a', '#ffc23a', '#fff3d0'] }; // hit sparks
+const GLYPHS = [[7, 5, 5, 5, 7], [2, 6, 2, 2, 7]]; // 0 and 1, 3 px wide, one bit per pixel
+const DECAL_ART = {
+  oil(g, v, r) { // a black pool with an oily sheen, on a scorch mark with a few embers still glowing
+    const cx = 6 + r(1) * 4, cy = 6 + r(2) * 4, a = 3 + r(3) * 2, b = 2 + r(4) * 2;
     for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
-      const d = Math.hypot((x - cx) / a, (y - cy) / b) + (hash(x, y, v + 7) - 0.5) * 0.6;
-      if (d < 1) rect(g, d > 0.75 ? edge : hash(x, y, v + 9) < 0.12 ? wet : pool, x, y);
+      const d = Math.hypot((x - cx) / a, (y - cy) / b) + (hash(x, y, v + 7) - 0.5) * 0.6, h = hash(x, y, v + 9);
+      if (d < 1) rect(g, d > 0.75 && x - cx + y - cy < -1 ? '#56686a' : h < 0.1 ? '#3f5c58' : h < 0.16 ? '#4a3a66' : '#040505', x, y);
+      else if (d < 1.8 && h < 1.9 - d) rect(g, h < 0.1 ? '#4a4640' : '#0b0908', x, y); // scorch, flecked with ash
     }
-    for (let i = 0; i < 8; i++) { // droplets flung one way
-      const t = 1.2 + r(10 + i) * 1.6, s = th + (r(20 + i) - 0.5) * 1.2;
-      rect(g, i % 3 ? pool : edge, Math.round(cx + Math.cos(s) * a * t), Math.round(cy + Math.sin(s) * b * t * 1.3), i < 2 ? 2 : 1, 1);
+    for (let i = 0; i < 5; i++) {
+      const s = r(10 + i) * Math.PI * 2, t = 1.1 + r(20 + i) * 0.5;
+      rect(g, ['#fff3d0', '#ffc23a', '#ff8a3c', '#ff8a3c', '#b8461a'][i], Math.round(cx + Math.cos(s) * a * t), Math.round(cy + Math.sin(s) * b * t));
     }
-  });
-}
+  },
+  glitch(g, v, r) { // dead pixels scattered over a patch, and 0s and 1s spilled out of it
+    const cx = 2 + Math.floor(r(1) * 3), cy = 2 + Math.floor(r(2) * 2), cols = ['#6ff7ff', '#f2f0ea', '#2f8c99', '#1d5a66'];
+    for (let i = 0; i < 9; i++) {
+      const s = r(10 + i) < 0.5 ? 2 : 1;
+      rect(g, cols[Math.floor(r(20 + i) * 4)], cx + Math.floor(r(30 + i) * 5) * 2, cy + Math.floor(r(40 + i) * 4) * 2, s, s);
+    }
+    for (let i = 0; i < 2; i++) {
+      const gx = cx + 3 + i * 5, gy = cy + 5 + i * 2 + Math.floor(r(50 + i) * 2);
+      GLYPHS[Math.floor(r(60 + i) * 2)].forEach((row, y) => [4, 2, 1].forEach((bit, x) => row & bit && rect(g, i ? '#2f8c99' : '#9ff9ff', gx + x, gy + y)));
+    }
+  },
+  cable(g, v, r) { // a severed cable, bare copper at both cuts, arcing across the gap
+    const th = r(1) * Math.PI * 2;
+    const ends = [0, 1].map(k => {
+      const a = th + k * (Math.PI + (r(2) - 0.5) * 0.9), c = Math.cos(a), s = Math.sin(a), bend = (r(3 + k) - 0.5) * 10;
+      const at = t => [7.5 + c * (4 + 4.5 * t) - s * bend * t * (1 - t), 7.5 + s * (4 + 4.5 * t) + c * bend * t * (1 - t)];
+      return Array.from({ length: 12 }, (_, i) => at(i / 11).map(Math.round));
+    });
+    ends.forEach(pts => pts.forEach(([x, y]) => rect(g, '#060708', x - 1, y - 1, 4, 4)));
+    const [jacket, hi] = v % 2 ? ['#2f4a3a', '#55806a'] : ['#46505e', '#7d8898'];
+    ends.forEach(pts => pts.forEach(([x, y]) => { rect(g, jacket, x, y, 2, 2); rect(g, hi, x, y); }));
+    ends.forEach(pts => {
+      const [x, y] = pts[0], dx = Math.sign(x - pts[3][0]), dy = Math.sign(y - pts[3][1]);
+      const ox = dx > 0 ? x + 2 : dx < 0 ? x - 1 : x, oy = dy > 0 ? y + 2 : dy < 0 ? y - 1 : y; // just past the cut
+      rect(g, '#c87a3a', x, y, 2, 2);
+      rect(g, '#ffb070', ox, oy); // frayed strands
+      rect(g, '#e0904a', ox + dx + (dy ? 1 : 0), oy + dy + (dx ? 1 : 0));
+    });
+    const sx = Math.round(7.5 - Math.sin(th) * 2), sy = Math.round(7.5 + Math.cos(th) * 2); // the arc
+    rect(g, '#ffc23a', sx - 1, sy, 3, 1); rect(g, '#ffc23a', sx, sy - 1, 1, 3); rect(g, '#ffffff', sx, sy);
+  },
+};
+const decal = (kind, v) => spriteCache['decal' + kind + v] ??= canvasOf(16, 16, g => (DECAL_ART[kind] || DECAL_ART.oil)(g, v, i => hash(v, i, 31)));
 
 function drawMap() {
   if (!floorBg[G.floor]) buildFloorBg(G.floor);
   ctx.drawImage(floorBg[G.floor], MX, MY, MW, MW);
-  G.decals[G.floor]?.forEach(([x, y, kind, v]) => ctx.drawImage(splat(kind, v), mapX(x), mapY(y), TS, TS));
+  G.decals[G.floor]?.forEach(([x, y, kind, v]) => ctx.drawImage(decal(kind, v), mapX(x), mapY(y), TS, TS));
   for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
     const ch = tile(x, y), px = mapX(x), py = mapY(y);
     if (ch === '.' || ch === '#' || ch === '%') continue;

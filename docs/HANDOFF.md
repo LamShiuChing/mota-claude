@@ -251,7 +251,7 @@ and `lab.html` loads the same list):
 | `js/music.js` | `MUSIC` score: 14 tracks as 8-bar eighth-note strings (`C#5`, `-` hold, `.` rest), optional `wave`, `hat` |
 | `js/samples.js` | 12 Kenney CC0 sound effects as base64 (embedded so `file://` works) |
 | `js/audio.js` | `Sound`: WebAudio synth SFX with sample fallback (incl. `whoosh`, `laser`, `zap`, `thud`, `beam`, `chime`), and a music sequencer |
-| `js/game.js` | Engine: state, input, movement, combat, UI, rendering. Art/FX tables: `IDLE`/`IDLE_STYLES`/`idlePose`/`drawIdle` (per-sprite map idle), `WEAPON_FX`/`BARE_FX` (player attack per `G.weapon`), `BLADE_TINT`/`heroSprite` (Rho's blade by tier), `ENEMY_FX`/`enemyFx` (enemy attack by sprite → alias list → ability → default), `stairFacing`/`stairSprite`, `OILY`/`bleed`/`splat` (death decals), `drawKeyTip` |
+| `js/game.js` | Engine: state, input, movement, combat, UI, rendering. Art/FX tables: `IDLE`/`IDLE_STYLES`/`idlePose`/`drawIdle` (per-sprite map idle), `WEAPON_FX`/`BARE_FX` (player attack per `G.weapon`), `BLADE_TINT`/`heroSprite` (Rho's blade by tier), `ENEMY_FX`/`enemyFx` (enemy attack by sprite → alias list → ability → default), `stairFacing`/`stairSprite`, `remains`/`DECAL_ART`/`decal` (death decals: oil, glitch, cable; `SPRAY` hit sparks), `drawKeyTip` |
 | `lab.html` | Dev page (§5) |
 | `tools/` | `genmaps.js`, `calibrate.js`, `checkmaps.js`, `playbot.js`, `load.js`, `seeds.json` (§4) |
 
