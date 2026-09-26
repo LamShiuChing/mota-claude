@@ -92,6 +92,13 @@ const Sound = (() => {
     corrupt: () => sample('corrupt', 0.7) || tone(200, 0.3, { vol: 0.2, f2: 60, type: 'sawtooth' }),
     crumble: () => sample('crumble', 0.6) || noise(0.4, { vol: 0.3, f: 800, f2: 100 }),
     death: () => arp([392, 370, 349, 330, 262, 196], 0.18, { vol: 0.15, type: 'triangle' }),
+    // Attack launch variants (game.js WEAPON_FX / ENEMY_FX).
+    whoosh: () => noise(0.09, { vol: 0.14, type: 'bandpass', f: 700, f2: 3000 }),
+    laser: () => tone(1500, 0.09, { vol: 0.07, f2: 220 }),
+    zap: () => { tone(1800, 0.1, { type: 'sawtooth', vol: 0.07, f2: 300 }); noise(0.08, { vol: 0.1, type: 'highpass', f: 4000 }); },
+    thud: () => { tone(90, 0.12, { type: 'sine', vol: 0.35, f2: 40 }); noise(0.05, { vol: 0.18, f: 900 }); },
+    beam: () => { tone(200, 0.22, { type: 'sawtooth', vol: 0.07, f2: 800 }); noise(0.2, { vol: 0.1, type: 'bandpass', f: 1500, f2: 400 }); },
+    chime: () => { tone(988, 0.25, { type: 'triangle', vol: 0.08 }); tone(1482, 0.2, { type: 'triangle', vol: 0.05, at: 0.03 }); },
     lamp: () => { arp([294, 440, 587, 740, 880, 1175], 0.12, { vol: 0.12, type: 'triangle' }); noise(1.5, { vol: 0.12, type: 'highpass', f: 3000, at: 0.3 }); },
   };
 
