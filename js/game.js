@@ -162,7 +162,7 @@ const itemName = (ch, f = G.floor) => ITEMS[ch].name ?? ZONES[zoneOf(f)].gear[ch
 function newGame() {
   G = {
     ...structuredClone(HERO_START), floor: 0, x: 0, y: 0, dir: 'D', maps: MAPS.map(m => m.map(r => [...r])),
-    flags: {}, buys: 0, steps: 0, kills: 0, status: 'NORMAL', antivirus: 0, shards: 0, visited: [0], weapon: -1,
+    flags: {}, buys: 0, steps: 0, kills: 0, status: 'NORMAL', antivirus: 0, shards: 0, visited: [0], weapon: -1, decals: {},
   };
   [G.x, G.y] = findTile(0, 'P');
   setTile(G.x, G.y, '.');
@@ -498,7 +498,7 @@ function landFx(b, r, target) {
   const label = r.surge ? 'OVERFLOW' : r.crit ? 'CRIT!' : r.pierce ? 'PIERCE' : null;
   if (label) floater(label, pos.x, pos.y - 48, r.surge ? '#6ff7ff' : r.pierce ? '#b98cff' : '#ff8a3c', 9);
   floater(`-${r.v}`, pos.x, pos.y - 34, big ? '#ffc23a' : target === 'H' ? '#ff3b4e' : '#f2f0ea', big ? 14 : 11);
-  burst(pos.x, pos.y, target === 'H' ? '#ff3b4e' : '#6ff7ff', r.crit ? 22 : 10, r.crit ? 140 : 80);
+  burst(pos.x, pos.y, target === 'H' ? '#ff3b4e' : GORE[bleed(b.m)][2], r.crit ? 22 : 10, r.crit ? 140 : 80);
   fxAdd(b, 0.16, p => fxOrb(pos, (big ? 44 : 30) * (1 - p * 0.3), '#ffffff', 0.8 * (1 - p)));
   if (target === 'H' && b.m.boss) fxAdd(b, 0.3, p => fxRing(pos, 10 + 50 * p, '#ff3b4e', 4 * (1 - p) + 1, 1 - p));
   if (!big) return (target === 'H' ? Sound.sfx.hurt : Sound.sfx.hit)();
@@ -911,6 +911,7 @@ function endBattle(b) {
   if (b.dead) return gameOver();
   const m = b.m, cx = mapX(b.x) + 16, cy = mapY(b.y);
   setTile(b.x, b.y, '.');
+  (G.decals[G.floor] ??= []).push([b.x, b.y, bleed(m), Math.floor(Math.random() * 4)]);
   shatter(b.x, b.y, spriteKey(m));
   G.kills++;
   if (m.gold) { G.gold += m.gold; flash('gold'); floater(`+${m.gold} CR`, cx, cy, '#ffc23a'); Sound.sfx.coin(); }
@@ -1030,6 +1031,7 @@ function load() {
   G = s;
   // Older saves lack G.weapon: infer it from the weapon tiles already taken.
   G.weapon ??= MAPS.reduce((best, m, f) => (m.some((r, y) => [...r].some((c, x) => c === 'w' && G.maps[f][y][x] !== 'w')) ? Math.max(best, FLOOR_ZONE[f]) : best), -1);
+  G.decals ??= {}; // older saves have no death decals
   enterPlay();
   toast('State restored', '#39ff9e');
 }
@@ -1299,7 +1301,7 @@ const IDLE = {
   turret: { style: 'sentry', look: 'turretL' },
   hound: { style: 'pant', frame: 'houndP', face: 1 },
   ghost: { style: 'glitch' },
-  surgeon: { style: 'stance', frame: 'surgeonB', legs: 11 },
+  surgeon: { style: 'stance', frame: 'surgeonB', legs: 12 },
   choir: { style: 'hover', frame: 'choirB', rate: 2.5 },
   knight: { style: 'stance', look: 'knightL', legs: 11, slow: true },
   warden: { style: 'dread', frame: 'wardenE' },
@@ -1419,9 +1421,29 @@ function drawIdle(def, x, y, p, s = TS) {
   if (p.spark) rect(ctx, '#fff', x + p.spark[0] * u, y + p.spark[1] * u, 2 * u, u);
 }
 
+// Gore left where something died: blood from flesh, black oil from machines. Pixel splats, cached per variant.
+const OILY = new Set('wisp sanitizer mason drone turret janitor syringe slag crab furnace crane foreman seraph speaker sprayer gatekeeper lacuna monolith daemon firewall collector'.split(' '));
+const bleed = m => (OILY.has(VARIANTS[m.sprite]?.[0] || m.sprite) ? 'oil' : 'blood');
+const GORE = { blood: ['#4a0a10', '#860e1a', '#c0121e'], oil: ['#050607', '#12181a', '#3f5c58'] }; // edge, pool, wet glint / spray
+function splat(kind, v) {
+  return spriteCache['splat' + kind + v] ??= canvasOf(16, 16, g => {
+    const [edge, pool, wet] = GORE[kind], r = i => hash(v, i, 31);
+    const cx = 6 + r(1) * 4, cy = 6 + r(2) * 4, a = 3 + r(3) * 2, b = 2 + r(4) * 2, th = r(5) * Math.PI * 2;
+    for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
+      const d = Math.hypot((x - cx) / a, (y - cy) / b) + (hash(x, y, v + 7) - 0.5) * 0.6;
+      if (d < 1) rect(g, d > 0.75 ? edge : hash(x, y, v + 9) < 0.12 ? wet : pool, x, y);
+    }
+    for (let i = 0; i < 8; i++) { // droplets flung one way
+      const t = 1.2 + r(10 + i) * 1.6, s = th + (r(20 + i) - 0.5) * 1.2;
+      rect(g, i % 3 ? pool : edge, Math.round(cx + Math.cos(s) * a * t), Math.round(cy + Math.sin(s) * b * t * 1.3), i < 2 ? 2 : 1, 1);
+    }
+  });
+}
+
 function drawMap() {
   if (!floorBg[G.floor]) buildFloorBg(G.floor);
   ctx.drawImage(floorBg[G.floor], MX, MY, MW, MW);
+  G.decals[G.floor]?.forEach(([x, y, kind, v]) => ctx.drawImage(splat(kind, v), mapX(x), mapY(y), TS, TS));
   for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
     const ch = tile(x, y), px = mapX(x), py = mapY(y);
     if (ch === '.' || ch === '#' || ch === '%') continue;
