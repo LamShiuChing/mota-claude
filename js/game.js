@@ -139,7 +139,6 @@ let ui = null;                 // modal: dialog | banner | battle | shop | book 
 let hero = { move: null, nudge: null, cooldown: 0 };
 let particles = [], floaters = [], toasts = [], doorAnims = [], motes = [], statFlash = {};
 let shake = 0, pendingDir = null;
-const held = [];
 
 const tile = (x, y, f = G.floor) => G.maps[f][y][x];
 const setTile = (x, y, ch, f = G.floor) => { G.maps[f][y][x] = ch; };
@@ -238,6 +237,7 @@ function tryMove(dx, dy, dir) {
   if (ch === 'S' || ch === 'M') return openShop(ch);
   if (ch === 'O') return talkNpc(nx, ny);
   if (ch === 'L') return touchGoal();
+  if (ITEMS[ch]) { hero.nudge = { dx, dy, t: 0.12 }; hero.cooldown = 0.18; return pickUp(ch, nx, ny); }
   hero.move = { fx: G.x, fy: G.y, t: 0 };
   G.x = nx; G.y = ny; G.steps++;
   Sound.sfx.step();
@@ -251,8 +251,7 @@ function arrive() {
   }
   fieldDamage();
   const ch = tile(G.x, G.y);
-  if (ITEMS[ch]) pickUp(ch);
-  else if (ch === 'U' || ch === 'D') changeFloor(G.floor + (ch === 'U' ? 1 : -1), ch === 'U' ? 'D' : 'U');
+  if (ch === 'U' || ch === 'D') changeFloor(G.floor + (ch === 'U' ? 1 : -1), ch === 'U' ? 'D' : 'U');
   else if (ch === '^') changeFloor(meta().links[metaKey(G.x, G.y)], '^');
   else if (ch === 'n') readNote();
 }
@@ -291,9 +290,9 @@ function gain(kind, v) {
   flash(kind);
 }
 
-function pickUp(ch) {
-  const it = ITEMS[ch], cx = mapX(G.x) + 16, cy = mapY(G.y), v = itemValue(ch);
-  setTile(G.x, G.y, '.');
+function pickUp(ch, x, y) {
+  const it = ITEMS[ch], cx = mapX(x) + 16, cy = mapY(y), v = itemValue(ch);
+  setTile(x, y, '.');
   burst(cx, cy + 16, it.kind === 'hp' ? '#39ff9e' : '#6ff7ff', 10, 50);
   if (it.kind === 'key') { G.keys[it.key]++; flash('key' + it.key); Sound.sfx.key(); return banner(`${it.name}   x1`, PAL[it.key]); }
   if (it.kind === 'shard') return takeShard();
@@ -402,10 +401,7 @@ function changeFloor(nf, arriveAt) {
     type: 'fade', t: 0, done: false, label: floorLabel(nf),
     mid() {
       G.floor = nf;
-      const [sx, sy] = findTile(nf, arriveAt) || findTile(nf, 'U') || findTile(nf, 'D');
-      const spot = [[0, -1], [0, 1], [1, 0], [-1, 0]].map(([dx, dy]) => [sx + dx, sy + dy])
-        .find(([x, y]) => x >= 0 && y >= 0 && x < N && y < N && tile(x, y) === '.');
-      [G.x, G.y] = spot || [sx, sy];
+      [G.x, G.y] = findTile(nf, arriveAt) || findTile(nf, 'U') || findTile(nf, 'D');
       particles = []; doorAnims = [];
       spawnMotes();
       Sound.play(floorMusic());
@@ -1111,18 +1107,14 @@ function toTitle() { scene = 'title'; titleSel = 0; Sound.play('title'); }
 
 addEventListener('keydown', e => {
   if (DIRS[e.key] || e.key === ' ') e.preventDefault();
-  if (DIRS[e.key] && !held.includes(e.key)) held.push(e.key);
-  if (e.repeat && !DIRS[e.key]) return;
+  if (e.repeat && (!DIRS[e.key] || hero.move || pendingDir)) return;
   handleKey(e.key);
 });
-addEventListener('keyup', e => { const i = held.indexOf(e.key); if (i >= 0) held.splice(i, 1); });
-addEventListener('blur', () => { held.length = 0; });
 cv.addEventListener('pointerdown', () => handleKey('Enter'));
 
 document.querySelectorAll('[data-key]').forEach(btn => {
   const key = btn.dataset.key;
-  btn.addEventListener('pointerdown', e => { e.preventDefault(); if (DIRS[key] && !held.includes(key)) held.push(key); handleKey(key); });
-  ['pointerup', 'pointerleave', 'pointercancel'].forEach(ev => btn.addEventListener(ev, () => { const i = held.indexOf(key); if (i >= 0) held.splice(i, 1); }));
+  btn.addEventListener('pointerdown', e => { e.preventDefault(); handleKey(key); });
 });
 
 // ---------------------------------------------------------------- update
@@ -1160,9 +1152,7 @@ function update(dt) {
     if (hero.move.t >= 1) { hero.move = null; arrive(); }
     return;
   }
-  const key = pendingDir || held[held.length - 1];
-  pendingDir = null;
-  if (key && hero.cooldown <= 0) tryMove(...DIRS[key]);
+  if (pendingDir && hero.cooldown <= 0) { tryMove(...DIRS[pendingDir]); pendingDir = null; }
 }
 
 function updateUi(dt) {

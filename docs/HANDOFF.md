@@ -197,6 +197,8 @@ Item and monster numbers come from `BALANCE[zone]`, so the same map token scales
   To give one a specific look, add it to `IDLE` or to the alias list after `ENEMY_FX`.
 - Keys: arrows, Enter/Space/Z, Q retreat, M scan (needs firmware), F Phase Compass, S/L, N mute, R twice restart, H help.
   The touch pad appears on `(pointer: coarse)`.
+- Movement: one cell per key press (held keys only step again via OS key-repeat, and only when idle). Items are taken
+  from the adjacent cell without moving. Changing floor puts the hero on the arrival stair tile itself.
 
 ---
 
