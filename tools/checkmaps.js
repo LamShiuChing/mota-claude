@@ -30,7 +30,8 @@ function flood(m, start, opened, { secret = false, wall = '' } = {}) {
 
 function check(f) {
   const m = W.MAPS[f], plan = W.FLOOR_PLAN[f] || {}, meta = W.MAP_META[f], errs = [], warns = [];
-  const vault = f >= W.MAIN_FLOORS, o = f % 10, boss = !vault && o === 9, authored = vault || !!plan.map;
+  const entrance = f === W.ENTRANCE, vault = f >= W.MAIN_FLOORS && !entrance, o = f % 10, boss = !vault && !entrance && o === 9;
+  const authored = vault || entrance || !!plan.map;
   const strict = authored && f > 2; // 1F-3F predate these rules: their stairs and key counts are only reported
   if (m.length !== N || m.some(r => r.length !== N)) return { errs: ['not 11x11'], warns };
   for (const ch of m.join('')) if (!TOKENS.has(ch)) errs.push(`bad token ${ch}`);
@@ -38,7 +39,7 @@ function check(f) {
   const need = (ch, n) => count(ch) !== n && errs.push(`expected ${n} '${ch}', found ${count(ch)}`);
   if (vault) { need('^', 1); need('*', 1); need('U', 0); need('D', 0); }
   else {
-    need('D', f === 0 ? 0 : 1); need('P', f === 0 ? 1 : 0);
+    need('D', entrance ? 0 : 1); need('P', entrance ? 1 : 0);
     need(f === W.MAIN_FLOORS - 1 ? 'L' : 'U', 1);
     need('9', boss ? 1 : 0);
     for (const t of plan.place || []) if (!count(t)) errs.push(`plan wants '${t}'`);
@@ -62,8 +63,8 @@ function check(f) {
     if (nb.filter(c => c !== '#').length > 2) (strict ? errs : warns).push(`${s} at ${x},${y}: open on ${nb.filter(c => c !== '#').length} sides`);
   }
 
-  const startTile = f === 0 ? find(m, 'P')[0] : find(m, vault ? '^' : 'D')[0];
-  const start = f === 0 ? startTile : startTile && arrival(m, startTile);
+  const startTile = entrance ? find(m, 'P')[0] : find(m, vault ? '^' : 'D')[0];
+  const start = entrance ? startTile : startTile && arrival(m, startTile);
   if (!start) return { errs: [...errs, 'no start'], warns };
   const goalTile = vault ? '*' : f === W.MAIN_FLOORS - 1 ? 'L' : 'U';
   const reached = (r, gm) => (goalTile === '*' ? [...r.seen].some(k => { const [x, y] = k.split(',').map(Number); return gm[y][x] === '*'; }) : r.touch.has(goalTile));
@@ -116,7 +117,7 @@ W.MAPS.forEach((m, f) => {
   const { errs, warns } = check(f);
   if (authored) authoredCount++;
   if (!authored && warns.some(w => w.startsWith('softlock'))) softGen++;
-  const name = f >= W.MAIN_FLOORS ? `vault ${f - W.MAIN_FLOORS + 1}` : `${f + 1}F`;
+  const name = f === W.ENTRANCE ? '0F' : f >= W.MAIN_FLOORS ? `vault ${f - W.MAIN_FLOORS + 1}` : `${f + 1}F`;
   if (authored || only.length) {
     const s = m.join(''), c = ch => [...s].filter(x => x === ch).length, mons = [...s].filter(x => /[1-6]/.test(x));
     const [lo, hi] = offsetTiers(f % 10);

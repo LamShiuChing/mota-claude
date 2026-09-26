@@ -31,7 +31,8 @@ The user asked for this order, and the first three steps are done and merged:
      her headset at 59F).
    - **LAMBDA** is the visible female AI companion: a projected cyan figure with an unfinished face. Her portrait frays
      from 81F (`lambdaFade`) and is only the λ strokes from 95F (`lambdaGlyph`). Her tic is "Noted."
-   - Every NPC was redrawn (no cute/chibi).
+   - Every NPC was redrawn (no cute/chibi), except the Broker, whose original sprite the user wanted kept.
+4. **Relay 0** (user request after the session): a quiet entrance floor below 1F where new games start. See §3 Engine notes.
    - The generator now places NPCs last, so adding one to a generated floor never reshapes the floor or moves the balance.
 
 **Still to do: step 4 and variation. Discuss with the user before building either.**
@@ -92,7 +93,8 @@ order, from unreliable sources. Few words; silence is fine; LAMBDA talks less as
 
 | Floor | Beat |
 |---|---|
-| 1F | Two-line intro ("The Builders never stopped." LAMBDA: "Up."). The **Archivist** (a ghost that mistakes Rho for someone) gives an Amber keycard. |
+| 0F | **Relay 0**, the entrance (user request): the intro plays here. One forced Scrap Mite, one guarding a key, a cell, a door, and two notes (the intake plate whose newest name is "only two lines"; the outer gate with no handle on this side). No text hints: the floor teaches by layout. |
+| 1F | The **Archivist** (a ghost that mistakes Rho for someone) gives an Amber keycard. |
 | 2F | **Broker** and **Fabricator** (shop text is flavor only). |
 | 4F / 25F / 58F / 87F | **Brann** chases a "Sun". Found dead smiling at a heat lamp ("FOUND IT. ISN'T IT WARM."). Gives his Drill. His "B. WAS HERE. UP." marks trail between meetings (`LORE`). |
 | 13F / 35F / 45F | **Archivist**: wrote the Sanitizer firmware; forgets his daughter; finds his drowned body; "Tell the little walking man I'm sorry." |
@@ -287,6 +289,9 @@ Item and monster numbers come from `BALANCE[zone]`, so the same map token scales
 - Save: `localStorage['stratum-save-v3']` holds the whole `G` state (maps included). Fields added in session 2:
   `G.weapon` (zone index of best weapon, -1 = none), `G.decals[floor]`, `G.read` (read notes); `load()` back-fills all three.
   **Saves from before session 2 carry old maps; start a new game.**
+- **Relay 0 (`ENTRANCE`)** is stored at index 105, after the vaults, so indices 0–99 stay 1F–100F. `floorAbove`/`floorBelow` link
+  it to 1F (whose old `P` is now a `D`), `depth()` gives it -1 for labels and zone, and `isMain` keeps it out of the Compass and
+  LAMBDA's portrait stage. `load()` back-fills it into old saves. genmaps builds it from `MAP_0F` + `ENTRANCE_NOTES`.
 - Movement: one cell per key press (held keys only step again via OS key-repeat, and only when idle). Items are taken
   from the adjacent cell without moving. Changing floor puts the hero on the arrival stair tile itself.
 - Notes: shown automatically only the first time (`G.read`, keyed `floor:x,y`); after that they're dimmed, an E keycap

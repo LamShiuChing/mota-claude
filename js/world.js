@@ -155,6 +155,20 @@ const ZONES = [
 // Legend: # wall  . floor  % fake wall  U/D stairs  ^ vault stairs  P start  S fabricator  M broker
 // O npc  L root terminal  n note  y b r keycards  Y B R shutters  h H cells  a CPU  d RAM
 // w weapon  e armor  v antivirus  c compass  * memory shard  1-6 monster tiers  9 boss
+// Relay 0: the way in. One forced fight, one guarded key, one cell; the outer gate is shut behind.
+const MAP_0F = [
+  '#####U#####',
+  '####...####',
+  '#####1#####',
+  '#...#.#...#',
+  '#.h.#.#.y.#',
+  '#...#Y#.1.#',
+  '##.##.##.##',
+  '#.........#',
+  '#.#.n...#.#',
+  '#n#..P..#.#',
+  '###########',
+];
 const MAP_1F = [
   'U..#b.h#aHd',
   '...3.O.#.2.',
@@ -166,7 +180,7 @@ const MAP_1F = [
   '#####1#####',
   'a..#...#y.1',
   '.2.Y...1...',
-  'h..#nP.#..h',
+  'h..#nD.#..h',
 ];
 const MAP_2F = [
   'MS.#a.d#..U',
@@ -1154,6 +1168,13 @@ const VAULT_NOTES = [
   ['"If you are reading this, you are not me. That is all right."', '"Thank you, whoever you are."'],
 ];
 const VAULTS = VAULT_NOTES.map((notes, v) => ({ map: VAULT_MAPS[v], notes }));
+
+// Relay 0 is stored after the vaults, so floor indices 0-99 stay 1F-100F.
+const ENTRANCE = MAIN_FLOORS + VAULT_MAPS.length;
+const ENTRANCE_NOTES = [
+  'A plate by the inner gate: RELAY 7. INTAKE. PRESENT SIGNATURE AT EVERY STRATUM. Scratched under it, names, thousands of them. The newest is only two lines.',
+  'The outer gate. There is no handle on this side.',
+];
 
 // Dialogue that fires once, the first time you set foot on a floor.
 const ON_ENTER = { 10: 'zone2', 20: 'zone3', 30: 'zone4', 40: 'zone5', 50: 'zone6', 60: 'zone7', 70: 'zone8', 80: 'zone9', 90: 'zone10', 94: 'fading' };

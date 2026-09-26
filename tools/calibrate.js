@@ -68,7 +68,7 @@ const monsterAt = (f, ch) => ({ ...W.zoneMonster(zoneOf(f), ch), ...BAL[zoneOf(f
 const isMonster = ch => /[1-69]/.test(ch);
 const find = (f, ch) => { for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (maps[f][y][x] === ch) return [x, y]; };
 let hero = { ...structuredClone(W.HERO_START), buys: 0, antivirus: 0, corrupt: false };
-hero.pos = [0, ...find(0, 'P')];
+hero.pos = [0, ...find(0, 'D')];
 maps[0][hero.pos[2]][hero.pos[1]] = '.';
 
 function gainExp(e) {

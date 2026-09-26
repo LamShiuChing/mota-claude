@@ -146,11 +146,15 @@ const findTile = (f, ch) => {
   for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (G.maps[f][y][x] === ch) return [x, y];
 };
 const mapX = x => MX + x * TS, mapY = y => MY + y * TS;
-const isVault = f => f >= MAIN_FLOORS;
+const isVault = f => f >= MAIN_FLOORS && f !== ENTRANCE;
+const isMain = f => f < MAIN_FLOORS;
+// Relay 0 sits below 1F but is stored after the vaults.
+const floorAbove = f => (f === ENTRANCE ? 0 : f + 1), floorBelow = f => (f === 0 ? ENTRANCE : f - 1);
+const depth = f => (f === ENTRANCE ? -1 : f);
 // Vaults take the zone of the floor that hides their entrance.
-const FLOOR_ZONE = MAPS.map((_, f) => (isVault(f) ? Math.floor(FLOOR_PLAN.findIndex(p => p.vault === f - MAIN_FLOORS) / 10) : Math.floor(f / 10)));
+const FLOOR_ZONE = MAPS.map((_, f) => (isVault(f) ? Math.floor(FLOOR_PLAN.findIndex(p => p.vault === f - MAIN_FLOORS) / 10) : Math.max(0, Math.floor(depth(f) / 10))));
 const zoneOf = (f = G.floor) => FLOOR_ZONE[f];
-const floorLabel = f => (isVault(f) ? 'MEMORY VAULT' : `${TOWER}  ${f + 1}F`);
+const floorLabel = f => (isVault(f) ? 'MEMORY VAULT' : `${TOWER}  ${depth(f) + 1}F`);
 const metaKey = (x, y) => `${x},${y}`;
 const meta = (f = G.floor) => MAP_META[f];
 const isMonster = ch => /[1-69]/.test(ch);
@@ -160,10 +164,10 @@ const itemName = (ch, f = G.floor) => ITEMS[ch].name ?? ZONES[zoneOf(f)].gear[ch
 
 function newGame() {
   G = {
-    ...structuredClone(HERO_START), floor: 0, x: 0, y: 0, dir: 'D', maps: MAPS.map(m => m.map(r => [...r])),
-    flags: {}, buys: 0, steps: 0, kills: 0, status: 'NORMAL', antivirus: 0, shards: 0, visited: [0], weapon: -1, decals: {}, read: {},
+    ...structuredClone(HERO_START), floor: ENTRANCE, x: 0, y: 0, dir: 'D', maps: MAPS.map(m => m.map(r => [...r])),
+    flags: {}, buys: 0, steps: 0, kills: 0, status: 'NORMAL', antivirus: 0, shards: 0, visited: [ENTRANCE], weapon: -1, decals: {}, read: {},
   };
-  [G.x, G.y] = findTile(0, 'P');
+  [G.x, G.y] = findTile(ENTRANCE, 'P');
   setTile(G.x, G.y, '.');
   enterPlay();
   say(STORY.intro);
@@ -252,7 +256,7 @@ function arrive() {
   }
   fieldDamage();
   const ch = tile(G.x, G.y);
-  if (ch === 'U' || ch === 'D') changeFloor(G.floor + (ch === 'U' ? 1 : -1), ch === 'U' ? 'D' : 'U');
+  if (ch === 'U' || ch === 'D') changeFloor(ch === 'U' ? floorAbove(G.floor) : floorBelow(G.floor), ch === 'U' ? 'D' : 'U');
   else if (ch === '^') changeFloor(meta().links[metaKey(G.x, G.y)], '^');
   else if (ch === 'n' && !G.read[noteKey(G.x, G.y)]) readNote(); // read notes stay silent; E re-reads
 }
@@ -399,7 +403,7 @@ function finish(which) {
 
 // Move to floor nf and stand next to the given tile (stairs, vault stairs).
 function changeFloor(nf, arriveAt) {
-  Sound.sfx.stairs(nf > G.floor);
+  Sound.sfx.stairs(depth(nf) > depth(G.floor));
   ui = {
     type: 'fade', t: 0, done: false, label: floorLabel(nf),
     mid() {
@@ -1134,6 +1138,7 @@ function load() {
   G.weapon ??= MAPS.reduce((best, m, f) => (m.some((r, y) => [...r].some((c, x) => c === 'w' && G.maps[f][y][x] !== 'w')) ? Math.max(best, FLOOR_ZONE[f]) : best), -1);
   G.decals ??= {}; // older saves have no death decals
   G.read ??= {};
+  G.maps[ENTRANCE] ??= MAPS[ENTRANCE].map(r => [...r]); // saves from before Relay 0
   enterPlay();
   toast('State restored', '#39ff9e');
 }
@@ -1163,7 +1168,7 @@ function handleKey(key) {
   else if (k === 'e') { if (tile(G.x, G.y) === 'n') readNote(); else Sound.sfx.deny(); }
   else if (k === 'f') {
     if (!G.flags.compass) return Sound.sfx.deny();
-    const floors = G.visited.filter(f => !isVault(f)).sort((a, b) => a - b);
+    const floors = G.visited.filter(isMain).sort((a, b) => a - b);
     ui = { type: 'fly', floors, sel: Math.max(0, floors.indexOf(G.floor)) };
     Sound.sfx.select();
   }
@@ -1182,7 +1187,7 @@ function uiKey(key) {
   else if (ui.type === 'fly') {
     const step = { ArrowUp: 1, ArrowDown: -1, ArrowRight: 10, ArrowLeft: -10 }[key];
     if (step) { ui.sel = Math.max(0, Math.min(ui.floors.length - 1, ui.sel + step)); Sound.sfx.select(); }
-    else if (CONFIRM.has(key)) { const f = ui.floors[ui.sel]; if (ABANDONED.has(f) && f !== G.floor) return Sound.sfx.deny(); close(); if (f !== G.floor) changeFloor(f, f === 0 ? 'U' : 'D'); }
+    else if (CONFIRM.has(key)) { const f = ui.floors[ui.sel]; if (ABANDONED.has(f) && f !== G.floor) return Sound.sfx.deny(); close(); if (f !== G.floor) changeFloor(f, 'D'); }
     else if (key === 'Escape' || key === 'f' || key === 'F') close();
   }
   else if (ui.type === 'choice') {
@@ -1754,7 +1759,7 @@ function drawChrome() {
 
 // ---------------------------------------------------------------- modals
 // LAMBDA frays with the climb: torn from 81F, only her glyph from 95F (highest floor reached, so vaults keep it).
-const lambdaPortrait = () => { const top = Math.max(...G.visited.filter(f => !isVault(f))); return top >= 94 ? 'lambdaGlyph' : top >= 80 ? 'lambdaFade' : 'lambda'; };
+const lambdaPortrait = () => { const top = Math.max(...G.visited.filter(isMain)); return top >= 94 ? 'lambdaGlyph' : top >= 80 ? 'lambdaFade' : 'lambda'; };
 function drawDialog(d) {
   const line = d.lines[d.i], portrait = line.who === 'LAMBDA' ? lambdaPortrait() : PORTRAITS[line.who];
   const x = MX + 22, w = MW - 44, tx = portrait ? x + 66 : x + 16;

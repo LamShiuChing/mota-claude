@@ -33,7 +33,7 @@ window.playbot = async (maxFloor) => {
   const pathTo = (prev, tx, ty) => { const p = []; let k = tx + ',' + ty; while (prev[k]) { p.unshift(k.split(',').map(Number)); const [px, py] = prev[k]; k = px + ',' + py; if (px === G.x && py === G.y) break; } return p; };
   // Items are taken from the adjacent cell, so a step onto one takes a second press.
   const go = path => { for (const [x, y] of path) { const dx = x - G.x, dy = y - G.y, item = ITEMS[tile(x, y)]; for (let i = item ? 2 : 1; i--;) { hero.cooldown = 0; tryMove(dx, dy, dy < 0 ? 'U' : dy > 0 ? 'D' : dx < 0 ? 'L' : 'R'); settle(); if (scene !== 'play') return; } } };
-  for (let guard = 0; guard < 3000 && scene === 'play' && G.floor < maxFloor; guard++) {
+  for (let guard = 0; guard < 3000 && scene === 'play' && (G.floor < maxFloor || G.floor === ENTRANCE); guard++) {
     settle();
     const { prev, seen, frontier } = bfs();
     // 1. items anywhere reachable
