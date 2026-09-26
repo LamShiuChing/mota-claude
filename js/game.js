@@ -777,9 +777,13 @@ const ENEMY_FX = {
     });
     return 0.05;
   },
-  wisp: (b, P) => { // electric zap
+  wisp: (b, P) => { // electric zap crackling over the target
     Sound.sfx.zap();
-    fxBolt(b, P, '#ffe66b', 0.16, 14);
+    fxAdd(b, 0.18, () => [0, 1, 2].forEach(() => {
+      const a = Math.random() * 6.3, pts = fxJag(fxAt(P.z, Math.cos(a) * 26 * P.k, Math.sin(a) * 26 * P.k), P.z, 5, 8 * P.k);
+      fxPath(pts, '#ffe66b', 3, 0.9);
+      fxPath(pts, '#ffffff', 1, 1);
+    }));
     fxAdd(b, 0.16, p => fxOrb(P.z, 18 * P.k, '#ffe66b', 1 - p), 0.02);
     return 0.02;
   },
@@ -796,21 +800,21 @@ const ENEMY_FX = {
     }, 0.08, () => fxSparks(fxAt(P.z, 0, 22), '#9ea2ad', 12, 90));
     return 0.08;
   },
-  sanitizer: (b, P) => { // purge spray
+  sanitizer: (b, P) => { // purge spray splashing over the target
     Sound.sfx.beam();
-    const drops = Array.from({ length: 22 }, () => ({ v: 0.7 + Math.random() * 0.5, o: (Math.random() - 0.5) * 36, c: Math.random() < 0.3 ? '#ffffff' : '#ff8a3c' }));
-    fxAdd(b, 0.2, p => drops.forEach(d => { const q = fxAlong(P.a, P.z, Math.min(1.1, p * 1.6 * d.v)); ctx.globalAlpha = 1 - p; rect(ctx, d.c, q.x - 2, q.y + d.o * p - 2, 4, 4); }));
-    fxFrame(b, P, '#ff8a3c', 0.2, 0.5, 0.1);
-    return 0.1;
+    const drops = Array.from({ length: 22 }, () => ({ a: Math.random() * 6.3, r: (14 + Math.random() * 26) * P.k, c: Math.random() < 0.3 ? '#ffffff' : '#ff8a3c' }));
+    fxAdd(b, 0.22, p => drops.forEach(d => { const q = fxAt(P.z, Math.cos(d.a) * d.r * p, Math.sin(d.a) * d.r * p + 20 * p * p); ctx.globalAlpha = 1 - p; rect(ctx, d.c, q.x - 2, q.y - 2, 4, 4); }));
+    fxFrame(b, P, '#ff8a3c', 0.2, 0.5);
+    return 0.02;
   },
   serpent: (b, P) => { // coil lash: a whip that snakes out and cracks
     Sound.sfx.whoosh();
     fxAdd(b, 0.24, p => {
-      const s = Math.min(1, p * 3), amp = 14 * (1 - p) * P.k;
-      fxPath(Array.from({ length: 17 }, (_, i) => fxAt(fxAlong(P.a, P.z, s * i / 16), 0, Math.sin(i * 0.9 - p * 20) * amp * Math.sin(i / 16 * Math.PI))), '#39ff9e', 3, 1 - p * 0.6);
+      const s = Math.min(1, p * 4), amp = 12 * (1 - p) * P.k;
+      fxPath(Array.from({ length: 17 }, (_, i) => fxAt(P.z, (i / 16 - 0.5) * 80 * P.k * s * P.d, Math.sin(i * 0.9 - p * 20) * amp)), '#39ff9e', 3, 1 - p * 0.6);
     });
-    fxAdd(b, 0.15, p => fxRing(P.z, 4 + 18 * p, '#39ff9e', 2, 1 - p), 0.08);
-    return 0.08;
+    fxAdd(b, 0.15, p => fxRing(P.z, 4 + 18 * p, '#39ff9e', 2, 1 - p), 0.06);
+    return 0.06;
   },
   mason: (b, P) => { // hammer: a slab drops, debris flies
     Sound.sfx.thud();
@@ -822,42 +826,38 @@ const ENEMY_FX = {
   drone: (b, P) => { // target lock, then a laser
     Sound.sfx.laser();
     fxAdd(b, 0.08, p => { ctx.globalAlpha = Math.floor(p * 8) % 2 ? 0.3 : 1; rect(ctx, '#ff3b4e', P.z.x - 2, P.z.y - 2, 4, 4); fxRing(P.z, 10 - 6 * p, '#ff3b4e', 1, 1); });
-    fxBeam(b, P, ['#ff3b4e', '#ffffff'], 4, 0.12, 0.07);
+    fxAdd(b, 0.14, p => { fxOrb(P.z, 16 * P.k * (1 - p) + 4, '#ff3b4e', 1 - p); fxOrb(P.z, 6, '#ffffff', 1 - p); }, 0.07);
     return 0.08;
   },
-  turret: (b, P) => { // tracer burst
+  turret: (b, P) => { // a burst of hits peppering the target
     Sound.sfx.laser();
     for (let i = 0, n = P.c ? 5 : 3; i < n; i++) {
-      const Q = { ...P, z: fxAt(P.z, (Math.random() - 0.5) * 16, (Math.random() - 0.5) * 20) };
-      const t = fxShot(b, Q, 0.06, q => fxPath([q, fxAt(q, -P.d * 14, 0)], '#ffe66b', 2), i * 0.035);
-      fxAdd(b, 0.1, p => fxOrb(Q.z, 8, '#ffe66b', 1 - p), t);
+      const z = fxAt(P.z, (Math.random() - 0.5) * 24, (Math.random() - 0.5) * 28);
+      fxAdd(b, 0.1, p => { fxOrb(z, 8, '#ffe66b', 1 - p); fxRing(z, 2 + 8 * p, '#ffffff', 1, 1 - p); }, i * 0.04, () => fxSparks(z, '#ffe66b', 4, 90));
     }
-    return 0.06;
+    return 0.02;
   },
   hound: (b, P) => { Sound.sfx.whoosh(); fxClaws(b, P, '#ff2a3d', 3, 0.03); return 0.03; }, // claw marks
   ghost: (b, P) => { // static: the portrait dissolves into noise
     Sound.sfx.zap();
-    fxAdd(b, 0.1, p => fxRing(fxAlong(P.a, P.z, p), 6 + 4 * Math.sin(p * 20), '#dfe9f2', 2, 0.6));
     fxAdd(b, 0.26, p => {
       if (P.miss) return;
       const f = FRAME[P.to];
       for (let i = 0; i < 26 * P.k; i++) { ctx.globalAlpha = (1 - p) * Math.random(); rect(ctx, Math.random() < 0.5 ? '#dfe9f2' : '#4f535e', f.x + Math.random() * 44, f.y + Math.random() * 46, 2 + Math.random() * 6, 2); }
       for (let i = 0; i < 3; i++) { ctx.globalAlpha = 0.5 * (1 - p); rect(ctx, '#8aa2b8', f.x - 6 + Math.random() * 12, f.y + Math.random() * 46, 48, 2); }
-    }, 0.1);
-    return 0.1;
+    }, 0.02);
+    return 0.02;
   },
-  surgeon: (b, P) => { // thrown scalpels, then crossing cuts
+  surgeon: (b, P) => { // crossing scalpel cuts
     Sound.sfx.whoosh();
-    [-16, 0, 16].forEach((o, i) => fxShot(b, { ...P, a: fxAt(P.a, 0, o) }, 0.08, q => { fxOrb(q, 8, '#dfe9f2', 0.7); fxPath([q, fxAt(q, -P.d * 16, 0)], '#dfe9f2', 3); }, i * 0.02));
-    fxCut(b, P, -0.7, '#8aa2b8', 0.09);
-    fxCut(b, P, 0.7, '#8aa2b8', 0.12);
-    return 0.09;
+    fxCut(b, P, -0.7, '#8aa2b8', 0.02);
+    fxCut(b, P, 0.7, '#8aa2b8', 0.05);
+    return 0.02;
   },
-  choir: (b, P) => { // sound rings
+  choir: (b, P) => { // sound rings bursting on the target
     Sound.sfx.chime();
-    for (let i = 0; i < 3; i++) fxShot(b, P, 0.1, (q, p) => fxRing(q, 8 + 14 * p * P.k, i ? '#b98cff' : '#ffffff', 3, 1 - p * 0.4), i * 0.04);
-    fxRings(b, P.z, '#b98cff', 3, 36 * P.k, 0.25, 0.1);
-    return 0.1;
+    fxRings(b, P.z, '#b98cff', 3, 36 * P.k, 0.25, 0.02);
+    return 0.02;
   },
   knight: (b, P) => { // wide cleave
     Sound.sfx.whoosh();
@@ -865,13 +865,31 @@ const ENEMY_FX = {
     fxCrescent(b, P, '#8aa2b8', 0.06, P.flip > 0 ? 0.3 : 2.8, 42);
     return 0.03;
   },
-  warden: (b, P) => { Sound.sfx.beam(); return fxRoot(b, P, '#ff3b4e', '#6ff7ff'); }, // the Root's own beam
+  warden: (b, P) => { // the Root's judgement: a pillar of light falls on the target
+    Sound.sfx.beam();
+    fxAdd(b, 0.36, p => {
+      const w = 26 * P.k * (1 - p);
+      ctx.globalAlpha = 0.5 * (1 - p);
+      ctx.fillStyle = '#6ff7ff';
+      ctx.fillRect(P.z.x - w / 2, BOX.y, w, BOX.h);
+      fxSigil(P.z, (18 + 22 * p) * P.k, '#ff3b4e', 1 - p, -time * 5);
+    }, 0.02, () => fxSparks(P.z, '#ff3b4e', 18, 150));
+    return 0.02;
+  },
   mirror: (b, P) => heroFx()(b, P), // The Mirror fights with Rho's own weapon
   // Ability fallbacks for sprites not listed above.
-  pierce: (b, P) => { Sound.sfx.laser(); fxBeam(b, P, ['#b98cff', '#ffffff'], 5, 0.16, 0, fxAt(P.z, P.d * 120, 0)); return 0.02; }, // beam straight through
-  corrupt: (b, P) => { // virus packet, then green glitch
+  pierce: (b, P) => { // a spike driven straight through the target
+    Sound.sfx.laser();
+    fxAdd(b, 0.16, p => {
+      const L = 44 * P.k, seg = [fxAt(P.z, -L * P.d, 0), fxAt(P.z, (-L + 2 * L * Math.min(1, p * 5)) * P.d, 0)];
+      fxPath(seg, '#b98cff', 5 * (1 - p) + 1, 1 - p);
+      fxPath(seg, '#ffffff', 1.5, 1 - p);
+    });
+    return 0.02;
+  },
+  corrupt: (b, P) => { // green glitch eating the target
     Sound.sfx.zap();
-    const t = fxShot(b, P, 0.09, q => { ctx.globalAlpha = 1; for (let i = 0; i < 6; i++) rect(ctx, i % 2 ? '#39ff9e' : '#0f5f3a', q.x + (Math.random() - 0.5) * 14, q.y + (Math.random() - 0.5) * 14, 4, 4); });
+    const t = 0.02;
     fxAdd(b, 0.3, p => {
       if (P.miss) return;
       const f = FRAME[P.to];
@@ -882,13 +900,12 @@ const ENEMY_FX = {
   double: (b, P) => { Sound.sfx.whoosh(); fxClaws(b, P, '#ff2a3d', 2, 0.02, 1); fxClaws(b, P, '#ff8a3c', 2, 0.06, -1); return 0.02; }, // twin claws
   surge: (b, P) => { // overflow blast
     Sound.sfx.beam();
-    const t = fxShot(b, P, 0.1, (q, p) => { fxOrb(q, (10 + 10 * p) * P.k, '#6ff7ff', 1); fxOrb(q, 5 * P.k, '#ffffff', 1); });
-    fxAdd(b, 0.3, p => { fxOrb(P.z, 40 * P.k, '#6ff7ff', 0.8 * (1 - p)); fxRing(P.z, 8 + 50 * p * P.k, '#6ff7ff', 5 * (1 - p) + 1, 1 - p); }, t);
-    return t;
+    fxAdd(b, 0.3, p => { fxOrb(P.z, 40 * P.k, '#6ff7ff', 0.8 * (1 - p)); fxRing(P.z, 8 + 50 * p * P.k, '#6ff7ff', 5 * (1 - p) + 1, 1 - p); }, 0.02);
+    return 0.02;
   },
   swift: (b, P) => { // dash: afterimage streaks, then a slash
     Sound.sfx.whoosh();
-    fxAdd(b, 0.14, p => [-10, 0, 10].forEach(o => fxPath([fxAt(fxAlong(P.a, P.z, Math.max(0, p * 1.5 - 0.5)), 0, o), fxAt(fxAlong(P.a, P.z, Math.min(1, p * 1.5)), 0, o)], '#dfe9f2', 2, 1 - p)));
+    fxAdd(b, 0.14, p => [-10, 0, 10].forEach(o => fxPath([fxAt(P.z, (-50 + 60 * p) * P.d, o), fxAt(P.z, (-20 + 60 * p) * P.d, o)], '#dfe9f2', 2, 1 - p)));
     fxCrescent(b, P, '#ffffff', 0.06, 0.4);
     return 0.06;
   },
