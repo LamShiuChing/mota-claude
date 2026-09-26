@@ -136,11 +136,6 @@ function generate(plan, rand) {
 
   const meta = { npcs: {}, notes: {}, links: {} };
   for (const t of plan.place) if (!placeIn(t, shuffled(t === 'S' || t === 'M' ? early : late), t === 'S' || t === 'M')) return null;
-  if (plan.npc) {
-    const at = placeIn('O', shuffled(order), true);
-    if (!at) return null;
-    meta.npcs[key(...at)] = plan.npc;
-  }
 
   const count = (base, extra) => base + Math.floor(rand() * (extra + 1));
   // Keys for main-path doors must be reachable without opening any door.
@@ -182,6 +177,12 @@ function generate(plan, rand) {
   for (let i = 0; i < 1 + (rand() < 0.4 ? 1 : 0); i++) {
     const at = placeIn('n', shuffled(order));
     if (at) meta.notes[key(...at)] = pick(W.NOTES[plan.zone]);
+  }
+  // Last, so an NPC never shifts the rest of the floor's layout (or its balance).
+  if (plan.npc) {
+    const at = placeIn('O', shuffled(order), true);
+    if (!at) return null;
+    meta.npcs[key(...at)] = plan.npc;
   }
   return { map: g.map(r => r.join('')), meta };
 }
