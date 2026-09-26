@@ -791,12 +791,12 @@ const WEAPON_FX = [
     fxFrame(b, P, '#4e5650', 0.5, 0.8, t);
     return t;
   },
-  (b, P) => { // Null Edge: the box goes dark and one cut splits the whole space open through the target
+  (b, P) => { // Null Edge: the box goes dark and a tear splits space open across the target
     Sound.sfx.whoosh();
     fxAdd(b, 0.55, p => { ctx.globalAlpha = 0.8 * Math.min(1, p * 6) * (1 - p); boxFill('#000000'); });
     const t = 0.08;
     const tear = (rot, delay) => fxAdd(b, 0.46, p => {
-      const L = 160 * P.k, x2 = -L + 2 * L * Math.min(1, p * 8), open = Math.sin(Math.min(1, p * 1.5) * Math.PI) * 18 * P.k;
+      const L = 56 * P.k, x2 = -L + 2 * L * Math.min(1, p * 8), open = Math.sin(Math.min(1, p * 1.5) * Math.PI) * 14 * P.k;
       fxOrb(P.z, 50 * P.k, '#b98cff', 0.7 * (1 - p));
       ctx.save();
       ctx.translate(P.z.x, P.z.y);
@@ -952,9 +952,11 @@ const ENEMY_FX = {
     Sound.sfx.beam();
     fxAdd(b, 0.36, p => {
       const w = 26 * P.k * (1 - p);
-      ctx.globalAlpha = 0.5 * (1 - p);
-      ctx.fillStyle = '#6ff7ff';
-      ctx.fillRect(P.z.x - w / 2, BOX.y, w, BOX.h);
+      fxOutside(P, () => {
+        ctx.globalAlpha = 0.5 * (1 - p);
+        ctx.fillStyle = '#6ff7ff';
+        ctx.fillRect(P.z.x - w / 2, BOX.y, w, BOX.h);
+      });
       fxSigil(P.z, (18 + 22 * p) * P.k, '#ff3b4e', 1 - p, -time * 5);
     }, 0.02, () => fxSparks(P.z, '#ff3b4e', 18, 150));
     return 0.02;
