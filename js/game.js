@@ -861,7 +861,7 @@ const ENEMY_FX = {
     return 0.03;
   },
   warden: (b, P) => { Sound.sfx.beam(); return fxRoot(b, P, '#ff3b4e', '#6ff7ff'); }, // the Root's own beam
-  heroD: (b, P) => heroFx()(b, P), // The Mirror fights with Rho's own weapon
+  mirror: (b, P) => heroFx()(b, P), // The Mirror fights with Rho's own weapon
   // Ability fallbacks for sprites not listed above.
   pierce: (b, P) => { Sound.sfx.laser(); fxBeam(b, P, ['#b98cff', '#ffffff'], 5, 0.16, 0, fxAt(P.z, P.d * 120, 0)); return 0.02; }, // beam straight through
   corrupt: (b, P) => { // virus packet, then green glitch
@@ -889,6 +889,13 @@ const ENEMY_FX = {
   },
   default: (b, P) => { Sound.sfx.whoosh(); fxClaws(b, P, '#ff2a3d', 3); return 0; }, // red slash
 };
+// Newer sprites borrow a base attack; ones left out fall back to their ability's effect.
+Object.entries({
+  leech: 'mite', specimen: 'mite', collector: 'mite', tangle: 'serpent', motherworm: 'serpent', drip: 'corrupt', syringe: 'surgeon', surgeonBoss: 'surgeon',
+  slag: 'husk', furnace: 'sanitizer', sprayer: 'sanitizer', firewall: 'sanitizer', janitor: 'sanitizer', crane: 'mason', foreman: 'mason',
+  angler: 'wisp', kernel: 'wisp', speaker: 'choir', monolith: 'choir', choirmother: 'choir', cage: 'drone', lacuna: 'ghost',
+  faceless: 'knight', gatekeeper: 'knight',
+}).forEach(([k, base]) => { ENEMY_FX[k] = ENEMY_FX[base]; });
 const enemyFx = m => ENEMY_FX[m.sprite] || ENEMY_FX[['pierce', 'corrupt', 'double', 'surge', 'swift'].find(k => m[k])] || ENEMY_FX.default;
 
 function endBattle(b) {
@@ -1267,6 +1274,15 @@ const IDLE = {
   ohm: { style: 'breathe', face: 1 },
   pip: { style: 'hop' },
   broker: { style: 'breathe', face: 1 },
+  ...Object.fromEntries([
+    ['hover', 'drip syringe cage crow seraph lacuna pages angler daemon'],
+    ['glitch', 'mirror mourner faceless'],
+    ['slither', 'leech motherworm burrow tangle'],
+    ['stomp', 'crab furnace tomb collector crane foreman gatekeeper janitor'],
+    ['shamble', 'patient drowned specimen'],
+    ['dread', 'heir choirmother librarian surgeonBoss monolith'],
+    ['hop', 'kernel slag'],
+  ].flatMap(([style, names]) => names.split(' ').map(n => [n, { style }]))),
 };
 const idleWave = (t, hz, seed) => Math.sin((t * hz + seed) * 2 * Math.PI);
 const idleBeat = (t, per, len, seed) => (t + seed * per) % per < len; // on for len s out of every per s
