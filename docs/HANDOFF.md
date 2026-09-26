@@ -229,6 +229,7 @@ Every boss has unique art; ≤2 tiers per zone reuse an older base sprite with a
 - **Kenney assets are CC0:** https://kenney.nl/support ("all game assets on the asset pages are public domain licensed (CC0)… even in commercial projects… Attribution is not required").
   - Sci-fi Sounds: https://kenney.nl/assets/sci-fi-sounds (zip: https://kenney.nl/media/pages/assets/sci-fi-sounds/6b296f9ecf-1677589334/kenney_sci-fi-sounds.zip)
   - Interface Sounds: https://kenney.nl/assets/interface-sounds (zip: https://kenney.nl/media/pages/assets/interface-sounds/fa43c1dd4d-1677589452/kenney_interface-sounds.zip)
+  - Impact Sounds: https://kenney.nl/assets/impact-sounds (zip: https://kenney.nl/media/pages/assets/impact-sounds/87b4ddecda-1677589768/kenney_impact-sounds.zip)
   - License text copied to `assets/LICENSE-kenney.txt`.
   - For SFX polish: other Kenney audio packs and OpenGameArt (filter by CC0) are candidates; **verify each license page** before use.
 - **Inspiration list** (for tone only; never copy): BLAME!, Biomega, NOiSE, Knights of Sidonia (Tsutomu Nihei);
@@ -249,8 +250,8 @@ and `lab.html` loads the same list):
 | `js/maps.js` | **Generated** by `tools/genmaps.js`: `MAPS[105]` (100 main + 5 vaults) and `MAP_META` (npcs / notes / vault links per floor) |
 | `js/balance.js` | **Generated** by `tools/calibrate.js`: `BALANCE[zone]` = monster stats per tier, item values, poison, shop, broker prices |
 | `js/music.js` | `MUSIC` score: 14 tracks as 8-bar eighth-note strings (`C#5`, `-` hold, `.` rest), optional `wave`, `hat` |
-| `js/samples.js` | 12 Kenney CC0 sound effects as base64 (embedded so `file://` works) |
-| `js/audio.js` | `Sound`: WebAudio synth SFX with sample fallback (incl. `whoosh`, `laser`, `zap`, `thud`, `beam`, `chime`), and a music sequencer |
+| `js/samples.js` | Kenney CC0 sound effects (Sci-fi, Interface, Impact Sounds) as base64 mono Ogg, embedded so `file://` works |
+| `js/audio.js` | `Sound`: WebAudio synth SFX layered with samples (incl. `whoosh`, `laser`, `zap`, `thud`, `beam`, `chime`), a per-sfx `LEVEL` table in dB, a safety limiter on the master, and a music sequencer |
 | `js/game.js` | Engine: state, input, movement, combat, UI, rendering. Art/FX tables: `IDLE`/`IDLE_STYLES`/`idlePose`/`drawIdle` (per-sprite map idle), `WEAPON_FX`/`BARE_FX` (player attack per `G.weapon`), `BLADE_TINT`/`heroSprite` (Rho's blade by tier), `ENEMY_FX`/`enemyFx` (enemy attack by sprite → alias list → ability → default), `stairFacing`/`stairSprite`, `OILY`/`bleed`/`splat` (death decals), `drawKeyTip` |
 | `lab.html` | Dev page (§5) |
 | `tools/` | `genmaps.js`, `calibrate.js`, `checkmaps.js`, `playbot.js`, `load.js`, `seeds.json` (§4) |
@@ -358,6 +359,7 @@ floors ~800–1,250, 20k–70k HP at the end.
   - floor jump to any floor or vault
   - idle gallery of every character
   - sound toggle
+  - Sound Board: plays every sfx, a few sounds that land together, and every track, with live peak / loudest-43 ms RMS in dBFS
 
   Battles never end in the lab. It wraps `update`, `roll`, `updateBattle`, `render` and `resize` from outside, so game code needs no hooks.
 - **Headless verification that worked well** (session 2): Python `playwright` with your own Chromium and a private server port.
@@ -394,8 +396,9 @@ floors ~800–1,250, 20k–70k HP at the end.
 
 ## 7. Known issues & limitations
 
-- **Audio has never been heard by a human.** Samples decode and play (tested programmatically); the mix and volume are
-  untuned. Six new synth sfx (`whoosh`, `laser`, `zap`, `thud`, `beam`, `chime`) were added for battle FX, also unheard.
+- **Audio has never been heard by a human.** Levels were set by meter in session 3 (`LEVEL` in `js/audio.js`, groups: UI quiet,
+  pickups, attack launches, blows, big moments loudest; stacked hits peak about -2 dBFS before the limiter), and pickups were
+  made colder (relays, servos, fourths and suspended chords). Nobody has listened yet: use the lab Sound Board.
 - **Nobody has watched the idle animations or battle FX at real speed**; they were verified frame by frame. Use `lab.html`.
 - **Literal blood** in sprites, decals and hit particles contradicts the user's cyber-gore direction (§0).
 - Weak sprite reads: Drowned Diver, Lantern Reader, the Foreman's hard hat; Builder Mk.II ≈ Builder; Janitor, Purge Sprayer

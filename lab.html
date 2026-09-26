@@ -22,6 +22,11 @@
     button:hover { border-color: #6ff7ff; color: #6ff7ff; }
     input[type=range] { width: 130px; }
     .keys { color: #6e6b66; font-size: 16px; margin-top: 16px; line-height: 1.2; }
+    .snd { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .snd button { width: auto; flex: 1; margin: 1px 0; padding: 0 6px; text-align: left; }
+    .snd span { width: 92px; text-align: right; color: #9ea2ad; }
+    .snd span.hot { color: #ff3b4e; }
+    .sub { color: #6e6b66; font-size: 16px; margin: 8px 0 2px; }
   </style>
 </head>
 <body>
@@ -50,6 +55,12 @@
     <label>Floor <select id="floor"></select></label>
     <label>Idle gallery <input type="checkbox" id="gallery"></label>
     <label>Sound <input type="checkbox" id="sound" checked></label>
+
+    <h2>SOUND BOARD</h2>
+    <label>Keep music under sfx <input type="checkbox" id="keepMusic"></label>
+    <button id="stopMusic">Stop music</button>
+    <div class="keys">Peak / loudest 43 ms RMS in dBFS at the master output, since the last press. Red: peak above -1.</div>
+    <div id="board"></div>
 
     <div class="keys">Arrows walk the map as in the game. A / D swing. Changes to js/ files show on reload.</div>
   </aside>
@@ -149,6 +160,47 @@
     if (e.key === 'a' || e.key === 'A') swing(true);
     if (e.key === 'd' || e.key === 'D') swing(false);
   });
+
+  // Sound board: every sfx, a few sounds that land together in play, and every track, metered at Sound's master.
+  const STACKS = { 'whoosh+hit': ['whoosh', 'hit'], 'whoosh+crit': ['whoosh', 'crit'], 'hit+crit+roar': ['hit', 'crit', 'roar'], 'kill+coin+level': ['kill', 'coin', 'level'] };
+  const SFX = { ...Sound.sfx, 'stairs up': () => Sound.sfx.stairs(true), 'stairs down': () => Sound.sfx.stairs(false) };
+  delete SFX.stairs;
+  const meter = { peak: 0, rms: 0, sum: 0, n: 0, out: null };
+  const dB = v => (v > 1e-5 ? 20 * Math.log10(v) : -99).toFixed(1);
+  function tapMeter() {
+    if (meter.node) return;
+    const sp = meter.node = Sound.ctx.createScriptProcessor(2048, 1, 1);
+    sp.onaudioprocess = e => {
+      const d = e.inputBuffer.getChannelData(0);
+      let pk = 0, sq = 0;
+      for (const v of d) { pk = Math.max(pk, Math.abs(v)); sq += v * v; }
+      meter.peak = Math.max(meter.peak, pk); meter.rms = Math.max(meter.rms, Math.sqrt(sq / d.length));
+      meter.sum += sq; meter.n += d.length;
+      if (meter.out) { meter.out.textContent = `${dB(meter.peak)} ${dB(meter.rms)}`; meter.out.className = meter.peak > 0.891 ? 'hot' : ''; }
+    };
+    Sound.out.connect(sp); sp.connect(Sound.ctx.destination);
+  }
+  function boardPlay(kind, name) {
+    if (!Sound.ctx) { Sound.init(); return setTimeout(() => boardPlay(kind, name), 300); } // a new context clips its first sound
+    Sound.init(); tapMeter();
+    if (kind !== 'music' && !$('keepMusic').checked) Sound.stop();
+    Object.assign(meter, { peak: 0, rms: 0, sum: 0, n: 0, out: $(`m-${kind}-${name}`) });
+    if (kind === 'sfx') SFX[name]();
+    else if (kind === 'stack') STACKS[name].forEach(s => Sound.sfx[s]());
+    else Sound.play(name, true);
+  }
+  const boardRows = [['sfx', Object.keys(SFX)], ['stack', Object.keys(STACKS)], ['music', Object.keys(MUSIC)]];
+  for (const [kind, names] of boardRows) {
+    $('board').insertAdjacentHTML('beforeend', `<div class="sub">${kind === 'stack' ? 'together' : kind}</div>`);
+    for (const name of names) {
+      const row = document.createElement('div');
+      row.className = 'snd';
+      row.innerHTML = `<button>${name}</button><span id="m-${kind}-${name}">-</span>`;
+      row.firstChild.onclick = () => boardPlay(kind, name);
+      $('board').append(row);
+    }
+  }
+  $('stopMusic').onclick = () => Sound.stop();
 
   // Start on 1F with the intro skipped.
   newGame();
