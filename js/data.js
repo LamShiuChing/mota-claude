@@ -8,8 +8,8 @@ const PAL = {
   c: '#6ff7ff', C: '#1a8fa0', v: '#39ff9e', V: '#0f5a3c', q: '#c9c6bd', Q: '#6e6b66',
   s: '#e8d6c8', S: '#a8928a', z: '#1d2029', Z: '#3a3f4f', h: '#08080c', t: '#15171e', T: '#262a36',
   p: '#b98cff', P: '#5a3a8f', e: '#dfe9f2', E: '#8aa2b8', n: '#c77a3a', N: '#5e3518', l: '#ffd9a0',
-  // Gore and decay: blood, dried blood, flesh, bone, bile, corpse skin, rust, oil.
-  X: '#c0121e', x: '#4a0a10', m: '#b85a5a', M: '#6a2428', u: '#d6cba8', U: '#8c8266',
+  // Decay: bone, bile, corpse skin, rust, oil.
+  u: '#d6cba8', U: '#8c8266',
   i: '#a8c43a', I: '#4c5c1c', a: '#8e9a8a', A: '#4e5650', f: '#8a4526', d: '#1a2226',
 };
 
@@ -627,8 +627,8 @@ const SPRITES = {
     '......NNNN......',
     '.....NyyNyN.....',
     '.....NssssS.....',
-    '.....skXksS.....',
-    '.....sxsssS.....',
+    '.....skSksS.....',
+    '.....sSsssS.....',
     '.....NnNnNS.....',
     '......NnnN......',
     '..GGNnnnnnnN....',
