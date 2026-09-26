@@ -1489,6 +1489,20 @@ function drawHero() {
   if (G.dir === 'L') { ctx.translate(x + TS, 0); ctx.scale(-1, 1); spr(name, 0, y + walk); }
   else spr(name, x, y + walk);
   ctx.restore();
+  if (!ui && !hero.move && tile(G.x, G.y) === 'n' && G.read[noteKey(G.x, G.y)]) drawKeyTip('E', x + TS / 2, G.y ? y - 10 : y + TS + 10);
+}
+
+// Small keycap hint centred on (cx, cy), bobbing gently.
+function drawKeyTip(k, cx, cy) {
+  const x = Math.round(cx - 8), y = Math.round(cy - 8 + Math.sin(time * 4));
+  ctx.globalAlpha = 0.9;
+  rect(ctx, '#07080c', x, y, 16, 16);
+  ctx.strokeStyle = CYAN;
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x + 0.5, y + 0.5, 15, 15);
+  rect(ctx, '#1a8fa0', x + 1, y + 13, 14, 2);
+  text(k, cx, y + 4, { size: 8, align: 'center', shadow: false });
+  ctx.globalAlpha = 1;
 }
 
 function drawMotes() {
