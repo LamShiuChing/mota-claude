@@ -13,6 +13,104 @@ what was verified, and what's next. **Read §0 first.**
 
 ## 0. Next session: brief
 
+### Where session 5 left off (mechanics, big machines, balance, lore polish)
+The user asked for four things: (1) more game mechanics ("you propose some, then I choose"), (2) multi-cell big bosses and
+strong enemies, (3) balance, (4) lore/dialogue polish with "less AI-slop". All four are built. **Nothing from session 5 has
+been reviewed by the user in the browser yet**, so ask for their verdict on the art, the mechanics and the rewrites.
+
+What the user chose (their words in quotes):
+- **Enemy ability.** The user turned down my four proposals and asked for their own: "higher tier enemy, if they are killed,
+  there is a ability that let them spawn at the same cell as their lower tier correspondence". Built as **Rollback**
+  (`rollback: t` in `ZONES`; one family per zone, e.g. Builder → Scrap Mite, Tangle → Cable Leech, Watchdog → Daemon).
+- **Floor mechanics:** dark floors, flood tiles, alarm + switches. For the early zones: "better not something that will
+  block the map or very game changing", so **zones 1–4 got no new mechanics.**
+- **Build system:** "let the player customize their playstyle throughout the game and experiment… hybrid… more RPG like,
+  but keep the mota style". Built as **firmware modules** (below). Swaps happen **at Fabricators** (user's pick), and the
+  Fabricator sells **CRIT and AGI** too (user's pick).
+- **Big machines:** "3×3 bosses + 2×2 elites".
+
+What was built:
+- **Big machines.** Bosses fill a 3×3 block of `9`; each zone has one 2×2 **elite** (`7`, optional, guarding a side room)
+  that drops that zone's firmware module. Art is in `js/bigsprites.js` (48×48 bosses replacing the old 16px ones,
+  32×32 elites), drawn by five parallel art agents from `docs/CONCEPTS.md`'s direction. The engine draws each body once
+  from its top-left cell. `bodyAnchor`/`bodyCells`/`bodySize` in `data.js` are shared by engine, calibrator and
+  checkmaps, and checkmaps rejects any 7/9 patch that isn't one square body. The 10 boss floors were re-laid around 3×3
+  bosses. Elites sit at 9, 12, 23, 35, 46, 59, 68, 79, 84, 92F.
+- **Firmware** (`MODS` in `data.js`). Twelve modules, levels I–III bought at a Fabricator ("Rewire firmware"), run only
+  while slotted:
+  - Slots: you start with one, and the bosses at 10/30/50/70F each add one (`slot: true`), so five by 71F.
+  - Sources: ten come from elite drops; Scavenger and Compiler are sold by the Broker.
+  - Checksum, Prefetch and Sandbox are single-level. Checksum only ever absorbs one blow, because more made trash fights
+    free and broke the HP economy.
+  - `kit(hero)` turns the slotted modules into combat numbers. `battleCost` models all of them, the battle engine plays
+    them, and a Monte-Carlo check showed the engine within ±10% of the formula.
+  - Slotted chips show under the map, left of `-Press H-`.
+- **Floor mechanics.**
+  - **Flood**, 41–49F (`FLOOR_PLAN[i].flood` = rows of water from the bottom): the generator turns `.` into `~` and
+    places a pump `k` on a dry cell that blocks nothing. Each step in water costs `BALANCE[z].flood`; the pump drains
+    the floor.
+  - **Alarm plates** `!`, 64F and 69F: stepping on one opens every sealed pod `z` in the walls, and a Sanitizer Mk.III
+    steps out beside the plate (`podsWaking`). Each plate sits on the cheaper route; there is a longer way round.
+  - **Lever** `j`, 66F: swaps every shut gate `=` with every open gate `-` (`GATE_SWAP`). Checkmaps requires the goal or
+    the lever to stay reachable in both gate states.
+  - **Dark floors**, 81–89F (`DARK` in `world.js`): Rho sees about two cells around, and seen cells stay dimly
+    remembered (`G.seen`). Scan lists only what has been seen.
+- **Balance.** See §4. The big fixes:
+  - Level-up HP is now a fixed curve by level (`40 × 1.045^lv`), not 4% of current HP, which made any lead snowball.
+  - The calibrator charged 30 steps of poison on *every* corrupt fight; now it's about one dose per floor, like the
+    engine.
+  - Monsters are tuned against a hero **without** firmware, with each zone's target raised by the saving firmware is
+    expected to give by then (`FIRMWARE` in `calibrate.js`). Every build meets the same monsters.
+  - The calibrator's player takes any elite it can afford (under 40% HP), because a real player wants the firmware.
+- **Lore.** 49 lines rewritten (tricolon echoes, "X. Not Y." antitheses, reflexive ellipses, "Only …" tags, lines that
+  stated the hidden truth, Rho's hero quip, and the graveyard "Names" contradiction). Added: 12 firmware item lines,
+  Rollback graffiti (zones 1 and 2), an alarm warning (zone 7) and a dark-floor line (zone 9). See `docs/LORE.md`
+  §Session 5.
+
+- **Follow-up requests (same session).**
+  - "Some type of enemy should ignore defense to encourage other play style": Pierce already existed only from 41F, so the
+    early drones got it too: Live Wire (z1), Spark Drone (z2), Needle Drone (z3), Welder Drone (z4).
+  - "At some empty cell that seems nothing will happen… a transparent stair tp them to somewhere special, like level 7 top
+    left cell… some can be easter egg ish": **hidden warps** (`&`). A plain-looking cell warps you to an **Unallocated
+    sector** (`SECTOR_MAPS`/`SECTOR_NOTES`, stored after Relay 0 from index `SECTOR_BASE` = 106). Once used, both ends
+    show a faint translucent stair (`G.warps`), and the first use chimes. `WARPS[i]` = the main-floor end of sector i:
+    - **7F (0,0):** Lost & Found (keys; the Broker claimed the visor)
+    - **24F (0,5):** Ward 9 (the lamp the girl's notes mention; her coat)
+    - **38F (10,0):** a sector "reserved for future expansion", with one Builder Mk.II
+    - **52F (4,0):** walls in the shape of λ
+    - **77F (0,4):** a crack in the outer wall and something flapping in the grey
+    - **95F (0,0):** SECTOR 0xFF, one dusty chair
+
+    One zone-1 graffiti hints at the 7F corner. The sector loot is bonus (the calibrator ignores warps and treats `&` as
+    a wall). Each warp sits on a dead-end cell so it can't cut a floor.
+
+- **Third round of requests.**
+  - Floor names now read "Zone name - nF" (e.g. "Graveyard of Signatures - 71F"; Relay 0 is "RELAY - 0F"). The tab sizes
+    itself to the text.
+  - **Stat pickups with tiers:** `x` Targeting Lens (+CRIT) and `g` Servo (+AGI) are named Mk.I–IV by depth
+    (`itemTier`) and give more deeper down. `o` is one named implant per zone (`gear.o`: Salvaged Optic … Root Spur) that
+    gives CRIT + AGI. `genmaps` scatters them on floor offsets 1/3/5/6/8 (the farthest free cell). Crit chance is capped
+    at 50%.
+  - **Statuses:** besides Corrupt there are **Breach** (DEF −20%), **Throttle** (ATK −15%) and **Lag** (AGI −50%), each
+    60 steps (`STATUS`, `afflicted` in data.js; `G.fx`). One machine per zone carries one (Tangle, Riveter, Page Swarm,
+    Resonator, Purge Sprayer, Mourner, Dust Husk, Garbage Collector). The status box cycles through active statuses, and
+    cut stats show in orange.
+  - **Immunity:** Sandbox firmware blocks corruption, and **patches** (`q t u i`, one per status) give permanent immunity.
+    The patches sit in the Unallocated sectors.
+  - Balance fixes found along the way:
+    - Bosses are tuned against the real arriving hero (firmware and statuses), capped at 2.5× the zone's starting HP.
+    - The ATK search starts at a Breached hero's DEF.
+    - The sim pays full-length corruption, Field damage on about two steps per fight, and statuses that last into the
+      next floor.
+    - The bot also takes affordable elites.
+
+  Final numbers: the calibrator is balanced with bosses at 20–38%, and the bot cleared 100F in 4/4 runs (HP ~2.3–3.5k at
+  20F, ~4–8k at 40F, 44–73k at the end: comfortable for an optimal player late on).
+
+Verification done this session: `genmaps` → `calibrate` (**balanced**) → `checkmaps` (**all floors ok**); headless bot runs
+of the real engine (4/4 cleared 100F on the final balance); screenshots of every boss/elite in place, each mechanic, the
+firmware screen and the lab gallery.
+
 ### Where session 4 left off (audio rework)
 The user asked to overhaul every sound effect ("the sword is really a sword slash… attacking, getting item, effect etc."),
 keeping the footstep and the dialogue text blip. Done and pushed (`a36572d`):
@@ -182,7 +280,14 @@ order, from unreliable sources. Few words; silence is fine; LAMBDA talks less as
   the page she carried down is at 7F), candidate logs, registry and purge records, Brann's marks, and the girl.
 
 ### Zones, rosters, gear (`js/world.js` → `ZONES`)
-Abilities: swift = strikes first, double = attacks twice, pierce = ignores DEF, corrupt = poison, aura = hurts when adjacent.
+Abilities: swift = strikes first, double = attacks twice, pierce = ignores DEF, corrupt = poison, aura = hurts when adjacent,
+rollback = an older build (a lower tier of the same zone) boots on the cell when it dies (session 5).
+
+Elites (2×2, token `7`, one per zone, each drops a firmware module): Pile Driver (Cache), Patch Bay (Sandbox), Triage
+(Overclock), Drop Forge (Checksum), Tape Library (Exploit), Pipe Organ (Faraday), Incinerator (Dropout), Pallbearer
+(Backprop), Blind Spot (Prefetch), Hypervisor (Multithread). Rollback pairs: Builder→Scrap Mite, Tangle→Cable Leech,
+Fine-Tuner→Silicate Patient, Crane Frame→Builder Mk.II, Salvage Diver→Afterimage, Broadcast Horn→Feedback,
+Enforcer→Sanitizer Mk.III, Caretaker→Zombie Process, Faceless→Dust Husk, Watchdog→Daemon.
 
 | # | Floors | Zone | Weapon / Armor | Tiers 1–6 | Boss |
 |---|---|---|---|---|---|
@@ -315,7 +420,8 @@ and `lab.html` loads the same list):
 
 | File | Role |
 |---|---|
-| `js/data.js` | Core rules: `PAL` palette, `SPRITES` (16×16 char art, auto-outlined; idle frames sit right after their base, e.g. `miteB`, `sanitizerL`), `VARIANTS` (palette swaps), `ITEMS` kinds, `DOORS`, `ABILITIES`, `hitChances`, **`battleCost`** (the single luck-aware damage formula, shared by the Scan screen and the calibrator), `HERO_START`, `expToNext`, `levelGain`, `fabricatorCost`. `heroDw`/`heroUw`/`heroRw` = Rho holding a blade. Newer monster sprites are in the `Object.assign(SPRITES, …)` block at the end |
+| `js/bigsprites.js` | Big machines' art (session 5): 48×48 bosses (replacing their 16px sprites) and 32×32 elites, `Object.assign(SPRITES, …)`. Loaded right after `data.js` |
+| `js/data.js` | Core rules (session 5 adds `BODY_SIZE`/`bodyAnchor`/`bodyCells`, `MODS`/`kit`/`heroBlow`/`monsterBlow`, `podsWaking`, `GATE_SWAP`): `PAL` palette, `SPRITES` (16×16 char art, auto-outlined; idle frames sit right after their base, e.g. `miteB`, `sanitizerL`), `VARIANTS` (palette swaps), `ITEMS` kinds, `DOORS`, `ABILITIES`, `hitChances`, **`battleCost`** (the single luck-aware damage formula, shared by the Scan screen and the calibrator), `HERO_START`, `expToNext`, `levelGain`, `fabricatorCost`. `heroDw`/`heroUw`/`heroRw` = Rho holding a blade. Newer monster sprites are in the `Object.assign(SPRITES, …)` block at the end |
 | `js/world.js` | Content: `ZONES` (theme, music, gear names, 6-tier roster + boss with abilities/swaps/dialog keys), hand-made maps (`MAP_1F`/`2F`/`3F`, `AUTHORED` = 60 authored floors keyed by floor number, `VAULT_MAPS[5]`), `FLOOR_PLAN` (per-floor specials; `.map` = authored layout), `ABANDONED`, `VAULTS`, `ON_ENTER`, `NPCS`, `PORTRAITS`, `NOTES`, `SECRET_HINTS`, `LORE`, `ITEM_LORE`, `STORY`, `zoneMonster()` |
 | `js/maps.js` | **Generated** by `tools/genmaps.js`: `MAPS[105]` (100 main + 5 vaults) and `MAP_META` (npcs / notes / vault links per floor) |
 | `js/balance.js` | **Generated** by `tools/calibrate.js`: `BALANCE[zone]` = monster stats per tier, item values, poison, shop, broker prices |
@@ -330,7 +436,9 @@ and `lab.html` loads the same list):
 `#` wall · `.` floor · `%` fake wall (looks like a wall, bump to reveal) · `U`/`D` stairs · `^` vault stairs ·
 `P` start · `S` Fabricator · `M` Broker · `O` NPC (id in `MAP_META.npcs`) · `L` Root Terminal · `n` floor note ·
 `y b r` keycards · `Y B R` shutters · `h H` cells (HP) · `a` CPU (ATK) · `d` RAM (DEF) · `w` weapon · `e` armor ·
-`v` antivirus · `c` Phase Compass · `*` memory shard · `1–6` monster tiers of the zone · `9` zone boss.
+`v` antivirus · `c` Phase Compass · `*` memory shard · `1–6` monster tiers of the zone · `7` elite (a 2×2 block) · `9` zone boss (a 3×3 block) ·
+`~` water · `k` pump · `!` alarm plate · `z` sealed pod (in a wall) · `=` shut gate · `-` open gate · `j` lever ·
+`&` hidden warp (to/from an Unallocated sector; `WARPS` in world.js).
 Item and monster numbers come from `BALANCE[zone]`, so the same map token scales automatically with depth.
 
 ### Engine notes (`js/game.js`)
@@ -368,6 +476,17 @@ Item and monster numbers come from `BALANCE[zone]`, so the same map token scales
 - Enemy FX (`ENEMY_FX`): bite, zap crackle, slam + floor ring, purge splash, lash, falling slab, lock + burn, hit burst,
   claws, static, scalpel X, sound rings, cleave, light pillar (WARDEN); ability fallbacks for pierce/corrupt/double/
   surge/swift; newer sprites alias a base in the list after `ENEMY_FX`.
+- **Big bodies:** tiles of a 2×2 elite / 3×3 boss all hold its token; `bodyAnchor` finds the top-left cell. `engage`
+  fights from the anchor, `endBattle` clears every cell (and leaves a decal on each), `drawMap` draws the body once at
+  the anchor at 2×/3× tile size. Sprites can be 16/32/48 px square; idle poses keep their meaning (band cuts in 16ths of
+  the sprite, motion in art pixels). Battle portraits of big sprites fill the frame (44 px).
+- **Firmware:** `G.mods` (owned, id → level), `G.slotted` (running), `G.slots`. `giveMod` slots a new module while a slot
+  is free. The Fabricator's "Rewire firmware" row opens the `firmware` modal (Enter slots/unslots, → upgrades for
+  `BALANCE[z].shop.upgrade`). Battle: Exploit/Faraday via `heroBlow`/`monsterBlow`, Overclock's crit multiplier in `roll`,
+  Multithread's second strike (like `double`), Checksum absorbs the first landed blow, Backprop returns damage,
+  Cache heals after the win, Sandbox blocks corruption, Scavenger/Compiler scale rewards. `load()` back-fills the fields.
+- **Floor mechanics:** `wade`, `drain`, `tripAlarm`, `pullLever`, `reveal`/`inSight`/`seen` in game.js; `alarmT` drives
+  the red strobe.
 - Keys: arrows, Enter/Space/Z, Q retreat, E re-read note, M scan (needs firmware), F Phase Compass, S/L, N mute, R twice restart, H help.
   The touch pad appears on `(pointer: coarse)`.
 
@@ -404,6 +523,23 @@ fragment lands there). `checkmaps` enforces it and brute-forces every shutter-op
   fights once the stairs are reachable, and only backtracks (by compass, reachable floors only) to a Fabricator or Broker.
 - Bosses are tuned against a reference hero with `BOSS_MARGIN` (85% HP, 95% ATK), so they cost `BOSS.f` of that reference.
 - Secret rooms, vaults and NPC gifts are **not** in the simulation, so they are pure bonus.
+
+**Session 5 changes to the model:**
+- `FIRMWARE[z]`: the share of fight cost firmware is expected to save by zone z. Monsters are tuned so a hero
+  *without* firmware pays `tier.f / (1 - FIRMWARE[z])`, so a typical build pays about `tier.f`. The calibrator logs
+  the saving its own player's loadout actually gets on each zone ("firmware … saves n%").
+- The simulated player slots firmware by a fixed taste (`MOD_TASTE`), upgrades slotted modules before buying stats,
+  takes elites under 40% HP, pays one wade per flooded cell and uses a pump when it reaches one, pulls a lever or trips an
+  alarm only when otherwise stuck.
+- `levelGain` HP is `40 × 1.045^lv` (was 4% of current HP + 50, which let any lead snowball).
+- Corruption costs one dose (poison × 30) per floor, not per corrupt fight.
+- New `BALANCE` fields: `flood`, `shop.crit` (3), `shop.agi` (1), `shop.upgrade` ([150, 450] × 1.45^z), `broker.mod`.
+
+**Session 5 numbers** (final): calibrator HP 1000 → 2.6k (10F) → 3.3k (30F) → 4.0k (50F) → 6.1k (70F) → 8.1k (90F)
+→ 17k (100F); bosses cost 31–45% of the arriving hero's HP; "balanced: all 10 zones cleared". The in-engine bot
+(tools/playbot.js, which now slots/upgrades firmware like the calibrator and handles pumps, levers and alarms) cleared
+100F in 4/4 runs: HP ~2.2k–4k through 20–40F (tight), ~7–9k at 60F, ~15k at 70F, ~52–64k at the end. One earlier run
+on a harsher curve died at 55F.
 
 **Last verified numbers** (end of session 2, calibrator, realistic player):
 ```
@@ -489,8 +625,17 @@ floors ~800–1,250, 20k–70k HP at the end.
   1F–3F are unchanged originals; 3F's up stair is open on three sides and can softlock with a bad door order (warning only).
 - 84F's diagonal stair and 100F's roots read as scattered blocks (walls touch only at corners).
 - In battle, the damage floater can overlap the monster's name at the top of the box.
-- Late game may lean easy for competent players (the bot rarely drops below ~1,000 HP mid-game). Lever: `TIERS.f` / `BOSS.f` in the calibrator.
-- Gold piles up late (~10k unspent). The Fabricator cost curve `20+10n+2n²` could be retuned, or more sinks added.
+- **Late game still leans easy for an optimal player** (session 5: the bot ends with 3–4× the calibrator's HP from zone 7 on; its
+  firmware loadout and rewards snowball less than before but still do). Levers: `FIRMWARE` for zones 7–10, `TIERS.f`, `BOSS.f`.
+- Gold piles up late (~12–15k unspent even with firmware upgrades as a sink). The Fabricator cost curve `20+10n+2n²` or
+  `UPGRADE` in the calibrator could be retuned, or more sinks added.
+- **Session 5 art is unreviewed by the user.** The art agents flagged: the Janitor's segmented spine may read as a ribcage;
+  Mother Worm's port-ring maw may read as an eye; Triage carries a sheet-covered form with a toe tag (a deliberate human
+  trace; drop it if unwanted); Blind Spot reads mostly as a lit edge at portrait size; Hypervisor is the least uncanny.
+  The generator scripts live in the session-5 scratchpad only, so edit `js/bigsprites.js` directly.
+- Only 64F/69F have alarms and only 66F has a lever; the other Quarantine floors (five of them generated) are plain.
+- The flood pump is placed automatically (farthest dry cell that blocks nothing), so on some floors it sits right by
+  the entrance and the water is trivial.
 - The Scan screen has room for about 7 monster rows (fine: 6 tiers + boss per floor).
 - "Status" only shows NORMAL / CORRUPT.
 - The ending screen still shows "x/5 shards" (kept on purpose as post-game info).

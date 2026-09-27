@@ -1041,6 +1041,195 @@ const SPRITES = {
   ],
 };
 
+// Stat chips and patches: a targeting lens (CRIT), a servo (AGI), a zone implant, an immunity patch (tinted per status).
+Object.assign(SPRITES, {
+  lens: [
+    '................',
+    '.....TTTTTT.....',
+    '....TccccccT....',
+    '...TcCtwttCcT...',
+    '..TcCtttwtttCcT.',
+    '..TcttttwttttcT.',
+    '..TcwwwwwwwwwcT.',
+    '..TctttwwtttCcT.',
+    '..TcCtttwtttCcT.',
+    '...TcCttwtttcT..',
+    '....TcccccccT...',
+    '.....TTTTTTT....',
+    '.......GG.......',
+    '......GGGG......',
+    '................',
+    '................',
+  ],
+  servo: [
+    '................',
+    '................',
+    '......GGGG......',
+    '.....GggggG.....',
+    '....GgTTTTgG....',
+    '....GgTvvTgG....',
+    '....GgTvvTgG....',
+    '....GgTTTTgG....',
+    '.....GggggG.....',
+    '......GTTG......',
+    '..TTTTTggTTTTT..',
+    '..TgggggggggggT.',
+    '..TTTTTTTTTTTT..',
+    '................',
+    '................',
+    '................',
+  ],
+  implant: [
+    '................',
+    '.......ss.......',
+    '......sSSs......',
+    '......sSSs......',
+    '...GGGGccGGGG...',
+    '..GgggcwwcgggG..',
+    '..GgTTcwwcTTgG..',
+    '..GgT.cccc.TgG..',
+    '..GgT......TgG..',
+    '..GgTT....TTgG..',
+    '...GgggggggggG..',
+    '....GGGGGGGGG...',
+    '.....c..c..c....',
+    '.....c..c..c....',
+    '................',
+    '................',
+  ],
+  patch: [
+    '................',
+    '................',
+    '...ZZZZZZZZZZ...',
+    '..ZppppppppppZ..',
+    '..ZpPPPPPPPPpZ..',
+    '..ZpPwwwwwwPpZ..',
+    '..ZpPwPPPPPPpZ..',
+    '..ZpPwwwwwwPpZ..',
+    '..ZpPPPPPPwPpZ..',
+    '..ZpPwwwwwwPpZ..',
+    '..ZpPPPPPPPPpZ..',
+    '..ZppppppppppZ..',
+    '...ZZZZZZZZZZ...',
+    '....y.y.y.y.....',
+    '................',
+    '................',
+  ],
+});
+
+// Floor mechanics (tiles): a pump that drains flooded floors, an alarm plate, a sealed Sanitizer pod in the wall,
+// a gate shut and open, and the lever that swaps them.
+Object.assign(SPRITES, {
+  pump: [
+    '................',
+    '......GGGG......',
+    '.....GbbbbG.....',
+    '....GbGGGGbG....',
+    '....GbG..GbG....',
+    '....GbGGGGbG....',
+    '.....GbbbbG.....',
+    '......GZZG......',
+    '...TTTZggZTTT...',
+    '..TZZZZggZZZZT..',
+    '..TzzzzggzzzzT..',
+    '..TZZZZggZZZZT..',
+    '...TTTZggZTTT...',
+    '......ZggZ......',
+    '......TTTT......',
+    '................',
+  ],
+  alarm: [
+    '................',
+    '................',
+    '..RRRRRRRRRRRR..',
+    '..RttttttttttR..',
+    '..RtyYtyYtyYtR..',
+    '..RtYtyYtyYttR..',
+    '..RttttrrttttR..',
+    '..RtttrwwrtttR..',
+    '..RtttrwwrtttR..',
+    '..RttttrrttttR..',
+    '..RtyYtyYtyYtR..',
+    '..RtYtyYtyYttR..',
+    '..RttttttttttR..',
+    '..RRRRRRRRRRRR..',
+    '................',
+    '................',
+  ],
+  pod: [
+    '....GGGGGGGG....',
+    '...GqqqqqqqqG...',
+    '..GqeeeeeeeeqG..',
+    '..GqeEEEEEEeqG..',
+    '..GqeEttttEeqG..',
+    '..GqeEtwwtEeqG..',
+    '..GqeEtrrtEeqG..',
+    '..GqeEttttEeqG..',
+    '..GqeEttttEeqG..',
+    '..GqeEttttEeqG..',
+    '..GqeEEEEEEeqG..',
+    '..GqeeeeeeeeqG..',
+    '..GqqqRRRRqqqG..',
+    '...GqqqqqqqqG...',
+    '....GGGGGGGG....',
+    '................',
+  ],
+  gateShut: [
+    'zzzzzzzzzzzzzzzz',
+    'zGGGGGGGGGGGGGGz',
+    'z.g.g.g.g.g.g..z',
+    'z.gQgQgQgQgQg..z',
+    'z.g.g.g.g.g.g..z',
+    'zyYyYyYyYyYyYyYz',
+    'z.g.g.g.g.g.g..z',
+    'z.gQgQgQgQgQg..z',
+    'z.g.g.g.g.g.g..z',
+    'z.g.g.g.g.g.g..z',
+    'zyYyYyYyYyYyYyYz',
+    'z.g.g.g.g.g.g..z',
+    'z.gQgQgQgQgQg..z',
+    'z.g.g.g.g.g.g..z',
+    'zGGGGGGGGGGGGGGz',
+    'zzzzzzzzzzzzzzzz',
+  ],
+  gateOpen: [
+    'zzzzzzzzzzzzzzzz',
+    'zGGGGGGGGGGGGGGz',
+    'z.g.g.g.g.g.g..z',
+    'zyYyYyYyYyYyYyYz',
+    '................',
+    '................',
+    '................',
+    '................',
+    '................',
+    '................',
+    '................',
+    '................',
+    '................',
+    '................',
+    '................',
+    '................',
+  ],
+  lever: [
+    '................',
+    '................',
+    '..........ww....',
+    '.........wrrw...',
+    '.........wrrw...',
+    '........gGw.....',
+    '.......gG.......',
+    '......gG........',
+    '....TTTTTTTT....',
+    '...TZZZZZZZZT...',
+    '...TZyYyYyYZT...',
+    '...TZZZZZZZZT...',
+    '...TTTTTTTTTT...',
+    '................',
+    '................',
+    '................',
+  ],
+});
+
 // Named palette swaps: [base sprite, {from: to}]. Monster rosters add their own swaps in world.js.
 const VARIANTS = {
   cardB: ['cardY', { y: 'b', Y: 'B' }],
@@ -1051,7 +1240,29 @@ const VARIANTS = {
   rootDark: ['root', { c: 'T', w: 't', v: 'Z' }],
   serverDead: ['root', { c: 'Z', w: 'T', v: 'z' }],
   drill: ['lance', { G: 'N', g: 'n', c: 'y', Q: 'N' }],
+  patchT: ['patch', { p: 'b', P: 'B' }],
+  patchU: ['patch', { p: 'o', P: 'N' }],
+  patchI: ['patch', { p: 'e', P: 'E' }],
 };
+// A firmware module: a small cartridge; its label takes the module's color (swap c).
+SPRITES.modChip = [
+  '................',
+  '................',
+  '..GTTTTTTTTTTG..',
+  '..TzzzzzzzzzzT..',
+  '..TzccccccccZT..',
+  '..TzcwwwwwwcZT..',
+  '..TzcwTTTTwcZT..',
+  '..TzcwwwwwwcZT..',
+  '..TzccccccccZT..',
+  '..TzzzzzzzzzzT..',
+  '..TZZZZZZZZZZT..',
+  '..TzyzyzyzyzyT..',
+  '..TyYyYyYyYyYT..',
+  '...y.y.y.y.y....',
+  '................',
+  '................',
+];
 
 // Map tile -> item kind. Values scale by zone (see BALANCE in balance.js).
 const ITEMS = {
@@ -1067,7 +1278,18 @@ const ITEMS = {
   v: { kind: 'antivirus', name: 'Antivirus Disk', sprite: 'floppy' },
   c: { kind: 'compass', name: 'Phase Compass', sprite: 'compass' },
   '*': { kind: 'shard', name: 'Memory Shard', sprite: 'shard' },
+  // Tiered chips: the same token gives more deeper down, and its name says which mark it is (itemName in game.js).
+  x: { kind: 'crit', name: 'Targeting Lens', sprite: 'lens', tiered: true },
+  g: { kind: 'agi', name: 'Servo', sprite: 'servo', tiered: true },
+  o: { kind: 'implant', gear: true, sprite: 'implant' }, // one per zone, named in ZONES gear
+  // Patches: permanent immunity to one status. Only in the Unallocated sectors.
+  q: { kind: 'patch', immune: 'corrupt', name: 'Patch: CORRUPT', sprite: 'patch' },
+  t: { kind: 'patch', immune: 'breach', name: 'Patch: BREACH', sprite: 'patchT' },
+  u: { kind: 'patch', immune: 'throttle', name: 'Patch: THROTTLE', sprite: 'patchU' },
+  i: { kind: 'patch', immune: 'lag', name: 'Patch: LAG', sprite: 'patchI' },
 };
+const TIER_NAMES = ['I', 'II', 'III', 'IV'];
+const itemTier = z => Math.min(3, Math.floor(z / 3)); // zones 1-3: Mk.I ... zone 10: Mk.IV
 
 const DOORS = { Y: 'y', B: 'b', R: 'r' };
 const KEY_NAMES = { y: 'Amber', b: 'Cyan', r: 'Crimson' };
@@ -1079,27 +1301,99 @@ const ABILITIES = {
   corrupt: 'Corrupt: infects on contact',
   aura: 'Field: hurts when adjacent',
   surge: 'Overflow: every 3rd blow x2',
+  rollback: 'Rollback: an older build boots when it dies',
+  breach: 'Breach: DEF -20% for a while',
+  throttle: 'Throttle: ATK -15% for a while',
+  lag: 'Lag: AGI -50% for a while',
 };
 
-// CRIT = % chance of a x2 hit. Each point of AGI above the attacker's adds 3% dodge.
-const hitChances = (atk, def) => ({ crit: atk.crit / 100, miss: Math.min(0.4, Math.max(0.02, 0.04 + 0.03 * (def.agi - atk.agi))) });
+// Statuses a fight can leave on Rho (G.fx: steps left). Corrupt poisons; the others cut a stat by a share.
+const STATUS_STEPS = 60;
+const STATUS = { breach: ['def', 0.2], throttle: ['atk', 0.15], lag: ['agi', 0.5] };
+// The hero as a fight sees it: its stats after any Breach / Throttle / Lag it carries.
+const afflicted = h => Object.entries(STATUS).reduce((a, [k, [stat, cut]]) => (h.fx?.[k] > 0 ? { ...a, [stat]: Math.round(a[stat] * (1 - cut)) } : a), h);
 
-// Expected HP lost fighting monster m, averaging in both sides' misses and crits.
-// Infinity if the hero can't hurt it.
-function battleCost(hero, m) {
-  const hd = hero.atk - m.def;
-  if (hd <= 0) return Infinity;
-  const mine = hitChances(hero, m), theirs = hitChances(m, hero);
-  const swings = Math.max(1, Math.ceil(m.hp / (hd * (1 - mine.miss) * (1 + mine.crit))));
-  let hits = (swings - 1 + (m.swift ? 1 : 0)) * (m.double ? 2 : 1);
-  if (m.surge) hits += Math.floor(hits / 3);
-  const dmg = m.pierce ? m.atk : Math.max(0, m.atk - hero.def);
-  return Math.round(hits * dmg * (1 - theirs.miss) * (1 + theirs.crit));
+// Big machines fill a square of cells with one token: elites (7) 2x2, bosses (9) 3x3.
+const BODY_SIZE = { 7: 2, 9: 3 };
+const bodySize = ch => BODY_SIZE[ch] || 1;
+// Top-left cell of the body standing on (x, y) of map m (rows of chars). Bodies never touch another of their kind.
+function bodyAnchor(m, x, y) {
+  const ch = m[y][x];
+  if (bodySize(ch) === 1) return [x, y];
+  while (x > 0 && m[y][x - 1] === ch) x--;
+  while (y > 0 && m[y - 1][x] === ch) y--;
+  return [x, y];
+}
+const bodyCells = (x, y, s) => Array.from({ length: s * s }, (_, i) => [x + (i % s), y + Math.floor(i / s)]);
+
+// Quarantine alarm: stepping on a plate at (x, y) opens every sealed pod (z) on the floor; each pod's Sanitizer
+// (tier 2 there) steps onto the pod's open neighbour nearest the plate, and the empty pod is wall. Returns
+// [podX, podY, outX, outY] per pod that could open. `free(x, y)`: may a Sanitizer stand there.
+function podsWaking(m, x, y, free) {
+  const out = [];
+  m.forEach((row, py) => [...row].forEach((c, px) => {
+    if (c !== 'z') return;
+    const spot = [[px + 1, py], [px - 1, py], [px, py + 1], [px, py - 1]].filter(([ox, oy]) => free(ox, oy))
+      .sort((a, b) => Math.hypot(a[0] - x, a[1] - y) - Math.hypot(b[0] - x, b[1] - y))[0];
+    if (spot) out.push([px, py, ...spot]);
+  }));
+  return out;
+}
+// Levers swap every gate on the floor: shut (=) <-> open (-).
+const GATE_SWAP = { '=': '-', '-': '=' };
+
+// Firmware modules: Rho's build. Owned ones sit in G.mods (id -> level 1..3); only slotted ones (G.slotted) run.
+// `lv` is the module's value at each level; `text` says what that value does.
+const MODS = {
+  cache: { name: 'Cache', color: 'v', lv: [0.06, 0.1, 0.14], text: v => `After a win, recover ${v * 100}% of the HP it cost` },
+  sandbox: { name: 'Sandbox', color: 'p', lv: [1], text: () => 'Corruption cannot take hold' },
+  overclock: { name: 'Overclock', color: 'o', lv: [2.4, 2.8, 3.2], text: v => `Critical blows hit x${v}` },
+  checksum: { name: 'Checksum', color: 'b', lv: [1], text: () => 'The first blow landed on you each fight does nothing' },
+  exploit: { name: 'Exploit', color: 'r', lv: [0.06, 0.12, 0.18], text: v => `Ignore ${v * 100}% of enemy DEF` },
+  faraday: { name: 'Faraday', color: 'c', lv: [0, 0.25, 0.5], text: v => `No Field damage${v ? `; Pierce still meets ${v * 100}% of your DEF` : ''}` },
+  dropout: { name: 'Dropout', color: 'e', lv: [3, 5, 7], text: v => `AGI +${v} in a fight` },
+  backprop: { name: 'Backprop', color: 'y', lv: [0.08, 0.14, 0.2], text: v => `Return ${v * 100}% of the damage you take` },
+  prefetch: { name: 'Prefetch', color: 'w', lv: [1], text: () => 'Strike first, even against Swift' },
+  multithread: { name: 'Multithread', color: 'O', lv: [0.2, 0.3, 0.4], text: v => `Every blow strikes again at ${v * 100}%` },
+  scavenger: { name: 'Scavenger', color: 'Y', lv: [0.2, 0.35, 0.5], text: v => `+${v * 100}% credits from kills` },
+  compiler: { name: 'Compiler', color: 'C', lv: [0.2, 0.35, 0.5], text: v => `+${v * 100}% EXP from kills` },
+};
+const modValue = (hero, id) => (hero.slotted?.includes(id) ? MODS[id].lv[hero.mods[id] - 1] : undefined);
+// What slotted firmware does in a fight. Neutral when nothing is slotted.
+function kit(hero) {
+  const v = id => modValue(hero, id) ?? 0, on = id => modValue(hero, id) !== undefined;
+  return {
+    critX: v('overclock') || 2, ignore: v('exploit'), absorb: v('checksum'), reflect: v('backprop'), agi: v('dropout'),
+    first: on('prefetch'), shield: v('faraday'), field: on('faraday') ? 0 : 1, heal: v('cache'),
+    twin: v('multithread'), clean: on('sandbox'), gold: 1 + v('scavenger'), exp: 1 + v('compiler'),
+  };
 }
 
-const HERO_START = { hp: 1000, atk: 10, def: 10, crit: 5, agi: 2, gold: 0, exp: 0, lv: 1, keys: { y: 1, b: 0, r: 0 } };
+// CRIT = % chance (at most 50) of a critical hit (x2, or Overclock's multiplier). Each point of AGI above the attacker's adds 3% dodge.
+const hitChances = (atk, def) => ({ crit: Math.min(0.5, atk.crit / 100), miss: Math.min(0.4, Math.max(0.02, 0.04 + 0.03 * (def.agi - atk.agi))) });
+// One side's damage per blow before luck: Exploit shaves the monster's DEF, Faraday lets Pierce meet some of Rho's.
+const heroBlow = (hero, m, k = kit(hero)) => hero.atk - Math.round(m.def * (1 - k.ignore));
+const monsterBlow = (hero, m, k = kit(hero)) => Math.max(0, m.atk - Math.round(hero.def * (m.pierce ? k.shield : 1)));
+
+// Expected HP lost fighting monster m, averaging in both sides' misses and crits and Rho's firmware.
+// Infinity if the hero can't hurt it. Rollback's older build is a separate fight.
+function battleCost(hero, m) {
+  hero = afflicted(hero);
+  const k = kit(hero), hd = heroBlow(hero, m, k);
+  if (hd <= 0) return Infinity;
+  const me = { ...hero, agi: hero.agi + k.agi }, mine = hitChances(me, m), theirs = hitChances(m, me);
+  const blow = monsterBlow(hero, m, k) * (1 - theirs.miss) * (1 + theirs.crit), per = m.double ? 2 : 1;
+  const swing = hd * (1 + k.twin) * (1 - mine.miss) * (1 + mine.crit * (k.critX - 1)) + k.reflect * blow * per;
+  const swings = Math.max(1, Math.ceil(m.hp / swing));
+  let hits = (swings - 1 + (m.swift && !k.first ? 1 : 0)) * per;
+  if (m.surge) hits += Math.floor(hits / 3);
+  return Math.round(Math.max(0, hits - k.absorb) * blow * (1 - k.heal));
+}
+
+const HERO_START = { hp: 1000, atk: 10, def: 10, crit: 5, agi: 2, gold: 0, exp: 0, lv: 1, keys: { y: 1, b: 0, r: 0 }, mods: {}, slotted: [], slots: 1, fx: {}, immune: {} };
 const expToNext = lv => 5 * lv * (lv + 1); // cumulative: 10, 30, 60, 100...
-const levelGain = (lv, h) => ({ hp: Math.round(h.hp * 0.04 + 50), atk: Math.max(1, Math.round(h.atk * 0.02)), def: Math.max(1, Math.round(h.def * 0.02)), agi: lv % 3 === 0 ? 1 : 0 });
+const levelGain = (lv, h) => ({ hp: Math.round(40 * 1.045 ** lv), // by level, not current HP, so a lead can't snowball
+  atk: Math.max(1, Math.round(h.atk * 0.02)), def: Math.max(1, Math.round(h.def * 0.02)), agi: lv % 3 === 0 ? 1 : 0 });
 const fabricatorCost = n => 20 + 10 * n + 2 * n * n;
 
 // Zone monsters and bosses (rosters in world.js ZONES). Kept apart from the base sprites above.

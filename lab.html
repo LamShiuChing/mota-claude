@@ -66,6 +66,7 @@
   </aside>
 
   <script src="js/data.js"></script>
+  <script src="js/bigsprites.js"></script>
   <script src="js/world.js"></script>
   <script src="js/maps.js"></script>
   <script src="js/balance.js"></script>
@@ -111,14 +112,14 @@
 
   // Idle gallery: every character animating with its map idle.
   const GALLERY = [{ name: 'Rho', sprite: 'heroD' }, ...['archivist', 'lambda', 'lambdaFade', 'lambdaGlyph', 'brann', 'ohm', 'pip', 'broker', 'wanderer', 'tallyman', 'tallymanCopy', 'verity'].map(s => ({ name: s, sprite: s })),
-    ...ZONES.flatMap(z => [...z.roster, { ...z.boss, boss: true }])];
+    ...ZONES.flatMap(z => [...z.roster, z.elite, { ...z.boss, boss: true }])];
   function drawGallery() {
     ctx.setTransform(scale, 0, 0, scale, 0, 0);
     ctx.imageSmoothingEnabled = false;
     ctx.fillStyle = '#101218';
     ctx.fillRect(0, 0, W, H);
     GALLERY.forEach((d, i) => {
-      const x = 6 + (i % 12) * 47, y = 6 + Math.floor(i / 12) * 60, face = Math.sign(Math.sin(time * 0.7 + i));
+      const x = 6 + (i % 13) * 44, y = 6 + Math.floor(i / 13) * 53, face = Math.sign(Math.sin(time * 0.7 + i));
       if (d.sprite === 'heroD') spr(heroSprite('D'), x + 7, y);
       else drawIdle(d, x + 7, y, idlePose(d.sprite, time, (i * 0.137) % 1, face, d.boss));
       body(d.name.slice(0, 8), x + 23, y + 34, { size: 12, align: 'center', color: d.boss ? '#ff3b4e' : '#9ea2ad', shadow: false });
@@ -126,9 +127,9 @@
   }
 
   // Controls
-  const enemies = ZONES.flatMap((z, zi) => ['1', '2', '3', '4', '5', '6', '9'].map(ch => ({ zi, ch })));
-  const enemyDef = ({ zi, ch }) => ({ ...zoneMonster(zi, ch), ...BALANCE[zi].monsters[ch], boss: ch === '9' });
-  enemies.forEach((e, i) => opt($('enemy'), i, `${e.zi + 1}.${e.ch === '9' ? 'B' : e.ch} ${enemyDef(e).name}`));
+  const enemies = ZONES.flatMap((z, zi) => ['1', '2', '3', '4', '5', '6', '7', '9'].map(ch => ({ zi, ch })));
+  const enemyDef = ({ zi, ch }) => ({ ...zoneMonster(zi, ch), ...BALANCE[zi].monsters[ch], boss: ch === '9', elite: ch === '7' });
+  enemies.forEach((e, i) => opt($('enemy'), i, `${e.zi + 1}.${{ 7: 'E', 9: 'B' }[e.ch] || e.ch} ${enemyDef(e).name}`));
   opt($('weapon'), -1, 'bare hands');
   ZONES.forEach((z, i) => opt($('weapon'), i, `${i}: ${z.gear.w}`));
   MAPS.forEach((_, f) => opt($('floor'), f, floorLabel(f) + (isVault(f) ? ` ${f - MAIN_FLOORS + 1}` : '')));

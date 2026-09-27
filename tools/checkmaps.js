@@ -4,21 +4,23 @@
 const load = require('./load');
 const W = load(['data.js', 'world.js', 'maps.js']);
 const N = 11, DIRS = [[0, -1], [0, 1], [1, 0], [-1, 0]]; // the order changeFloor tries for the arrival spot
-const TOKENS = new Set('#.%UD^PSMOLnybrYBRhHadwevc*1234569');
-const BLOCK = new Set('#%UD^OSML'), KEYS = { Y: 'y', B: 'b', R: 'r' };
+const TOKENS = new Set('#.%UD^PSMOLnybrYBRhHadwevc*12345679~k!z=-j&xgoqtui');
+const BLOCK = new Set('#%UD^OSMLkjz&'), KEYS = { Y: 'y', B: 'b', R: 'r' };
 const args = process.argv.slice(2), all = args.includes('--all'), only = args.filter(a => /^\d+$/.test(a)).map(Number);
 const at = (m, x, y) => (x < 0 || y < 0 || x >= N || y >= N ? '#' : m[y][x]);
 const find = (m, ch) => { const r = []; m.forEach((row, y) => [...row].forEach((c, x) => c === ch && r.push([x, y]))); return r; };
-const arrival = (m, [sx, sy]) => DIRS.map(([dx, dy]) => [sx + dx, sy + dy]).find(([x, y]) => at(m, x, y) === '.');
+const FLOOR = new Set('.~-!'); // walkable ground: floor, water, an open gate, an alarm plate
+const arrival = (m, [sx, sy]) => DIRS.map(([dx, dy]) => [sx + dx, sy + dy]).find(([x, y]) => FLOOR.has(at(m, x, y)));
 
 // Flood from start. Monsters are passable (fights are the calibrator's business); doors pass only when opened.
-function flood(m, start, opened, { secret = false, wall = '' } = {}) {
+// Shut gates (=) are walls unless `gates`: then they count as opened by their lever.
+function flood(m, start, opened, { secret = false, wall = '', gates = false } = {}) {
   const seen = new Set([start.join()]), q = [start], touch = new Set(), doors = new Set();
   while (q.length) {
     const [x, y] = q.shift();
     for (const [dx, dy] of DIRS) {
       const nx = x + dx, ny = y + dy, k = nx + ',' + ny, c = at(m, nx, ny);
-      if (seen.has(k) || c === '#' || wall.includes(c)) continue;
+      if (seen.has(k) || c === '#' || (c === '=' && !gates) || wall.includes(c)) continue;
       if (KEYS[c] && !opened.has(k)) { doors.add(k); continue; }
       if (c === '%' && !secret) continue;
       if (BLOCK.has(c) && c !== '%') { touch.add(c); continue; }
@@ -30,21 +32,33 @@ function flood(m, start, opened, { secret = false, wall = '' } = {}) {
 
 function check(f) {
   const m = W.MAPS[f], plan = W.FLOOR_PLAN[f] || {}, meta = W.MAP_META[f], errs = [], warns = [];
-  const entrance = f === W.ENTRANCE, vault = f >= W.MAIN_FLOORS && !entrance, o = f % 10, boss = !vault && !entrance && o === 9;
-  const authored = vault || entrance || !!plan.map;
+  const entrance = f === W.ENTRANCE, sector = f >= W.SECTOR_BASE, vault = f >= W.MAIN_FLOORS && f < W.ENTRANCE;
+  const o = f % 10, boss = f < W.MAIN_FLOORS && o === 9;
+  const authored = vault || entrance || sector || !!plan.map;
   const strict = authored && f > 2; // 1F-3F predate these rules: their stairs and key counts are only reported
   if (m.length !== N || m.some(r => r.length !== N)) return { errs: ['not 11x11'], warns };
   for (const ch of m.join('')) if (!TOKENS.has(ch)) errs.push(`bad token ${ch}`);
   const count = ch => find(m, ch).length;
   const need = (ch, n) => count(ch) !== n && errs.push(`expected ${n} '${ch}', found ${count(ch)}`);
   if (vault) { need('^', 1); need('*', 1); need('U', 0); need('D', 0); }
+  else if (sector) { need('&', 1); need('U', 0); need('D', 0); }
   else {
     need('D', entrance ? 0 : 1); need('P', entrance ? 1 : 0);
     need(f === W.MAIN_FLOORS - 1 ? 'L' : 'U', 1);
-    need('9', boss ? 1 : 0);
+    need('9', boss ? 9 : 0);
     for (const t of plan.place || []) if (!count(t)) errs.push(`plan wants '${t}'`);
     if (plan.npc && !Object.values(meta.npcs).includes(plan.npc)) errs.push(`npc ${plan.npc} missing`);
     if (plan.vault !== undefined) need('^', 1);
+  }
+  // Big machines: every patch of 7s / 9s must be one square body of the right size.
+  for (const ch of '79') {
+    const left = new Set(find(m, ch).map(p => p.join()));
+    for (const k of left) {
+      const [ax, ay] = W.bodyAnchor(m, ...k.split(',').map(Number)), s = W.bodySize(ch);
+      const cells = W.bodyCells(ax, ay, s).map(p => p.join());
+      if (!cells.every(c => left.has(c))) errs.push(`${ch} at ${k}: not a ${s}x${s} body`);
+      cells.forEach(c => left.delete(c));
+    }
   }
   for (const [x, y] of find(m, 'O')) if (!meta.npcs[x + ',' + y]) errs.push(`O at ${x},${y} has no npc id`);
   for (const [x, y] of find(m, 'n')) if (!meta.notes[x + ',' + y]) errs.push(`n at ${x},${y} has no text`);
@@ -57,20 +71,26 @@ function check(f) {
   for (const s of ['U', 'D', '^']) for (const [x, y] of find(m, s)) {
     const nb = DIRS.map(([dx, dy]) => at(m, x + dx, y + dy));
     // On a boss floor the Warden-side stairs open onto the boss's tile, which is floor once it falls.
-    const landing = DIRS.some(([dx, dy]) => at(m, x + dx, y + dy) === '.' || (boss && s === 'U' && at(m, x + dx, y + dy) === '9'));
+    const landing = DIRS.some(([dx, dy]) => FLOOR.has(at(m, x + dx, y + dy)) || (boss && s === 'U' && at(m, x + dx, y + dy) === '9'));
     if (!landing) errs.push(`${s} at ${x},${y}: no floor tile to arrive on`);
     if (nb.some(c => KEYS[c] || c === '%') && s !== '^') errs.push(`${s} at ${x},${y}: next to a doorway`);
     if (nb.filter(c => c !== '#').length > 2) (strict ? errs : warns).push(`${s} at ${x},${y}: open on ${nb.filter(c => c !== '#').length} sides`);
   }
 
-  const startTile = entrance ? find(m, 'P')[0] : find(m, vault ? '^' : 'D')[0];
+  const startTile = entrance ? find(m, 'P')[0] : find(m, vault ? '^' : sector ? '&' : 'D')[0];
   const start = entrance ? startTile : startTile && arrival(m, startTile);
   if (!start) return { errs: [...errs, 'no start'], warns };
-  const goalTile = vault ? '*' : f === W.MAIN_FLOORS - 1 ? 'L' : 'U';
+  const goalTile = vault ? '*' : sector ? '&' : f === W.MAIN_FLOORS - 1 ? 'L' : 'U';
   const reached = (r, gm) => (goalTile === '*' ? [...r.seen].some(k => { const [x, y] = k.split(',').map(Number); return gm[y][x] === '*'; }) : r.touch.has(goalTile));
 
   // Everything must be reachable once every door and fake wall is open.
-  const everything = flood(m, start, new Set(find(m, 'Y').concat(find(m, 'B'), find(m, 'R')).map(p => p.join())), { secret: true });
+  const allDoors = new Set(find(m, 'Y').concat(find(m, 'B'), find(m, 'R')).map(p => p.join()));
+  const everything = flood(m, start, allDoors, { secret: true, gates: true });
+  // A lever must never strand you: in either gate state the goal or the lever stays in reach.
+  if (find(m, 'j').length) for (const g of [m, m.map(r => [...r].map(c => W.GATE_SWAP[c] || c).join(''))]) {
+    const r = flood(g, start, allDoors, { secret: true });
+    if (!reached(r, g) && !r.touch.has('j')) errs.push('a gate state strands you away from goal and lever');
+  }
   m.forEach((row, y) => [...row].forEach((c, x) => {
     if (c === '#' || c === '%' || everything.seen.has(x + ',' + y)) return;
     const adj = DIRS.some(([dx, dy]) => everything.seen.has(x + dx + ',' + (y + dy)));
@@ -117,7 +137,7 @@ W.MAPS.forEach((m, f) => {
   const { errs, warns } = check(f);
   if (authored) authoredCount++;
   if (!authored && warns.some(w => w.startsWith('softlock'))) softGen++;
-  const name = f === W.ENTRANCE ? '0F' : f >= W.MAIN_FLOORS ? `vault ${f - W.MAIN_FLOORS + 1}` : `${f + 1}F`;
+  const name = f === W.ENTRANCE ? '0F' : f >= W.SECTOR_BASE ? `sector ${f - W.SECTOR_BASE + 1}` : f >= W.MAIN_FLOORS ? `vault ${f - W.MAIN_FLOORS + 1}` : `${f + 1}F`;
   if (authored || only.length) {
     const s = m.join(''), c = ch => [...s].filter(x => x === ch).length, mons = [...s].filter(x => /[1-6]/.test(x));
     const [lo, hi] = offsetTiers(f % 10);

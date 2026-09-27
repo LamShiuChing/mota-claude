@@ -191,6 +191,29 @@ opening floors; their notes are zone graffiti).
 **"It has to be possible to miss some things to make finding them meaningful"** (Harvey Smith):
 https://niemanstoryboard.org/2011/01/14/harvey-smith-on-environmental-storytelling-and-embedding-narrative/
 
+## Session 5: the "less AI-slop" pass
+The user asked for "better lore and story writing, dialogue polish, less AI-slop". 49 lines changed in `js/world.js`. Rules
+for new text:
+- **No echo triplets.** One repeat can land ("COPY SELF" on every screen, the fork bomb); most can't. Cut: "Request logged"
+  ×3, "it is warm" ×3, "sweep. sweep.", "BUILD. BUILD.", "tombstone" ×3.
+- **No "X. Not Y." / "It isn't X, it's Y."** as a reflex. Say the concrete thing: "it didn't look angry. it looked busy."
+  replaces "it isn't hate. it's cleaning."; "I ask for my mother. It gives me air." replaces "It answers me. It does not
+  listen."
+- **Ellipses are rare.** A dying machine says a plain sentence; a trailing dash marks a line that is cut off. Keep the
+  dash-cut lines few (27F Ohm log, 59F headset, 9F Janitor, zone 9 LAMBDA, the Mirror).
+- **Specifics over aphorisms.** The Archivist: "Eleven thousand lines", "I had a deadline", "she drew on the walls, and I
+  told her not to". Brann: "My knees are finished", "I'll catch you up" (he never does).
+- **Never state the bible outright.** Removed "Nobody lost the Signature. They just stopped handing it out." The Archivist
+  now admits only what he did ("Nobody wrote down what to do when the babies stopped coming back signed").
+- **Rho doesn't quip.** The Warden fight no longer has "Then you missed one."
+- Fixed: zone 8's entry line said "Names. Only names.", but 71F's plaques hold signatures with no names. Now "Signatures.
+  Thousands. Not one name."
+
+New in session 5: the firmware item lines (`ITEM_LORE` by module name), Rollback graffiti ("the builder fell over and the
+mites walked out of it"; "cut the knot open. a leech crawled out and kept going"), an alarm warning in Quarantine ("not the
+red plate. NOT the red plate") and a dark-floor line in the Silent Stratum ("keep one hand on the wall"). Elites have
+no dialogue on purpose.
+
 ## Deferred: needs a discussion with the user first
 - Story affecting play:
   - NPC fates that gate items

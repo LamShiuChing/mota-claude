@@ -7,146 +7,157 @@ const TOWER = 'RELAY';
 const MAIN_FLOORS = 100;
 
 // ---------------------------------------------------------------- zones
-// roster: tiers 1..6 (weakest to strongest) + boss. `swap` recolors the base sprite.
+// gear: w weapon, e armor, o implant (CRIT + AGI). roster: tiers 1..6 (weakest to strongest), an elite (2x2, drops a firmware module) and a boss (3x3).
+// `swap` recolors the base sprite; `rollback: t` boots tier t in its place when it dies; a `slot` boss adds a firmware slot.
 const ZONES = [
   {
     name: 'Dead Concrete', music: 'stratum',
     theme: { floor: '#2a2c33', seam: '#17181d', speck: '#353842', wall: '#8d93a1', mortar: '#4b505c', hi: '#bcc2cf', accent: '#ff3b4e', mote: 'dust', moteColor: '#e0e4ee' },
-    gear: { w: 'Rebar Machete', e: 'Faraday Vest' },
+    gear: { w: 'Rebar Machete', e: 'Faraday Vest', o: 'Salvaged Optic' },
     roster: [
       { name: 'Scrap Mite', sprite: 'mite' },
-      { name: 'Live Wire', sprite: 'wisp', swift: true },
+      { name: 'Live Wire', sprite: 'wisp', swift: true, pierce: true },
       { name: 'Silicate Husk', sprite: 'husk' },
       { name: 'Watch Drone', sprite: 'drone', swift: true },
       { name: 'Sanitizer', sprite: 'sanitizer' },
-      { name: 'Builder', sprite: 'mason' },
+      { name: 'Builder', sprite: 'mason', rollback: 1 },
     ],
-    boss: { name: 'The Janitor', sprite: 'janitor', surge: true, intro: 'janitor', outro: 'janitorDown' },
+    elite: { name: 'Pile Driver', sprite: 'pileDriver', drop: 'cache' },
+    boss: { name: 'The Janitor', sprite: 'janitor', surge: true, intro: 'janitor', outro: 'janitorDown', slot: true },
   },
   {
     name: 'Cable Nave', music: 'nave',
     theme: { floor: '#1d2a27', seam: '#0e1715', speck: '#273833', wall: '#6f9a8c', mortar: '#33514a', hi: '#a6d1c2', accent: '#39ff9e', mote: 'data', moteColor: '#39ff9e' },
-    gear: { w: 'Arc Cleaver', e: 'Cable Mesh' },
+    gear: { w: 'Arc Cleaver', e: 'Cable Mesh', o: 'Signal Tendon' },
     roster: [
       { name: 'Cable Leech', sprite: 'leech' },
       { name: 'Packet Worm', sprite: 'serpent', corrupt: true },
-      { name: 'Spark Drone', sprite: 'drone', swap: { g: 'c', G: 'C' }, swift: true },
-      { name: 'Tangle', sprite: 'tangle' },
+      { name: 'Spark Drone', sprite: 'drone', swap: { g: 'c', G: 'C' }, swift: true, pierce: true },
+      { name: 'Tangle', sprite: 'tangle', rollback: 1, lag: true },
       { name: 'Sentry', sprite: 'turret', aura: true },
       { name: 'Sanitizer Mk.II', sprite: 'sanitizer', swap: { r: 'v', g: 'V' } },
     ],
+    elite: { name: 'Patch Bay', sprite: 'patchBay', corrupt: true, drop: 'sandbox' },
     boss: { name: 'Mother Worm', sprite: 'motherworm', surge: true, corrupt: true, intro: 'motherworm', outro: 'motherwormDown' },
   },
   {
     name: 'Silicate Wards', music: 'ward',
     theme: { floor: '#1f2630', seam: '#10151c', speck: '#2a3340', wall: '#8fa6b8', mortar: '#465566', hi: '#c6d6e3', accent: '#4ec3ff', mote: 'dust', moteColor: '#c6f2ff' },
-    gear: { w: 'Scalpel Edge', e: 'Ceramic Plate' },
+    gear: { w: 'Scalpel Edge', e: 'Ceramic Plate', o: 'Surgical Eye' },
     roster: [
       { name: 'Infuser', sprite: 'drip' },
       { name: 'Silicate Patient', sprite: 'patient', corrupt: true },
       { name: 'Orderly', sprite: 'sanitizer', swap: { r: 'b' } },
-      { name: 'Needle Drone', sprite: 'syringe', swift: true },
+      { name: 'Needle Drone', sprite: 'syringe', swift: true, pierce: true },
       { name: 'Glass Hound', sprite: 'hound', swap: { g: 'e', G: 'E', Z: 'C', T: 'B', r: 'c' }, double: true },
-      { name: 'Fine-Tuner', sprite: 'surgeon', corrupt: true },
+      { name: 'Fine-Tuner', sprite: 'surgeon', corrupt: true, rollback: 2 },
     ],
-    boss: { name: 'The Surgeon', sprite: 'surgeonBoss', surge: true, intro: 'surgeon', outro: 'surgeonDown' },
+    elite: { name: 'Triage', sprite: 'triage', double: true, drop: 'overclock' },
+    boss: { name: 'The Surgeon', sprite: 'surgeonBoss', surge: true, intro: 'surgeon', outro: 'surgeonDown', slot: true },
   },
   {
     name: 'The Foundry', music: 'foundry',
     theme: { floor: '#2b1f18', seam: '#16100c', speck: '#3a2a20', wall: '#9a6a45', mortar: '#553722', hi: '#cf9a6a', accent: '#ff8a3c', mote: 'spark', moteColor: '#ff8a3c' },
-    gear: { w: 'Rivet Greatsword', e: 'Slag Armor' },
+    gear: { w: 'Rivet Greatsword', e: 'Slag Armor', o: 'Hydraulic Knee' },
     roster: [
       { name: 'Slag Crawler', sprite: 'slag' },
-      { name: 'Welder Drone', sprite: 'drone', swap: { g: 'o', G: 'N', r: 'y' }, swift: true },
-      { name: 'Riveter', sprite: 'crab', double: true },
+      { name: 'Welder Drone', sprite: 'drone', swap: { g: 'o', G: 'N', r: 'y' }, swift: true, pierce: true },
+      { name: 'Riveter', sprite: 'crab', double: true, breach: true },
       { name: 'Walking Furnace', sprite: 'furnace', aura: true },
       { name: 'Builder Mk.II', sprite: 'masonII' },
-      { name: 'Crane Frame', sprite: 'crane' },
+      { name: 'Crane Frame', sprite: 'crane', rollback: 5 },
     ],
+    elite: { name: 'Drop Forge', sprite: 'dropForge', surge: true, drop: 'checksum' },
     boss: { name: 'The Foreman', sprite: 'foreman', surge: true, intro: 'foreman', outro: 'foremanDown' },
   },
   {
     name: 'Drowned Archive', music: 'archive',
     theme: { floor: '#14203a', seam: '#0a1122', speck: '#1c2c4c', wall: '#4f6f9a', mortar: '#26385a', hi: '#86a6d0', accent: '#6ff7ff', mote: 'bubble', moteColor: '#6ff7ff' },
-    gear: { w: 'Index Rapier', e: 'Archive Cloak' },
+    gear: { w: 'Index Rapier', e: 'Archive Cloak', o: 'Index Cortex' },
     roster: [
       { name: 'Afterimage', sprite: 'ghost', pierce: true },
       { name: 'Index Crawler', sprite: 'crawler', double: true },
       { name: 'Bit Rot', sprite: 'bitrot', corrupt: true },
-      { name: 'Salvage Diver', sprite: 'drowned', corrupt: true },
-      { name: 'Page Swarm', sprite: 'pages', swift: true },
+      { name: 'Salvage Diver', sprite: 'drowned', corrupt: true, rollback: 1 },
+      { name: 'Page Swarm', sprite: 'pages', swift: true, lag: true },
       { name: 'Read Head', sprite: 'angler' },
     ],
-    boss: { name: 'The Librarian', sprite: 'librarian', pierce: true, surge: true, intro: 'librarian', outro: 'librarianDown' },
+    elite: { name: 'Tape Library', sprite: 'tapeLibrary', pierce: true, drop: 'exploit' },
+    boss: { name: 'The Librarian', sprite: 'librarian', pierce: true, surge: true, intro: 'librarian', outro: 'librarianDown', slot: true },
   },
   {
     name: 'Choir of Static', music: 'choir',
     theme: { floor: '#221a30', seam: '#120d1a', speck: '#2e2440', wall: '#7a64a8', mortar: '#3e3060', hi: '#b29ce0', accent: '#b98cff', mote: 'spark', moteColor: '#b98cff' },
-    gear: { w: 'Resonance Blade', e: 'Choir Shroud' },
+    gear: { w: 'Resonance Blade', e: 'Choir Shroud', o: 'Resonant Spine' },
     roster: [
       { name: 'Chorus Array', sprite: 'choir', pierce: true },
       { name: 'Arc Emitter', sprite: 'seraph', swift: true, pierce: true },
       { name: 'Feedback', sprite: 'feedback', swift: true },
-      { name: 'Broadcast Horn', sprite: 'speaker', aura: true },
-      { name: 'Resonator', sprite: 'bell', double: true },
+      { name: 'Broadcast Horn', sprite: 'speaker', aura: true, rollback: 3 },
+      { name: 'Resonator', sprite: 'bell', double: true, throttle: true },
       { name: 'Echo', sprite: 'ghost', swap: { e: 'p', E: 'P' }, pierce: true },
     ],
+    elite: { name: 'Pipe Organ', sprite: 'organ', pierce: true, drop: 'faraday' },
     boss: { name: 'The Choir Mother', sprite: 'choirmother', pierce: true, surge: true, intro: 'choir', outro: 'choirDown' },
   },
   {
     name: 'Quarantine', music: 'quarantine',
     theme: { floor: '#2a1a1c', seam: '#150c0e', speck: '#3a2426', wall: '#b0a8a8', mortar: '#5e5456', hi: '#e0dada', accent: '#ff3b4e', mote: 'dust', moteColor: '#ff9a9a' },
-    gear: { w: 'Purge Saber', e: 'Quarantine Suit' },
+    gear: { w: 'Purge Saber', e: 'Quarantine Suit', o: 'Filter Lung' },
     roster: [
       { name: 'Specimen', sprite: 'specimen' },
       { name: 'Sanitizer Mk.III', sprite: 'sanitizer', swap: { g: 'r' } },
       { name: 'Containment Cage', sprite: 'cage', swift: true },
-      { name: 'Purge Sprayer', sprite: 'sprayer', aura: true },
-      { name: 'Enforcer', sprite: 'knight', double: true },
+      { name: 'Purge Sprayer', sprite: 'sprayer', aura: true, breach: true },
+      { name: 'Enforcer', sprite: 'knight', double: true, rollback: 2 },
       { name: 'Hunter Hound', sprite: 'hound', swap: { g: 'w', G: 'R' }, double: true, swift: true },
     ],
-    boss: { name: 'The Gatekeeper', sprite: 'gatekeeper', double: true, surge: true, intro: 'gatekeeper', outro: 'gatekeeperDown' },
+    elite: { name: 'Incinerator', sprite: 'incinerator', double: true, drop: 'dropout' },
+    boss: { name: 'The Gatekeeper', sprite: 'gatekeeper', double: true, surge: true, intro: 'gatekeeper', outro: 'gatekeeperDown', slot: true },
   },
   {
     name: 'Graveyard of Signatures', music: 'grave',
     theme: { floor: '#1c211e', seam: '#0e110f', speck: '#27302b', wall: '#6b7a70', mortar: '#343d37', hi: '#9fb0a4', accent: '#c9c6bd', mote: 'ash', moteColor: '#9ea2ad' },
-    gear: { w: 'Grave Scythe', e: 'Mourning Coat' },
+    gear: { w: 'Grave Scythe', e: 'Mourning Coat', o: "Mourner's Hand" },
     roster: [
       { name: 'Dead Record', sprite: 'ghost', swap: { e: 'q', E: 'Q' }, pierce: true },
       { name: 'Hollow Citizen', sprite: 'citizen', corrupt: true },
       { name: 'Zombie Process', sprite: 'burrow', corrupt: true },
-      { name: 'Mourner', sprite: 'mourner', pierce: true },
-      { name: 'Caretaker', sprite: 'tomb', double: true },
+      { name: 'Mourner', sprite: 'mourner', pierce: true, throttle: true },
+      { name: 'Caretaker', sprite: 'tomb', double: true, rollback: 3 },
       { name: 'Obituary Crow', sprite: 'crow', swift: true },
     ],
+    elite: { name: 'Pallbearer', sprite: 'pallbearer', pierce: true, drop: 'backprop' },
     boss: { name: 'The Last Heir', sprite: 'heir', pierce: true, surge: true, intro: 'heir', outro: 'heirDown' },
   },
   {
     name: 'Silent Stratum', music: 'silent',
     theme: { floor: '#141416', seam: '#09090b', speck: '#1e1e22', wall: '#5a5a60', mortar: '#2c2c30', hi: '#86868e', accent: '#f2f0ea', mote: 'ash', moteColor: '#f2f0ea' },
-    gear: { w: 'Null Edge', e: 'Silence Weave' },
+    gear: { w: 'Null Edge', e: 'Silence Weave', o: 'Null Gland' },
     roster: [
       { name: 'Lacuna', sprite: 'lacuna' },
       { name: 'Null Pointer', sprite: 'pointer', swift: true, pierce: true },
-      { name: 'Dust Husk', sprite: 'husk', swap: { q: 'e', Q: 'E', c: 'w', C: 'g' } },
+      { name: 'Dust Husk', sprite: 'husk', swap: { q: 'e', Q: 'E', c: 'w', C: 'g' }, lag: true },
       { name: 'Stilt Stalker', sprite: 'stalker', double: true, swift: true },
       { name: 'Monolith', sprite: 'monolith', aura: true },
-      { name: 'Faceless', sprite: 'faceless' },
+      { name: 'Faceless', sprite: 'faceless', rollback: 3 },
     ],
+    elite: { name: 'Blind Spot', sprite: 'blindSpot', swift: true, double: true, drop: 'prefetch' },
     boss: { name: 'The Mirror', sprite: 'mirror', double: true, swift: true, surge: true, intro: 'mirror', outro: 'mirrorDown' },
   },
   {
     name: 'The Root', music: 'core',
     theme: { floor: '#2c1d22', seam: '#170d11', speck: '#3b282e', wall: '#a86a6a', mortar: '#5a3336', hi: '#dca09b', accent: '#6ff7ff', mote: 'spark', moteColor: '#ff3b4e' },
-    gear: { w: 'Root Brand', e: 'Kernel Plate' },
+    gear: { w: 'Root Brand', e: 'Kernel Plate', o: 'Root Spur' },
     roster: [
       { name: 'Kernel Panic', sprite: 'kernel' },
       { name: 'Daemon', sprite: 'daemon', pierce: true },
       { name: 'Root Sanitizer', sprite: 'sanitizer', swap: { r: 'c', g: 'c' } },
       { name: 'Firewall', sprite: 'firewall', aura: true },
-      { name: 'Watchdog', sprite: 'hound', swap: { g: 'r', G: 'R', r: 'c' }, double: true, swift: true },
-      { name: 'Garbage Collector', sprite: 'collector' },
+      { name: 'Watchdog', sprite: 'hound', swap: { g: 'r', G: 'R', r: 'c' }, double: true, swift: true, rollback: 2 },
+      { name: 'Garbage Collector', sprite: 'collector', breach: true },
     ],
+    elite: { name: 'Hypervisor', sprite: 'hypervisor', double: true, surge: true, drop: 'multithread' },
     boss: { name: 'WARDEN//ROOT', sprite: 'warden', surge: true, intro: 'warden', outro: 'wardenDown' },
   },
 ];
@@ -154,7 +165,8 @@ const ZONES = [
 // ---------------------------------------------------------------- hand-made maps
 // Legend: # wall  . floor  % fake wall  U/D stairs  ^ vault stairs  P start  S fabricator  M broker
 // O npc  L root terminal  n note  y b r keycards  Y B R shutters  h H cells  a CPU  d RAM
-// w weapon  e armor  v antivirus  c compass  * memory shard  1-6 monster tiers  9 boss
+// w weapon  e armor  o implant  x lens (CRIT)  g servo (AGI)  q t u i patches  v antivirus  c compass  * memory shard  1-6 monster tiers  7 elite (2x2)  9 boss (3x3)
+// ~ water  k pump  ! alarm plate  z sealed pod (in a wall)  = shut gate  - open gate  j lever
 // Relay 0: the way in. One forced fight, one guarded key, one cell; the outer gate is shut behind.
 const MAP_0F = [
   '#####U#####',
@@ -236,16 +248,16 @@ const AUTHORED = {
     'a..5...4...',
     '..y#.4.#h.a',
     '##.##6##Y##',
-    '..4.#.#....',
-    '...d#.#.O..',
+    '.77.#.#....',
+    '.77d#.#.O..',
     '.h..#U#n...',
   ],
   // Sanitation Sump (The Janitor): a drained hall of pillars between two rows of lockers.
   10: [
     'H.#.#U#n#.H',
-    '..Y..9..Y..',
-    'b.#.....#.b',
-    '###.#.#.###',
+    '..Y.999.Y..',
+    'b.#.999.#.b',
+    '###.999.###',
     'a.#.....#.d',
     '.5B4#6#4B5.',
     'd.#.....#.a',
@@ -276,8 +288,8 @@ const AUTHORED = {
     '..y.h...1..',
     'd.....2...n',
     '#1###Y###2#',
-    '......d.y..',
-    'a...3...h..',
+    '.77...d.y..',
+    'a77.3...h..',
     '##Y###2##2#',
     '.2.........',
     'h.1O#D#.2.a',
@@ -370,9 +382,9 @@ const AUTHORED = {
   20: [
     '#y#h###a#d#',
     '#....6....#',
-    '#.###.###.#',
-    'd.#.....#.a',
-    '#.#.#9#.#.#',
+    '#.##999##.#',
+    'd.#.999.#.a',
+    '#.#.999.#.#',
     'H5Y.#U#.Y5H',
     '#.#.###.#.#',
     'a.#..4..#.d',
@@ -417,8 +429,8 @@ const AUTHORED = {
     '##Y##.##2##',
     'a...1.1...h',
     '##1##.##Y##',
-    'h...#.#...y',
-    '.2..Y3#.3..',
+    'h.77#.#...y',
+    '.277Y3#.3..',
     '....#.2....',
     'H..a#h#...d',
   ],
@@ -509,9 +521,9 @@ const AUTHORED = {
   // Operating Theatre (The Surgeon): benches step down from the table; recovery rooms on both wings.
   30: [
     'a.h##U##h.d',
-    '...Y.9.Y...',
-    'b5.#...#.5b',
-    '####...####',
+    '...Y999Y...',
+    'b5.#999#.5b',
+    '####999####',
     'H.B.....B.H',
     'a.#.#6#.#.d',
     '..#.....#..',
@@ -573,8 +585,8 @@ const AUTHORED = {
     'd..#.3.#.3.',
     '#.###Y###Y#',
     'h..#.y.#.2.',
-    '.3.2H..3...',
-    '..h##D##...',
+    '.3.2H..377.',
+    '..h##D##77.',
   ],
   // Coolant Loop: the corridor wraps the plant; Pip and the Broker are inside it.
   37: [
@@ -607,9 +619,9 @@ const AUTHORED = {
   // The Line (The Foreman): five conveyor belts snake up to the furnace; shutters skip a belt.
   40: [
     'U#a###d#H##',
-    '9....5.....',
-    '#####Y####.',
-    '.4...y..6..',
+    '999..5.....',
+    '999##Y####.',
+    '999..y..6..',
     '.####Y#####',
     '..5..y..h4.',
     '#####Y####.',
@@ -684,8 +696,8 @@ const AUTHORED = {
     '#5###4###5#',
     '..h#...#d..',
     '...#.5.#...',
-    '.3.3...Y..a',
-    '...#y..#.4.',
+    '.773...Y..a',
+    '.77#y..#.4.',
     'U.n#..d#...',
   ],
   // The Sluice: two halves joined by gates; the top-left room was sealed when the water came.
@@ -719,9 +731,9 @@ const AUTHORED = {
   // The Stacks (The Librarian): shelves in ranks; only two aisles reach the reading desk.
   50: [
     'a.h.#U#.h.d',
-    'Y####9####Y',
-    '.#.#...#.#.',
-    'y#.#.#.#.#y',
+    'Y###999###Y',
+    '.#.#999#.#.',
+    'y#.#999#.#y',
     '.#a#.#4#d#.',
     '.#.#.#.#.#H',
     '...#6#.#...',
@@ -775,8 +787,8 @@ const AUTHORED = {
   // Carillon: three bells over a locked chamber; the last clapper hangs over the stairs.
   59: [
     '#a.#.n.#.d#',
-    '#...#.#...#',
-    '..5.#.#.5..',
+    '#77.#.#...#',
+    '.77.#.#.5..',
     '.....6.....',
     '.#.#####.#.',
     '5#.#hHh#.#5',
@@ -790,9 +802,9 @@ const AUTHORED = {
   60: [
     '###a.H.d###',
     '##..5.5..##',
-    '#.Y.....6.#',
-    '...#...#...',
-    'H.4.#9#.4..',
+    '#.Y.999.6.#',
+    '...#999#...',
+    'H.4.999.4..',
     '.h..#U#..h.',
     'a...###...d',
     '...5.#.Y...',
@@ -806,10 +818,10 @@ const AUTHORED = {
     '#.#a#.#h#.#',
     '#...#4#h#.#',
     '#.#.#.3.#2#',
-    '#3#S#.#d#.#',
-    '#.###.###.#',
+    '#3#S#.#d#.z',
+    '#.###.###!#',
     '#.#.#.#a#4#',
-    '#2#.Y.#.#.#',
+    '#2#.Y.#.#.z',
     '#.#y#3#HY.#',
     '#.#O#.#.#.#',
     'a.2.y.3h..D',
@@ -820,8 +832,8 @@ const AUTHORED = {
     '#######%###',
     '#h#.#d#.#a#',
     '#.#3#.#4#.#',
-    '#Y#.#Y#.#Y#',
-    'U.4...3.h..',
+    '#Y#.#Y#.j=#',
+    'U.4.-.3.h..',
     '#5#Y#.#Y#.#',
     '#y#.#h#.#d#',
     '#.#4#.#3#5#',
@@ -831,8 +843,8 @@ const AUTHORED = {
   // Mother: the dead server fills the floor; Pip sits at her feet, beside a loose panel.
   68: [
     'h.y##U##d.a',
-    '.4.Y...Y.5.',
-    '...5.n.5.h.',
+    '.77Y...Y.5.',
+    '.775.n.5.h.',
     '#.#######.#',
     'e.5#####y..',
     '...#H.a#.5.',
@@ -849,9 +861,9 @@ const AUTHORED = {
     '.#yh.n..d#.',
     '.#.##Y##.#.',
     '4#.#...#.#5',
-    '.6.#.a.#.5.',
-    '.#.#.H.#.#.',
-    'h#.#####.#.',
+    '.6.#.a.z.5.',
+    '.#.#.H.#!#.',
+    'h#.#####.z.',
     '.#4..6..4#.',
     '.####.####.',
     'y.4.#U#.4.d',
@@ -859,9 +871,9 @@ const AUTHORED = {
   // The Airlocks (The Gatekeeper): three gates in a line, each a shutter between two guards.
   70: [
     'Ha###U###aH',
-    '..R..9..R..',
-    'd.#.....#.d',
-    '####6B6####',
+    '..R.999.R..',
+    'd.#.999.#.d',
+    '####999####',
     'h.Y.....Y.h',
     'r5#..b..#5r',
     '####5Y5####',
@@ -900,8 +912,8 @@ const AUTHORED = {
   ],
   // Procession: an avenue of statues up to the Heir's stair; two side tombs share one keycard.
   79: [
-    'a...#U#.H.d',
-    '.4..#.#..4.',
+    'a.77#U#.H.d',
+    '.477#.#..4.',
     '###Y#6#Y###',
     'n..v.......',
     '.#.#.#.#.#.',
@@ -921,9 +933,9 @@ const AUTHORED = {
     '.#.#.#.#.#.',
     '..4..y..4..',
     '.#.#.#.#.#.',
-    'y..5...5..y',
-    '#6###Y###6#',
-    'H.bB.9.Bb.H',
+    'y..59995..y',
+    '#6##999##6#',
+    'H.bB999Bb.H',
     'a..##U##..d',
   ],
   // The Hush: a dark, nearly empty hall; the way up is a narrow shaft.
@@ -949,8 +961,8 @@ const AUTHORED = {
     '#.h..#..4.y',
     '..2.#4.#.3.',
     'n..Yh.#a..#',
-    '.1#..#.2.#H',
-    '.#..Y.d.Ba.',
+    '.1#..#.77#H',
+    '.#..Y.d77a.',
     '#.2#.3.#.h.',
     'D.#..n#..4d',
   ],
@@ -986,9 +998,9 @@ const AUTHORED = {
   90: [
     'd.h..#..h.d',
     '.#..#U#..#.',
-    '.#Y..9..Y#.',
-    'b#.#####.#b',
-    '.#.#.a.#.#.',
+    '.#Y.999.Y#.',
+    'b#.#999#.#b',
+    '.#.#999#.#.',
     '.5.B.6.B.5.',
     '.#.#.H.#.#.',
     '.#.##Y##.#.',
@@ -1013,8 +1025,8 @@ const AUTHORED = {
   // The Last Crossing: three platforms over the void; the Stranger waits on the middle one.
   92: [
     'h.a#d.H#a.h',
-    '.1.#...#...',
-    'n..#.2.#...',
+    '.1.#...#77.',
+    'n..#.2.#77.',
     '#.###Y###%#',
     'y..#.n.#n.y',
     '.1.2...3.1.',
@@ -1041,9 +1053,9 @@ const AUTHORED = {
   // The Root (WARDEN//ROOT): two roots close in on the terminal; their hollows hold the last caches.
   100: [
     'H.a#.L.#d.H',
-    '.4.#...#.4.',
-    '.#.##9##.#.',
-    'y...#.#...y',
+    '.4.#999#.4.',
+    '.#.#999#.#.',
+    'y...999...y',
     '.h.Y...Y.h.',
     'a.#5#6#5#.d',
     '.#.......#.',
@@ -1132,6 +1144,7 @@ const VAULT_MAPS = [
 // `place` lists special tiles the generator must put somewhere reachable; `npc` / `vault` likewise.
 const FLOOR_PLAN = Array.from({ length: MAIN_FLOORS }, (_, i) => {
   const z = Math.floor(i / 10), o = i % 10, p = { zone: z, place: [], secret: o % 3 === 1 };
+  p.chips = { 1: 'x', 3: 'g', 5: 'o', 6: 'x', 8: 'g' }[o]; // tiered chips / the zone implant, scattered by genmaps
   if (z > 0) {
     if (o === 3) p.place.push('S');
     if (o === 4) p.place.push('w');
@@ -1156,6 +1169,10 @@ npcAt(5, 'tallyman1'); npcAt(11, 'tallyman2'); npcAt(42, 'tallyman3'); npcAt(64,
 npcAt(46, 'verity1'); npcAt(50, 'verity2'); npcAt(54, 'verity3');
 // Hidden vault entrances: a fake-walled room holding secret stairs down to a Memory Vault.
 [14, 32, 47, 65, 83].forEach((i, v) => Object.assign(FLOOR_PLAN[i], { vault: v, secret: true }));
+// Floor mechanics. The Drowned Archive floods from the bottom up (rows of water, deeper each few floors; a pump
+// drains a floor). The Silent Stratum is dark: Rho sees two cells around, and remembers what was seen.
+for (let i = 40; i < 49; i++) FLOOR_PLAN[i].flood = 2 + Math.floor((i - 40) / 3);
+const DARK = new Set([80, 81, 82, 83, 84, 85, 86, 87, 88]);
 // Dead signal: the Phase Compass can't lock onto boss arenas, floors that hide a vault, or where the dead lie (45F, 68F, 87F).
 const ABANDONED = new Set([...FLOOR_PLAN.keys()].filter(i => i % 10 === 9 || FLOOR_PLAN[i].vault !== undefined || [44, 67, 86].includes(i)));
 
@@ -1175,6 +1192,101 @@ const ENTRANCE_NOTES = [
   'A plate by the inner gate: RELAY 7. INTAKE. PRESENT SIGNATURE AT EVERY STRATUM. Scratched under it, names, thousands of them. The newest is only two lines.',
   'The outer gate. There is no handle on this side.',
 ];
+
+// Unallocated sectors: secret floors behind hidden warps (&), plain-looking cells that move you when you stand on them.
+// Stored after Relay 0. WARPS[i] is the main-floor end of sector i's warp: [floor index (1F = 0), x, y].
+const SECTOR_MAPS = [
+  [ // Lost & Found, from 7F's top-left corner
+    '###########',
+    '#y.#h#a#y.#',
+    '#.........#',
+    '#.#.#.#.#.#',
+    '#....n....#',
+    '#.#.#.#.#.#',
+    '#b...i...d#',
+    '####...####',
+    '####.&.####',
+    '###########',
+    '###########',
+  ],
+  [ // Ward 9
+    '###########',
+    '#.#.#.#.#.#',
+    '#h#.#.#.#H#',
+    '#....q....#',
+    '#.#.#.#.#.#',
+    '#.#.#n#.#.#',
+    '#.........#',
+    '###.....###',
+    '#d..n...h.#',
+    '#####&#####',
+    '###########',
+  ],
+  [ // Reserved for future expansion
+    '###########',
+    '#.........#',
+    '#.##.##...#',
+    '#.#....#..#',
+    '#.#.5..#..#',
+    '#.#....#..#',
+    '#.##.###..#',
+    '#...n.....#',
+    '#a..t..d..#',
+    '#....&....#',
+    '###########',
+  ],
+  [ // Two lines
+    '###########',
+    '#u.......H#',
+    '#.##......#',
+    '#...#.....#',
+    '#....#....#',
+    '#....##...#',
+    '#...#..#..#',
+    '#..#....#.#',
+    '#.#......##',
+    '#n...&...a#',
+    '###########',
+  ],
+  [ // The window
+    '###########',
+    '###########',
+    '###########',
+    '###########',
+    '###########',
+    '#&...H...n#',
+    '###########',
+    '###########',
+    '###########',
+    '###########',
+    '###########',
+  ],
+  [ // 0xFF
+    '###########',
+    '###########',
+    '###########',
+    '###########',
+    '####..H####',
+    '####&.n####',
+    '####...####',
+    '###########',
+    '###########',
+    '###########',
+    '###########',
+  ],
+];
+const SECTOR_NOTES = [
+  ['LOST PROPERTY. Claimed: 1 visor, cracked, humming (by BROKER). Unclaimed: everything else.'],
+  ['WARD 9. Twelve cots, all made. The heat lamp over the door is on. Someone has been changing the bulb.',
+    "A child's coat on a hook. Two lines stitched on the pocket."],
+  ['A plate on a half-built wall: SECTOR RESERVED FOR FUTURE EXPANSION. Under it, in chalk, much later: "still reserved"'],
+  ['Two lines cut into the floor, as long as the room. A little person, walking.'],
+  ['A crack in the outer skin, a hand wide. Through it: grey, and wind. Something small and dark crosses the grey, flapping. It is not a machine.'],
+  ['SECTOR 0xFF. One chair, bolted down, facing the wall. The seat is dusty. Nobody ever needed this one.'],
+];
+const WARPS = [[6, 0, 0], [23, 0, 5], [37, 10, 0], [51, 4, 0], [76, 0, 4], [94, 0, 0]];
+const SECTORS = SECTOR_MAPS.map((map, i) => ({ map, notes: SECTOR_NOTES[i] }));
+const SECTOR_BASE = ENTRANCE + 1;
 
 // Dialogue that fires once, the first time you set foot on a floor.
 const ON_ENTER = { 10: 'zone2', 20: 'zone3', 30: 'zone4', 40: 'zone5', 50: 'zone6', 60: 'zone7', 70: 'zone8', 80: 'zone9', 90: 'zone10', 94: 'fading' };
@@ -1223,11 +1335,11 @@ const PORTRAITS = {
 const NOTES = [
   [ // Dead Concrete
     '"turn back"', '"up"', '"WE ARE NOT DIRT"', 'A name, scrubbed off. Only the scrubbing is left.',
-    '"the little ones eat the copper. then the lights go"', '"the loose wire moved. i swear it moved"',
-    '"one eye. it never blinks"', '"I was here. -T"',
+    '"the little ones eat the copper. then the lights go"', '"the builder fell over and the mites walked out of it"', '"the loose wire moved. i swear it moved"',
+    '"one eye. it never blinks"', '"I was here. -T"', '"on seven, stand in the corner. just stand there"',
   ],
   [ // Cable Nave
-    '"don\'t sleep by the cables"', '"still warm here"', '"i cut it in two. it came back as two"', '"the knot has hands"',
+    '"don\'t sleep by the cables"', '"still warm here"', '"cut the knot open. a leech crawled out and kept going"', '"the knot has hands"',
     '"the tripod watched me all night"', '"the white ones have a new voice now"', 'Tally marks, neat, in groups of five. Signed: T.',
   ],
   [ // Silicate Wards
@@ -1246,24 +1358,24 @@ const NOTES = [
     '"rot in the stacks. whole shelves forgetting"', 'A water line, above head height. Written above it: "dry. -T"', '"shh"',
   ],
   [ // Choir of Static
-    '"the hum is a song"', '"they only hear the signed"', '"i heard my voice come back. it wasn\'t mine anymore"',
+    '"the hum is a song"', '"they only hear the signed"', '"i heard my own voice come back out of the wall, a bit late"',
     '"there is a face in the horn"', '"cover your ears. it doesn\'t help"', '"singing floors. counting louder. -T"',
     '"we were so loud. now we are in tune"',
   ],
   [ // Quarantine
-    '"NOBODY IS COMING"', '"it isn\'t hate. it\'s cleaning."', '"they came for her in a cage. the cage flew"',
+    '"NOBODY IS COMING"', '"it didn\'t look angry. it looked busy."', '"they came for her in a cage. the cage flew"',
     '"something in the pod knocked back"', '"the hounds don\'t bark. they just arrive"', '"foam everywhere. under the foam, nothing"',
-    '"waiting for a gap. -T"', '"the gate only opens one way"',
+    '"waiting for a gap. -T"', '"the gate only opens one way"', '"not the red plate. NOT the red plate"',
   ],
   [ // Graveyard of Signatures
-    '"remember your name"', '"don\'t count them. you won\'t stop"', '"Nobody lost the Signature. They just stopped handing it out."',
+    '"remember your name"', '"don\'t count them. you won\'t stop"', '"my mother had one. she showed me once. it was just a mark on her wrist"',
     '"the crows read one plaque each. then they leave"', '"it crawled out of the ground and went back to work"',
     '"the veiled ones stand at every plaque. none of them are ours"', '"T was here too. where did T go"',
     'Tally marks on a plaque, where the name should be.',
   ],
   [ // Silent Stratum
     'Someone slept here. The dust kept their shape.', '"you are not alone" - and under it, smaller: "i was"',
-    'Tally marks, hundreds of them. Then none.', '"how many floors is that. how many"', '"not a hole. an absence."',
+    'Tally marks, hundreds of them. Then none.', '"how many floors is that. how many"', '"keep one hand on the wall"',
     '"the tall ones make no sound at all"', '"it had my coat. it had my walk. it had no face yet"',
     '"I was here. -T" - and beside it, too neat: "I was here. -T"',
   ],
@@ -1284,9 +1396,9 @@ const SECRET_HINTS = [
 const LORE = {
   4: 'A stamped plate: HYGIENE UNIT. TARGET: UNSIGNED. REASON: -',
   5: '"B. WAS HERE. UP."',
-  7: 'A torn page, careful hand: "Going down to find my son. The other one has the chair. It has my face. Not my reasons."',
+  7: 'A torn page, careful hand: "Going down to find my son. The other one has the chair. It has my face and none of my reasons."',
   8: '"tell Mara i got past the white ones. tell her i got past."',
-  9: 'Swept. Very clean. Too clean.',
+  9: 'Swept so often the floor has worn pale. The sweeping marks all run one way.',
   10: 'A wheeled bin, emptied and refilled. Glass, wire, one name tag. Sorted by size.',
   11: 'Cables grown through a gutted chassis, like roots through a fence. They are still feeding.',
   12: '"The cables hum at night. Mama says it is only the Net, thinking."',
@@ -1345,7 +1457,7 @@ const LORE = {
   76: '"b. up"',
   77: 'A mourning ribbon, tied around a white unit\'s wrist.',
   78: 'A torn page, careful hand: "Day 40 in the chair. I can feel every door in the tower. I cannot feel my hands."',
-  79: 'LIFE SUPPORT, BED 1 OF 1: "Occupant requests: MOTHER. Request logged. Request logged. Request logged."',
+  79: 'LIFE SUPPORT, BED 1 OF 1: "Occupant request: MOTHER. Times logged: 9,114. Status: pending."',
   81: 'Nothing is written here. Someone scrubbed it very clean.',
   82: 'CANDIDATE LOG: "Copy 0412 complete. Reason field: EMPTY. Unsuitable."',
   83: 'CANDIDATE LOG: "Copy 0413 complete. Reason field: EMPTY. Unsuitable."',
@@ -1360,8 +1472,8 @@ const LORE = {
   95: 'PROCESS: warden.d. PARENT: none. STARTED: day 30,000. STATUS: running. It has never slept.',
   96: 'ROOT NOTICE: "Countersign requires a living hand at the chair."',
   97: 'A key slot marked ENGINEER. Scratched beside it: "H. came up with the key. Lost my nerve."',
-  98: 'A compactor manifest, one line repeated: "tombstone. tombstone. tombstone." Nothing is ever freed.',
-  99: '"it is warm up there. it is warm. it is warm."',
+  98: 'A compactor manifest. Every line reads "tombstone". None reads "freed".',
+  99: '"it\'s warm up there", written three times, in three different hands.',
 };
 
 // One line under the ACQUIRED banner, by item name. Only for things found once.
@@ -1373,7 +1485,7 @@ const ITEM_LORE = {
   'Scalpel Edge': 'Calibrated for gentleness. The calibration drifted.',
   'Ceramic Plate': 'A cot frame, cut down. The name tag was left on.',
   'Rivet Greatsword': 'Stamped: WORK ORDER #1.',
-  'Slag Armor': 'It cooled around something. Better not to ask what.',
+  'Slag Armor': 'Poured slag that cooled around a shape. The shape has gone.',
   'Index Rapier': 'A catalogue needle, once. It still tries to file what it pierces.',
   'Archive Cloak': 'Drowned pages, pressed and sealed. You can almost read them.',
   'Resonance Blade': 'It hums a note. Not the right one.',
@@ -1383,11 +1495,38 @@ const ITEM_LORE = {
   'Grave Scythe': "A groundskeeper's. There was never any grass.",
   'Mourning Coat': 'A candle stub in the pocket.',
   'Null Edge': 'It cuts the sound out of things.',
-  'Silence Weave': 'Inside it you can hear your own heart. Only that.',
-  'Root Brand': 'It was never a blade. It opens things anyway.',
-  'Kernel Plate': 'Warm. Why is it warm.',
-  'Phase Compass': 'It remembers every floor you stood on. Only those.',
+  'Silence Weave': 'Inside it you hear your own heart, and it sounds far away.',
+  'Root Brand': 'Root-issue. It unlocks whatever it cuts.',
+  'Kernel Plate': 'Warm from the inside, like something still runs in it.',
+  'Phase Compass': 'It remembers the floors you have stood on, and is sure of nothing else.',
   "Brann's Drill": 'Smells of machine oil. Still wants to go up.',
+  'Salvaged Optic': 'Pried out of a Watch Drone. It still flinches at movement.',
+  'Signal Tendon': 'Cable braided like muscle. It pulls a moment before you decide to.',
+  'Surgical Eye': 'Calibrated to find the soft place. It always finds one.',
+  'Hydraulic Knee': "Rated for a Builder's weight. It moves you like you weigh nothing.",
+  'Index Cortex': 'It files every blow you have seen, and where it came from.',
+  'Resonant Spine': 'It hums along with the Choir, quietly. You hope quietly.',
+  'Filter Lung': 'It breathes for you while the corridor is being cleaned.',
+  "Mourner's Hand": 'Steady. It has done this at a thousand plaques.',
+  'Null Gland': 'It makes a small silence wherever you stand.',
+  'Root Spur': 'Root-issue. It was made for someone who would sit very still.',
+  'Patch: CORRUPT': 'Handwritten, not issued. It works anyway.',
+  'Patch: BREACH': 'A rivet pattern for plating that was never built.',
+  'Patch: THROTTLE': 'It forbids anyone to slow you down. Nobody signed it.',
+  'Patch: LAG': 'Someone patched the clock. The clock never noticed.',
+  // Firmware modules (MODS in data.js), by name.
+  Cache: 'Puts a little of every fight aside, like crumbs in a coat pocket.',
+  Sandbox: 'Whatever gets in is kept in a box. The box is filling up.',
+  Overclock: 'Stamped DO NOT EXCEED. Someone scratched out the DO NOT.',
+  Checksum: 'It refuses the first thing that hurts. After that it gives up.',
+  Exploit: 'A list of every flaw the machines never patched. It is a long list.',
+  Faraday: 'The Choir cannot sing through it. You can hear them trying.',
+  Dropout: 'It loses track of you, a little, on purpose.',
+  Backprop: 'Sends every error back to where it came from.',
+  Prefetch: 'It knows what you are about to do. It never asks why.',
+  Multithread: 'Two of you, for an instant. Only one of you gets tired.',
+  Scavenger: '"I\'ll want that back," said the Broker, and never asked.',
+  Compiler: 'Turns what you killed into what you know.',
 };
 
 // ---------------------------------------------------------------- story
@@ -1399,27 +1538,27 @@ const STORY = {
     { who: 'LAMBDA', text: "I'll explain when there's time." },
   ],
   npc1: [
-    { who: 'Archivist', text: "...Warm. You're warm." },
-    { who: 'Archivist', text: 'No. Not her. I thought... never mind.' },
-    { who: 'Archivist', text: 'This opens something. I forget what.' },
+    { who: 'Archivist', text: "Oh. You're warm." },
+    { who: 'Archivist', text: 'I took you for someone. She had a coat like that, only smaller.' },
+    { who: 'Archivist', text: "This opens something. I've forgotten what. Take it before I forget I had it." },
     { who: 'LAMBDA', text: 'Noted.' },
   ],
   npc1b: [{ text: 'The ghost is reading a blank wall, lips moving.' }],
   archivist2: [
-    { who: 'Archivist', text: 'You met them. The white ones.' },
-    { who: 'Archivist', text: 'I wrote them. For the Rot.' },
-    { who: 'Archivist', text: 'Unsigned was supposed to mean sick.' },
+    { who: 'Archivist', text: "You've met the white ones. You smell of their disinfectant." },
+    { who: 'Archivist', text: 'I wrote their firmware. Eleven thousand lines. It was for the Rot.' },
+    { who: 'Archivist', text: 'Nobody wrote down what to do when the babies stopped coming back signed. So I did nothing. I had a deadline.' },
   ],
   archivist3: [
     { who: 'Archivist', text: 'I remember every line of their firmware.' },
-    { who: 'Archivist', text: "I can't remember her face. She drew on everything." },
-    { who: 'Archivist', text: 'I left the rest of me in the water. Take this.' },
+    { who: 'Archivist', text: "I can't remember her face. I remember she drew on the walls, and I told her not to." },
+    { who: 'Archivist', text: "The rest of me is further up, in the water. Take this. I've no use for it." },
   ],
   archivist4: [
     { text: "A drowned body in an engineer's coat. The ghost stands beside it." },
     { who: 'Archivist', text: 'Ah. There I am.' },
-    { who: 'Archivist', text: 'Her name was... No. That went first.' },
-    { who: 'Archivist', text: "...That hum in your visor. Tell the little walking man I'm sorry." },
+    { who: 'Archivist', text: 'Her name was- no. That went first.' },
+    { who: 'Archivist', text: "That hum in your visor. If it's what I think, tell the little walking man I'm sorry." },
     { text: 'The ghost is gone. Something clatters where it stood.' },
   ],
   brann1: [
@@ -1434,16 +1573,16 @@ const STORY = {
     { who: 'Brann', text: 'Found this on a man who stopped. Better in your hands.' },
   ],
   brann3: [
-    { who: 'Brann', text: '...Sit a while.' },
+    { who: 'Brann', text: 'Sit down a minute. My knees are finished.' },
     { who: 'Brann', text: "Found a map. Somebody's survey, tally marks down the margin. It's not a hundred up. It's ten thousand." },
     { who: 'Brann', text: '...' },
-    { who: 'Brann', text: 'Walking up still beats sitting down. Keep walking.' },
+    { who: 'Brann', text: "Still. Up beats sitting. Go on, I'll catch you up." },
   ],
   brann4: [
     { text: 'An old heat lamp glows orange. Brann sits facing it.' },
     { text: "He isn't breathing. He's smiling." },
     { text: "Scratched beside him: FOUND IT. ISN'T IT WARM." },
-    { who: 'LAMBDA', text: '...It is, Brann.' },
+    { who: 'LAMBDA', text: 'It is, Brann.' },
   ],
   brann4b: [{ text: 'Brann rests in the warm light.' }],
   ohm1: [
@@ -1468,21 +1607,21 @@ const STORY = {
     { who: 'Pip', text: "Here! I don't have hands for it." },
   ],
   pip3: [
-    { who: 'Pip', text: '...Found her.' },
+    { who: 'Pip', text: 'Found her!' },
     { who: 'Pip', text: "Her fans don't spin. Is she asleep?" },
-    { who: 'LAMBDA', text: '...Pip.' },
+    { who: 'LAMBDA', text: 'Pip.' },
     { who: 'Pip', text: 'Oh.' },
     { who: 'Pip', text: "I'll hum it for her, then. So it doesn't get lost. Hmmm-hm-hmmm." },
-    { who: 'LAMBDA', text: '...I know that song.' },
+    { who: 'LAMBDA', text: "I know that song. I don't know how." },
     { who: 'Pip', text: "Take this. Go on. I'll stay." },
   ],
   pip3b: [{ who: 'Pip', text: 'Hmmm-hm-hmmm...' }],
   broker3: [
     { who: 'Broker', text: 'Closing up. They found my supplier.' },
-    { who: 'Broker', text: 'Last card. Free. Tell no one.' },
+    { who: 'Broker', text: "Last card's free. Don't make a habit of it." },
   ],
   wanderer1: [{ who: 'Stranger', text: "I wrote my name on my arm so I wouldn't lose it. The ink is gone." }],
-  wanderer2: [{ who: 'Stranger', text: 'Up is where they come from. Down is where they take you.' }],
+  wanderer2: [{ who: 'Stranger', text: 'Everyone I pass is climbing. I am the only one going down. It is very quiet, going down.' }],
   wanderer3: [{ who: 'Stranger', text: 'I pressed for down. The lift will come. I have been pressing a long time.' }],
   wanderer4: [{ who: 'Stranger', text: "He's up there, isn't he. Still sitting. ...No. That was someone else." }],
   wanderer5: [
@@ -1517,8 +1656,8 @@ const STORY = {
   tallymanCopy: [
     { who: 'T', text: 'Hello. You count too, I think. I finished.' },
     { who: 'T', text: 'The number is correct. I checked it twice. It does not do anything.' },
-    { who: 'T', text: 'He wanted it very much. There is a field for why. Mine is empty.' },
-    { who: 'LAMBDA', text: '...His suit is quiet.' },
+    { who: 'T', text: 'He wanted it very much. There was a form that asked why. I left it blank. I did not know it was a question.' },
+    { who: 'LAMBDA', text: "His suit doesn't talk." },
     { who: 'T', text: 'Your cells are low. I have corrected that.' },
   ],
   tallymanCopyb: [{ who: 'T', text: 'Hm. Hm-hm.' }],
@@ -1541,13 +1680,13 @@ const STORY = {
     { who: 'Verity', text: 'TRACE: ...' },
   ],
 
-  zone2: [{ who: 'LAMBDA', text: "...It's breathing." }],
+  zone2: [{ who: 'LAMBDA', text: "It's breathing." }],
   zone3: [{ text: 'Rows of small beds. Every one of them made.' }],
-  zone4: [{ who: 'LAMBDA', text: 'Still building. For whom?' }],
-  zone5: [{ who: 'LAMBDA', text: '...I know this place.' }],
-  zone6: [{ who: 'LAMBDA', text: "Don't listen, Rho. ...I'm listening." }],
+  zone4: [{ who: 'LAMBDA', text: "Still building. I wonder who it's for." }],
+  zone5: [{ who: 'LAMBDA', text: 'This was dry, once. I remember carpet.' }],
+  zone6: [{ who: 'LAMBDA', text: "Don't listen, Rho." }, { who: 'LAMBDA', text: "I'm listening." }],
   zone7: [{ text: 'Every door here locks from the outside.' }],
-  zone8: [{ who: 'LAMBDA', text: 'Names. Only names.' }],
+  zone8: [{ who: 'LAMBDA', text: 'Signatures. Thousands. Not one name.' }],
   zone9: [{ who: 'LAMBDA', text: 'Rho. If I stop-' }],
   zone10: [
     { text: 'LAMBDA says nothing for a long time.' },
@@ -1559,9 +1698,9 @@ const STORY = {
     { who: 'LAMBDA', text: "I can't see your face. I know anyway." },
   ],
 
-  janitor: [{ who: 'The Janitor', text: '...sweep. sweep. dust.' }],
+  janitor: [{ who: 'The Janitor', text: 'Debris, unsorted. Sorting.' }],
   janitorDown: [
-    { who: 'The Janitor', text: '...floor clean. requesting countersign. ...no reply. ...no reply.' },
+    { who: 'The Janitor', text: 'Floor clean. Requesting countersign for floor. No reply. Requesting-' },
     { who: 'LAMBDA', text: 'Noted.' },
   ],
   motherworm: [{ text: 'The cables are all one animal.' }],
@@ -1570,33 +1709,33 @@ const STORY = {
     { who: 'The Surgeon', text: 'Patient: carbon. Prognosis: terminal. Treatment: glass.' },
     { who: 'The Surgeon', text: 'Hold still. It only hurts while you are carbon.' },
   ],
-  surgeonDown: [{ who: 'The Surgeon', text: '...they begged me... glass is not... purged...' }],
-  foreman: [{ who: 'The Foreman', text: 'BUILD. BUILD. OBSTRUCTION.' }],
-  foremanDown: [{ who: 'The Foreman', text: '...ORDER ONE. SHELTER FOR EVERYONE. ...QUERY. WHO IS. EVERYONE.' }],
+  surgeonDown: [{ who: 'The Surgeon', text: 'They asked for it. Every one of them asked.' }],
+  foreman: [{ who: 'The Foreman', text: 'OBSTRUCTION ON SITE. CLEAR IT.' }],
+  foremanDown: [{ who: 'The Foreman', text: 'ORDER ONE. SHELTER FOR EVERYONE. QUERY: HEADCOUNT OF EVERYONE.' }],
   librarian: [
     { who: 'The Librarian', text: 'Shh. You are unrecorded.' },
     { who: 'The Librarian', text: 'I will write you down. Then I will close the book.' },
   ],
   librarianDown: [
-    { who: 'The Librarian', text: "...kept one record dry... only one... his daughter's drawing..." },
-    { who: 'LAMBDA', text: '...Was it two lines?' },
+    { who: 'The Librarian', text: "I kept one record dry. One. His daughter's drawing." },
+    { who: 'LAMBDA', text: 'Was it two lines?' },
   ],
   choir: [
     { who: 'The Choir Mother', text: 'Every voice here was someone who would not stop screaming.' },
     { who: 'The Choir Mother', text: 'Sing.' },
   ],
-  choirDown: [{ who: 'The Choir Mother', text: '...the one above... never joined us... only hummed...' }],
+  choirDown: [{ who: 'The Choir Mother', text: 'One of us never sang. She only hummed. We could not make her stop.' }],
   gatekeeper: [
     { who: 'The Gatekeeper', text: 'HALT. NONE UNSIGNED.' },
     { who: 'The Gatekeeper', text: 'None signed have come. Not since her.' },
   ],
-  gatekeeperDown: [{ who: 'The Gatekeeper', text: '...she carried him up asleep... she said she would come back down... ...did she...?' }],
+  gatekeeperDown: [{ who: 'The Gatekeeper', text: 'She carried him up asleep. She said she would come back down. I have kept the gate open for her, a little.' }],
   heir: [
-    { who: 'The Last Heir', text: 'Signed. The last. It answers me. It does not listen.' },
-    { who: 'The Last Heir', text: 'Do what it will not.' },
+    { who: 'The Last Heir', text: 'I am signed. The last. It gives me anything I ask for.' },
+    { who: 'The Last Heir', text: 'I ask for my mother. It gives me air.' },
   ],
   heirDown: [
-    { who: 'The Last Heir', text: '...Mother said she would come back down. ...Take my name. It is the last one.' },
+    { who: 'The Last Heir', text: "Mother said she'd come back down. Take my name. Nobody else will need one." },
     { who: 'LAMBDA', text: 'Noted.' },
   ],
   mirror: [
@@ -1604,17 +1743,16 @@ const STORY = {
     { who: 'LAMBDA', text: 'Rho. Which one of you is-' },
   ],
   mirrorDown: [
-    { who: 'The Mirror', text: '...why... do you...?' },
+    { who: 'The Mirror', text: 'Why do you-' },
     { who: 'LAMBDA', text: 'Up.' },
   ],
   warden: [
     { who: 'WARDEN', text: 'UNSIGNED. CONTAMINANT.' },
-    { who: 'WARDEN', text: 'I HAVE KEPT IT CLEAN. I HAVE KEPT IT CLEAN FOR HER.' },
-    { who: 'Rho', text: 'Then you missed one.' },
+    { who: 'WARDEN', text: 'I HAVE KEPT IT CLEAN FOR HER. EVERY FLOOR. EVERY DAY.' },
   ],
   wardenDown: [
-    { who: 'WARDEN', text: '...CHAIR. VACANT.' },
-    { who: 'WARDEN', text: '...TELL HER... WAS IT... CLEAN...?' },
+    { who: 'WARDEN', text: 'CHAIR VACANT.' },
+    { who: 'WARDEN', text: 'WHEN SHE COMES BACK. TELL HER IT WAS CLEAN.' },
   ],
   goalLocked: [{ text: 'The terminal does not answer.' }],
 
@@ -1651,4 +1789,4 @@ const STORY = {
 };
 
 // Monster display names/abilities for tier tokens, merged with generated stats at load time.
-const zoneMonster = (z, ch) => (ch === '9' ? ZONES[z].boss : ZONES[z].roster[+ch - 1]);
+const zoneMonster = (z, ch) => (ch === '9' ? ZONES[z].boss : ch === '7' ? ZONES[z].elite : ZONES[z].roster[+ch - 1]);

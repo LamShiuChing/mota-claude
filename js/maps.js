@@ -15,7 +15,7 @@ const MAPS = [
   "h..#nD.#..h"
  ],
  [
-  "MS.#a.d#..U",
+  "MS.#a.d#x.U",
   "...#.w.#h..",
   "...#.4.#...",
   "#2###Y###3#",
@@ -43,7 +43,7 @@ const MAPS = [
  [
   "a.d#.O.#h.U",
   ".5.Yh..4..#",
-  "H..#.n.#.2.",
+  "H..#.n.#g2.",
   "#3########4",
   "..y#.a.#y..",
   ".2..3.dY.3.",
@@ -69,7 +69,7 @@ const MAPS = [
  [
   ".....4.Y...",
   ".4..3#.#5..",
-  "n...y#U#...",
+  "n...y#U#..o",
   "##Y########",
   "..y..#.....",
   "5#####.....",
@@ -80,9 +80,9 @@ const MAPS = [
   "D#.4.#Ohd#a"
  ],
  [
-  "..4#D...y#U",
+  "&.4#D...y#U",
   "##.#yyy#5#.",
-  "had#...#.#.",
+  "had#...#.#x",
   "54h###Y###5",
   "dhaY3#...#.",
   "##B#.#4###Y",
@@ -114,15 +114,15 @@ const MAPS = [
   "a..5...4...",
   "..y#.4.#h.a",
   "##.##6##Y##",
-  "..4.#.#....",
-  "...d#.#.O..",
-  ".h..#U#n..."
+  ".77.#.#....",
+  ".77d#.#.O..",
+  ".h..#U#n..g"
  ],
  [
   "H.#.#U#n#.H",
-  "..Y..9..Y..",
-  "b.#.....#.b",
-  "###.#.#.###",
+  "..Y.999.Y..",
+  "b.#.999.#.b",
+  "###.999.###",
   "a.#.....#.d",
   ".5B4#6#4B5.",
   "d.#.....#.a",
@@ -145,14 +145,14 @@ const MAPS = [
   "n.1.#U#.2.H"
  ],
  [
-  "n...h.y.2#U",
+  "n...hxy.2#U",
   "......a....",
   "###2###1###",
   "..y.h...1..",
   "d.....2...n",
   "#1###Y###2#",
-  "......d.y..",
-  "a...3...h..",
+  ".77...d.y..",
+  "a77.3...h..",
   "##Y###2##2#",
   ".2.........",
   "h.1O#D#.2.a"
@@ -179,7 +179,7 @@ const MAPS = [
   ".#.#.3.#.#.",
   "a..4.#..2.h",
   ".#.#.#.#.#.",
-  "..2.y#..3..",
+  "..2.y#..3.g",
   ".#.#.#.#.#.",
   "n...4#d.2.U"
  ],
@@ -207,12 +207,12 @@ const MAPS = [
   "a4Y3.5.4###",
   "###.#.#.Y3y",
   "###.3h3y###",
-  "U.4.#H#n###"
+  "U.4o#H#n###"
  ],
  [
   "a..#M.h#..U",
   "...#...5...",
-  ".3.Y.n.#.5.",
+  ".3.Y.n.#.5x",
   "..3#.4.#...",
   "h..#..a#h..",
   "#4###Y###4#",
@@ -246,14 +246,14 @@ const MAPS = [
   ".#.#.#.#.#.",
   "h..5.6.5..y",
   "#Y###.###Y#",
-  "H.a.#U#.d.a"
+  "H.a.#U#gd.a"
  ],
  [
   "#y#h###a#d#",
   "#....6....#",
-  "#.###.###.#",
-  "d.#.....#.a",
-  "#.#.#9#.#.#",
+  "#.##999##.#",
+  "d.#.999.#.a",
+  "#.#.999.#.#",
   "H5Y.#U#.Y5H",
   "#.#.###.#.#",
   "a.#..4..#.d",
@@ -275,7 +275,7 @@ const MAPS = [
   "y.a#.2.#d.U"
  ],
  [
-  "U.1..H.2..a",
+  "U.1..H.2.xa",
   "#.####Y####",
   "n..2.....v.",
   "####1###.##",
@@ -295,8 +295,8 @@ const MAPS = [
   "##Y##.##2##",
   "a...1.1...h",
   "##1##.##Y##",
-  "h...#.#...y",
-  ".2..Y3#.3..",
+  "h.77#.#...y",
+  ".277Y3#.3..",
   "....#.2....",
   "H..a#h#...d"
  ],
@@ -306,12 +306,12 @@ const MAPS = [
   "a...#.#...y",
   "..S.#3#.2..",
   "##.##.##Y##",
-  ".3...h...4.",
+  "&3...h...4.",
   "##4##.##.##",
   "d..y#.#.a.3",
   "h...#4#..d.",
   "##Y##.##2##",
-  "U..2...y..n"
+  "U.g2...y..n"
  ],
  [
   "D.y#ha.#..d",
@@ -330,7 +330,7 @@ const MAPS = [
   "U.a.#n#h..d",
   ".3..5.3..4.",
   "h...#.#.y..",
-  "..d.#.#a...",
+  "..do#.#a...",
   "#Y###.###4#",
   "y....5....h",
   "#3###.###Y#",
@@ -341,7 +341,7 @@ const MAPS = [
  ],
  [
   "h#y#a#3#d#U",
-  ".4......5..",
+  ".4......5x.",
   "#.###Y###.#",
   "d.#..n.v#.h",
   "..Y.3.4.Y..",
@@ -373,16 +373,16 @@ const MAPS = [
   "y..4#6#...d",
   ".##.#.#.##.",
   "...5Y.Y.5..",
-  ".##.#.#.##.",
+  ".##.#.#.##g",
   "a4.h#5#h..d",
   "#####.#####",
   "#####U#####"
  ],
  [
   "a.h##U##h.d",
-  "...Y.9.Y...",
-  "b5.#...#.5b",
-  "####...####",
+  "...Y999Y...",
+  "b5.#999#.5b",
+  "####999####",
   "H.B.....B.H",
   "a.#.#6#.#.d",
   "..#.....#..",
@@ -407,7 +407,7 @@ const MAPS = [
  [
   "U..#.n.#H.d",
   ".1.#..h#...",
-  "...2...##%#",
+  "x..2...##%#",
   "a..#1..#.n.",
   "...#...1..y",
   "h.2#...#2..",
@@ -431,7 +431,7 @@ const MAPS = [
   "D.3#a.^#..h"
  ],
  [
-  ".#.n.Y3#U..",
+  ".#.n.Y3#U.g",
   ".#...#.#.hh",
   ".Y.42#.42..",
   "##Y########",
@@ -453,8 +453,8 @@ const MAPS = [
   "d..#.3.#.3.",
   "#.###Y###Y#",
   "h..#.y.#.2.",
-  ".3.2H..3...",
-  "..h##D##..."
+  ".3.2H..377.",
+  "..h##D##77."
  ],
  [
   "U#Hhdadha#.",
@@ -467,7 +467,7 @@ const MAPS = [
   ".#####4###.",
   "3#D......B.",
   "Y#########5",
-  ".5.......#."
+  ".5......o#."
  ],
  [
   "D#h.a.y.d#U",
@@ -476,14 +476,14 @@ const MAPS = [
   ".#...#...#.",
   ".3.3.#.4.4.",
   "3#.y.#.a.#5",
-  ".##.###.##.",
+  ".##.###.##x",
   ".#O.H#d.M#4",
   "3Y...#..3Y.",
   ".#########.",
   "n...4.y.h.."
  ],
  [
-  "4#.....n4..",
+  "4#.....n4.&",
   "h#######Y##",
   ".#U.6#...5y",
   ".###5#...#y",
@@ -503,16 +503,16 @@ const MAPS = [
   ".##.##.##..",
   ".##.##.##.d",
   "y..4.6.4...",
-  ".##.##.##..",
+  ".##.##.##.g",
   ".##.##.##.Y",
   "a..5..H..#.",
   "..h.4..n6.U"
  ],
  [
   "U#a###d#H##",
-  "9....5.....",
-  "#####Y####.",
-  ".4...y..6..",
+  "999..5.....",
+  "999##Y####.",
+  "999..y..6..",
   ".####Y#####",
   "..5..y..h4.",
   "#####Y####.",
@@ -530,61 +530,61 @@ const MAPS = [
   "#Y#######3#",
   "d.3.a#.2...",
   "#.#.##.#.#.",
-  "y....#a.3..",
-  ".#.#.Y.#1#.",
-  "2...n#h...U"
+  "y....#a.3k.",
+  "~#~#~Y~#1#~",
+  "2~~~n#h~~~U"
  ],
  [
   "U.2..h..1..",
   "#####Y####2",
-  "a.1.y..2...",
+  "ax1ky..2...",
   "#2########.",
   "h...3.d....",
   "########1#3",
   "y.2..n.a...",
   "#Y########.",
   "d..3...h...",
-  "########.#.",
-  "H.%n.1.y..D"
+  "########~#~",
+  "H~%n~1~y~~D"
  ],
  [
   "2..#.....Y.",
   "##Y#.#..3#y",
   "U.1#.#1..#.",
   "##Y#######Y",
-  "...#D.ynyyy",
+  "k..#D.ynyyy",
   "...###Y#Y##",
   "O3H#...#y#.",
   "##Y#2..#y#.",
   "dhd#.3.Ry2.",
   "hra#3#####Y",
-  "daa3.....#."
+  "daa3~~~~~#~"
  ],
  [
-  "a.y#h.S#.2U",
-  ".2.#...#...",
+  "a.y#h.S#k2U",
+  ".2.#...#g..",
   "h..#.n.#d.3",
   "#Y###.###4Y",
   ".2...3.v...",
   "y....4.a..d",
   "...1.....2.",
   "#3###.###2#",
-  "...#.h.#a.y",
-  ".2.#...#.3.",
-  "D..#O.n#d.h"
+  "~~~#~h~#a~y",
+  "~2~#~~~#~3~",
+  "D~~#O~n#d~h"
  ],
  [
   "a.n.2..h..U",
-  "#.#.#.#.#%#",
+  "#.#.#.#k#%#",
   "#v#Y#w#4#H#",
   "#2#.#.#.#.#",
   "#.#a#.#.#a#",
   "#h#3#O#y#.#",
   "#.#d#.#2#.#",
   "#3#.#.#.#.#",
-  "#.#4#n#.#.#",
-  "#d#.#3#3###",
-  "D...y..23.h"
+  "#~#4#n#~#~#",
+  "#d#~#3#3###",
+  "D~~~y~~23~h"
  ],
  [
   "d.H#a..#h.D",
@@ -594,26 +594,26 @@ const MAPS = [
   "y..#h..#y..",
   "#5###4###5#",
   "..h#...#d..",
-  "...#.5.#...",
-  ".3.3...Y..a",
-  "...#y..#.4.",
-  "U.n#..d#..."
+  "o.k#.5.#...",
+  "~773~~~Y~~a",
+  "~77#y~~#~4~",
+  "U~n#~~d#~~~"
  ],
  [
-  "d...4#vHbBh",
-  "h#...#Y####",
+  "dx..4#vHbBh",
+  "h#k..#Y####",
   "d#...Y..4.y",
   "####B#y.y4.",
   "U.daa#..y.O",
   "####4###5##",
   ".#...#.b...",
-  "5#Y###.....",
-  ".5y3.Y....D",
-  ".#n.4###B##",
-  ".#M..#bY.n."
+  "5#Y###~~~~~",
+  "~5y3~Y~~~~D",
+  "~#n~4###B##",
+  "~#M~~#bY~n~"
  ],
  [
-  "^.H..#..d.U",
+  "^.H..#k.d.U",
   ".....#.5...",
   "a..n.#a...h",
   "##%#####6##",
@@ -621,28 +621,28 @@ const MAPS = [
   ".4..yY.v..d",
   "h...n#..5..",
   "##5#####Y##",
-  ".4..y#h..5.",
-  ".....4.4.h.",
-  "D.a..#y...."
+  "~4~~y#h~~5~",
+  "~~~~~4~4~h~",
+  "D~a~~#y~~~~"
  ],
  [
   "D.4..a..5.h",
   "#.#######.#",
   "y..5.v.4..y",
   "#Y#.###.#B#",
-  "h.#.a6d.#..",
+  "h.#.a6d.#.g",
   "h.##.#.##.H",
-  ".4##.h.##4.",
-  "a.###5###.d",
-  ".b###.###..",
-  "..###.###..",
-  "n.4##U##4.y"
+  ".4##.h.##4k",
+  "a~###5###~d",
+  "~b###~###~~",
+  "~~###~###~~",
+  "n~4##U##4~y"
  ],
  [
   "a.h.#U#.h.d",
-  "Y####9####Y",
-  ".#.#...#.#.",
-  "y#.#.#.#.#y",
+  "Y###999###Y",
+  ".#.#999#.#.",
+  "y#.#999#.#y",
   ".#a#.#4#d#.",
   ".#.#.#.#.#H",
   "...#6#.#...",
@@ -665,9 +665,9 @@ const MAPS = [
   "a.3.#U#.3.d"
  ],
  [
-  "..n#...aH#U",
+  "..n#&..aH#U",
   "B#####%###.",
-  "...#.2.#D#.",
+  "...#.2.#D#x",
   "hd2#n..#.#Y",
   "2..#.y..b#n",
   "h..#####2#.",
@@ -691,7 +691,7 @@ const MAPS = [
   "h.2.n.y.#.D"
  ],
  [
-  "...#...#...",
+  "..g#...#...",
   "3###...#...",
   "3.4#4..#...",
   "...#3###3..",
@@ -727,12 +727,12 @@ const MAPS = [
   ".n.#.###4#.",
   "...#.#...#.",
   "...#.#..4#.",
-  "...#.#...#."
+  "...#o#...#."
  ],
  [
   ".#.Yd#n3...",
   ".#.#a#.#..4",
-  ".#U#aY4#...",
+  ".#U#aY4#..x",
   "3###4######",
   ".5yyy5.5.4.",
   ".#Y###.#...",
@@ -757,8 +757,8 @@ const MAPS = [
  ],
  [
   "#a.#.n.#.d#",
-  "#...#.#...#",
-  "..5.#.#.5..",
+  "#77.#.#...#",
+  ".77.#.#.5.g",
   ".....6.....",
   ".#.#####.#.",
   "5#.#hHh#.#5",
@@ -771,9 +771,9 @@ const MAPS = [
  [
   "###a.H.d###",
   "##..5.5..##",
-  "#.Y.....6.#",
-  "...#...#...",
-  "H.4.#9#.4..",
+  "#.Y.999.6.#",
+  "...#999#...",
+  "H.4.999.4..",
   ".h..#U#..h.",
   "a...###...d",
   "...5.#.Y...",
@@ -797,7 +797,7 @@ const MAPS = [
  [
   "d%bY...#U..",
   ".#.#..1###3",
-  "H#n#...#...",
+  "H#n#...#x..",
   "##Y#######3",
   "hB..yY.#.2.",
   "d###Y#.#...",
@@ -824,11 +824,11 @@ const MAPS = [
   "U.2.h.n.3.d",
   "#.#a#.#h#.#",
   "#...#4#h#.#",
-  "#.#.#.3.#2#",
-  "#3#S#.#d#.#",
-  "#.###.###.#",
+  "#.#g#.3.#2#",
+  "#3#S#.#d#.z",
+  "#.###.###!#",
   "#.#.#.#a#4#",
-  "#2#.Y.#.#.#",
+  "#2#.Y.#.#.z",
   "#.#y#3#HY.#",
   "#.#O#.#.#.#",
   "a.2.y.3h..D"
@@ -850,9 +850,9 @@ const MAPS = [
   "^.H...a.n.#",
   "#######%###",
   "#h#.#d#.#a#",
-  "#.#3#.#4#.#",
-  "#Y#.#Y#.#Y#",
-  "U.4...3.h..",
+  "#o#3#.#4#.#",
+  "#Y#.#Y#.j=#",
+  "U.4.-.3.h..",
   "#5#Y#.#Y#.#",
   "#y#.#h#.#d#",
   "#.#4#.#3#5#",
@@ -866,7 +866,7 @@ const MAPS = [
   "a#...#.#4##",
   "d#.h.Y3Y5.U",
   "######4####",
-  "...#y#.Y..M",
+  "x..#y#.Y..M",
   "3..#.#y#...",
   "...#yY.#...",
   "n..#.#.#4y.",
@@ -874,8 +874,8 @@ const MAPS = [
  ],
  [
   "h.y##U##d.a",
-  ".4.Y...Y.5.",
-  "...5.n.5.h.",
+  ".77Y...Y.5.",
+  ".775.n.5.h.",
   "#.#######.#",
   "e.5#####y..",
   "...#H.a#.5.",
@@ -891,18 +891,18 @@ const MAPS = [
   ".#yh.n..d#.",
   ".#.##Y##.#.",
   "4#.#...#.#5",
-  ".6.#.a.#.5.",
-  ".#.#.H.#.#.",
-  "h#.#####.#.",
+  ".6.#.a.z.5.",
+  ".#.#.H.#!#.",
+  "h#.#####.z.",
   ".#4..6..4#.",
   ".####.####.",
-  "y.4.#U#.4.d"
+  "y.4.#U#g4.d"
  ],
  [
   "Ha###U###aH",
-  "..R..9..R..",
-  "d.#.....#.d",
-  "####6B6####",
+  "..R.999.R..",
+  "d.#.999.#.d",
+  "####999####",
   "h.Y.....Y.h",
   "r5#..b..#5r",
   "####5Y5####",
@@ -935,7 +935,7 @@ const MAPS = [
   "##Y########",
   "n.1Yh32..#U",
   "r..#h#...#.",
-  "...#d#...2."
+  "...#d#...2x"
  ],
  [
   "D.2..n..1.h",
@@ -951,7 +951,7 @@ const MAPS = [
   "y.2..n..3.U"
  ],
  [
-  "U.a#....3.4",
+  "U.a#....3g4",
   "##4#2######",
   "dhd#y.y44..",
   "Y#######2##",
@@ -985,16 +985,16 @@ const MAPS = [
   "Y#####..3#4",
   "n....#...4.",
   "####Y###.#.",
-  "..U#h#..4#5",
+  "o.U#h#..4#5",
   "...#h#Y####",
   "H455h#adada"
  ],
  [
-  "...5d#...#h",
+  "x..5d#...#h",
   "...#d#.3.#h",
   "U.5#dY..55h",
   "######4####",
-  ".#...5.#.n5",
+  "&#...5.#.n5",
   ".#.....###Y",
   "......H#D.y",
   ".#Y#####.y.",
@@ -1016,8 +1016,8 @@ const MAPS = [
   "......4.5.."
  ],
  [
-  "a...#U#.H.d",
-  ".4..#.#..4.",
+  "a.77#U#.H.d",
+  ".477#.#..4g",
   "###Y#6#Y###",
   "n..v.......",
   ".#.#.#.#.#.",
@@ -1036,9 +1036,9 @@ const MAPS = [
   ".#.#.#.#.#.",
   "..4..y..4..",
   ".#.#.#.#.#.",
-  "y..5...5..y",
-  "#6###Y###6#",
-  "H.bB.9.Bb.H",
+  "y..59995..y",
+  "#6##999##6#",
+  "H.bB999Bb.H",
   "a..##U##..d"
  ],
  [
@@ -1063,7 +1063,7 @@ const MAPS = [
   "3##########",
   ".#...#...1.",
   ".#Y###...#.",
-  ".#aH3Y33.#.",
+  ".#aH3Y33.#x",
   ".#dah###Y#1",
   ".2dhd#U.1#a"
  ],
@@ -1082,14 +1082,14 @@ const MAPS = [
  ],
  [
   "^..H#.a.S#U",
-  "...#.d.y#..",
+  "...#.d.y#g.",
   "a.%n.2.#.3#",
   ".#..b.3..#.",
   "#.h..#..4.y",
   "..2.#4.#.3.",
   "n..Yh.#a..#",
-  ".1#..#.2.#H",
-  ".#..Y.d.Ba.",
+  ".1#..#.77#H",
+  ".#..Y.d77a.",
   "#.2#.3.#.h.",
   "D.#..n#..4d"
  ],
@@ -1111,7 +1111,7 @@ const MAPS = [
   "########4##",
   ".4...Yy...D",
   "####Y#.####",
-  ".....#y#...",
+  ".....#y#..o",
   "4....#.#.5.",
   "5....Y.#..3",
   "##5###y#Y##",
@@ -1128,7 +1128,7 @@ const MAPS = [
   ".4...O...4.",
   "..h#...#..a",
   "#5###.###Y#",
-  "h..#.y.#d..",
+  "h..#.y.#d.x",
   ".5.4.3.5.6.",
   "n..#...#..U"
  ],
@@ -1156,14 +1156,14 @@ const MAPS = [
   ".#4#...#4#.",
   ".4...5...4.",
   "#.###.###.#",
-  "H.a.#U#.d.h"
+  "H.a.#U#gd.h"
  ],
  [
   "d.h..#..h.d",
   ".#..#U#..#.",
-  ".#Y..9..Y#.",
-  "b#.#####.#b",
-  ".#.#.a.#.#.",
+  ".#Y.999.Y#.",
+  "b#.#999#.#b",
+  ".#.#999#.#.",
   ".5.B.6.B.5.",
   ".#.#.H.#.#.",
   ".#.##Y##.#.",
@@ -1186,8 +1186,8 @@ const MAPS = [
  ],
  [
   "h.a#d.H#a.h",
-  ".1.#...#...",
-  "n..#.2.#...",
+  ".1.#...#77.",
+  "n..#.2.#77.",
   "#.###Y###%#",
   "y..#.n.#n.y",
   ".1.2...3.1.",
@@ -1195,7 +1195,7 @@ const MAPS = [
   "#3###3###.#",
   "d..#.2.#.3.",
   ".2.#a.d#...",
-  "y..#...#..U"
+  "y..#...#x.U"
  ],
  [
   ".2d1hY1..#.",
@@ -1221,10 +1221,10 @@ const MAPS = [
   "##3###Y####",
   "..y.2#yB...",
   "##########4",
-  ".YaadadR..."
+  "gYaadadR..."
  ],
  [
-  ".#U.....4#a",
+  "&#U.....4#a",
   "Y#######3#a",
   ".Y.#h...hYd",
   "R#.#4#####Y",
@@ -1238,7 +1238,7 @@ const MAPS = [
  ],
  [
   "n#...YHd5#3",
-  ".#..4#had#.",
+  "o#..4#had#.",
   "3...U#haa#3",
   "######5###.",
   "b.3..#...#.",
@@ -1254,7 +1254,7 @@ const MAPS = [
   "ada#.y3#..y",
   "dah#..y#.4.",
   "Y#####.###Y",
-  ".4.#D.y#...",
+  ".4x#D.y#...",
   "...###Y####",
   "..n#...4.#.",
   "..h#.....#n",
@@ -1284,15 +1284,15 @@ const MAPS = [
   "##R####5###",
   "y....6...nd",
   "######Y#4##",
-  "d.5.....5.a",
+  "dg5.....5.a",
   "#####.#####",
   "#####U#####"
  ],
  [
   "H.a#.L.#d.H",
-  ".4.#...#.4.",
-  ".#.##9##.#.",
-  "y...#.#...y",
+  ".4.#999#.4.",
+  ".#.#999#.#.",
+  "y...999...y",
   ".h.Y...Y.h.",
   "a.#5#6#5#.d",
   ".#.......#.",
@@ -1378,6 +1378,84 @@ const MAPS = [
   "#.#.n...#.#",
   "#n#..P..#.#",
   "###########"
+ ],
+ [
+  "###########",
+  "#y.#h#a#y.#",
+  "#.........#",
+  "#.#.#.#.#.#",
+  "#....n....#",
+  "#.#.#.#.#.#",
+  "#b...i...d#",
+  "####...####",
+  "####.&.####",
+  "###########",
+  "###########"
+ ],
+ [
+  "###########",
+  "#.#.#.#.#.#",
+  "#h#.#.#.#H#",
+  "#....q....#",
+  "#.#.#.#.#.#",
+  "#.#.#n#.#.#",
+  "#.........#",
+  "###.....###",
+  "#d..n...h.#",
+  "#####&#####",
+  "###########"
+ ],
+ [
+  "###########",
+  "#.........#",
+  "#.##.##...#",
+  "#.#....#..#",
+  "#.#.5..#..#",
+  "#.#....#..#",
+  "#.##.###..#",
+  "#...n.....#",
+  "#a..t..d..#",
+  "#....&....#",
+  "###########"
+ ],
+ [
+  "###########",
+  "#u.......H#",
+  "#.##......#",
+  "#...#.....#",
+  "#....#....#",
+  "#....##...#",
+  "#...#..#..#",
+  "#..#....#.#",
+  "#.#......##",
+  "#n...&...a#",
+  "###########"
+ ],
+ [
+  "###########",
+  "###########",
+  "###########",
+  "###########",
+  "###########",
+  "#&...H...n#",
+  "###########",
+  "###########",
+  "###########",
+  "###########",
+  "###########"
+ ],
+ [
+  "###########",
+  "###########",
+  "###########",
+  "###########",
+  "####..H####",
+  "####&.n####",
+  "####...####",
+  "###########",
+  "###########",
+  "###########",
+  "###########"
  ]
 ];
-const MAP_META = [{"npcs":{"5,1":"archivist1"},"notes":{"4,10":"\"one eye. it never blinks\""},"links":{}},{"npcs":{},"notes":{"0,5":"\"the loose wire moved. i swear it moved\""},"links":{}},{"npcs":{},"notes":{"0,9":"\"up\""},"links":{}},{"npcs":{"5,0":"brann1"},"notes":{"5,2":"\"the loose wire moved. i swear it moved\""},"links":{}},{"npcs":{},"notes":{"1,4":"\"hollow\"","2,3":"\"up\""},"links":{}},{"npcs":{"6,10":"tallyman1"},"notes":{"0,2":"\"I was here. -T\"","7,9":"\"the little ones eat the copper. then the lights go\""},"links":{}},{"npcs":{},"notes":{"10,7":"\"one eye. it never blinks\""},"links":{}},{"npcs":{},"notes":{"5,8":"Knuckle marks on the wall. Someone knocked, and knocked.","10,3":"\"the loose wire moved. i swear it moved\""},"links":{}},{"npcs":{"8,9":"wanderer1"},"notes":{"0,2":"\"WE ARE NOT DIRT\"","7,10":"A name, scrubbed off. Only the scrubbing is left."},"links":{}},{"npcs":{},"notes":{"7,0":"\"up\""},"links":{}},{"npcs":{},"notes":{"0,10":"\"the knot has hands\""},"links":{}},{"npcs":{"3,10":"tallyman2"},"notes":{"0,0":"\"don't sleep by the cables\"","10,4":"\"the tripod watched me all night\""},"links":{}},{"npcs":{"5,5":"archivist2"},"notes":{"6,10":"\"the knot has hands\""},"links":{}},{"npcs":{},"notes":{"0,10":"\"the knot has hands\""},"links":{}},{"npcs":{},"notes":{"4,1":"Cold air seeps from somewhere.","1,9":"\"i cut it in two. it came back as two\""},"links":{"0,0":100}},{"npcs":{"5,5":"ohm1"},"notes":{"7,10":"\"the knot has hands\""},"links":{}},{"npcs":{},"notes":{"5,2":"\"i cut it in two. it came back as two\""},"links":{}},{"npcs":{},"notes":{"0,1":"Cold air seeps from somewhere.","2,9":"\"the knot has hands\"","10,10":"\"still warm here\""},"links":{}},{"npcs":{},"notes":{"4,4":"\"the tripod watched me all night\""},"links":{}},{"npcs":{},"notes":{"1,10":"\"the knot has hands\""},"links":{}},{"npcs":{},"notes":{"0,5":"\"the drip stand followed me three wards\""},"links":{}},{"npcs":{"2,6":"pip1"},"notes":{"0,2":"\"it was a sun. i swear it was a sun\"","6,10":"\"my brother went glass. he says it doesn't hurt. he says it slowly\""},"links":{}},{"npcs":{},"notes":{"5,0":"\"the tall one corrects you. it says better. better. better.\""},"links":{}},{"npcs":{},"notes":{"0,0":"\"mama said wait here\"","10,10":"\"mama said wait here\""},"links":{}},{"npcs":{"0,8":"brann2"},"notes":{"0,2":"\"it was a sun. i swear it was a sun\""},"links":{}},{"npcs":{},"notes":{"5,0":"\"the tall one corrects you. it says better. better. better.\""},"links":{}},{"npcs":{"10,5":"wanderer2"},"notes":{"5,3":"\"still counting. -T\""},"links":{}},{"npcs":{},"notes":{"1,5":"\"my brother went glass. he says it doesn't hurt. he says it slowly\"","9,5":"\"it hums behind here\""},"links":{}},{"npcs":{},"notes":{"5,0":"\"the tall one corrects you. it says better. better. better.\""},"links":{}},{"npcs":{},"notes":{"0,10":"\"it was a sun. i swear it was a sun\""},"links":{}},{"npcs":{},"notes":{"5,5":"A rivet driven through a boot, into the floor. The boot is empty.","0,10":"\"the crane is carrying someone. it won't put him down\""},"links":{}},{"npcs":{},"notes":{"5,0":"\"forgive the Builders. they were told.\"","9,3":"\"hollow\""},"links":{}},{"npcs":{},"notes":{"4,5":"\"it hums behind here\"","6,5":"A rivet driven through a boot, into the floor. The boot is empty."},"links":{"6,10":101}},{"npcs":{},"notes":{"3,0":"\"the big ones have faces now. whose faces\""},"links":{}},{"npcs":{"0,0":"archivist3"},"notes":{"5,2":"\"the big ones have faces now. whose faces\"","9,4":"One panel here was never bolted down."},"links":{}},{"npcs":{},"notes":{"0,2":"\"why does the furnace walk\"","8,2":"\"why does the furnace walk\""},"links":{}},{"npcs":{"2,7":"pip2"},"notes":{"0,10":"\"the crane is carrying someone. it won't put him down\""},"links":{}},{"npcs":{},"notes":{"4,8":"\"hollow\"","0,8":"\"hold on\"","7,0":"\"the crane is carrying someone. it won't put him down\""},"links":{}},{"npcs":{},"notes":{"7,10":"\"the crane is carrying someone. it won't put him down\""},"links":{}},{"npcs":{},"notes":{"8,10":"\"the crane is carrying someone. it won't put him down\""},"links":{}},{"npcs":{},"notes":{"2,2":"\"something with many legs filed me and moved on\"","4,10":"\"the diver came up out of the black water and just looked at me\""},"links":{}},{"npcs":{},"notes":{"5,6":"\"shh\"","3,10":"One panel here was never bolted down."},"links":{}},{"npcs":{"0,6":"tallyman3"},"notes":{"7,4":"\"rot in the stacks. whole shelves forgetting\""},"links":{}},{"npcs":{"4,10":"wanderer3"},"notes":{"5,2":"\"something with many legs filed me and moved on\"","6,10":"\"the diver came up out of the black water and just looked at me\""},"links":{}},{"npcs":{"5,5":"archivist4"},"notes":{"2,0":"\"the screens remember people. that's all they do now\"","5,8":"\"the pages fly by themselves\""},"links":{}},{"npcs":{},"notes":{"5,2":"\"something with many legs filed me and moved on\"","2,10":"\"the diver came up out of the black water and just looked at me\""},"links":{}},{"npcs":{"10,4":"verity1"},"notes":{"2,9":"\"the screens remember people. that's all they do now\"","9,10":"\"something with many legs filed me and moved on\""},"links":{}},{"npcs":{},"notes":{"3,2":"Cold air seeps from somewhere.","4,6":"\"shh\""},"links":{"0,0":102}},{"npcs":{},"notes":{"0,10":"\"the diver came up out of the black water and just looked at me\""},"links":{}},{"npcs":{},"notes":{"3,10":"\"the diver came up out of the black water and just looked at me\""},"links":{}},{"npcs":{"4,1":"verity2"},"notes":{"5,4":"\"cover your ears. it doesn't help\""},"links":{}},{"npcs":{},"notes":{"4,3":"Knuckle marks on the wall. Someone knocked, and knocked.","10,4":"\"the hum is a song\"","2,0":"\"the hum is a song\""},"links":{}},{"npcs":{"6,0":"ohm2"},"notes":{"6,2":"\"i heard my voice come back. it wasn't mine anymore\"","4,10":"\"there is a face in the horn\""},"links":{}},{"npcs":{},"notes":{"0,8":"\"i heard my voice come back. it wasn't mine anymore\""},"links":{}},{"npcs":{"2,4":"verity3"},"notes":{"7,8":"\"hollow\"","6,10":"\"singing floors. counting louder. -T\""},"links":{}},{"npcs":{},"notes":{"1,7":"\"singing floors. counting louder. -T\""},"links":{}},{"npcs":{},"notes":{"6,0":"\"the hum is a song\""},"links":{}},{"npcs":{"4,10":"brann3"},"notes":{"6,5":"\"singing floors. counting louder. -T\"","8,10":"One panel here was never bolted down."},"links":{}},{"npcs":{},"notes":{"5,0":"\"the hum is a song\""},"links":{}},{"npcs":{},"notes":{"3,10":"\"there is a face in the horn\""},"links":{}},{"npcs":{},"notes":{"2,6":"\"foam everywhere. under the foam, nothing\""},"links":{}},{"npcs":{},"notes":{"2,2":"Knuckle marks on the wall. Someone knocked, and knocked.","10,6":"\"the gate only opens one way\""},"links":{}},{"npcs":{},"notes":{"6,6":"\"the gate only opens one way\""},"links":{}},{"npcs":{"3,9":"broker3"},"notes":{"6,0":"\"they came for her in a cage. the cage flew\""},"links":{}},{"npcs":{"6,8":"tallyman4"},"notes":{"8,8":"\"hollow\"","8,0":"\"they came for her in a cage. the cage flew\""},"links":{}},{"npcs":{},"notes":{"8,0":"One panel here was never bolted down.","4,10":"\"waiting for a gap. -T\""},"links":{"0,0":103}},{"npcs":{},"notes":{"0,9":"\"something in the pod knocked back\""},"links":{}},{"npcs":{"4,8":"pip3"},"notes":{"5,2":"\"foam everywhere. under the foam, nothing\"","6,8":"\"it hums behind here\"","0,10":"\"they came for her in a cage. the cage flew\""},"links":{}},{"npcs":{},"notes":{"5,2":"\"foam everywhere. under the foam, nothing\""},"links":{}},{"npcs":{},"notes":{"0,10":"\"they came for her in a cage. the cage flew\""},"links":{}},{"npcs":{},"notes":{"5,5":"\"remember your name\""},"links":{}},{"npcs":{},"notes":{"8,2":"One panel here was never bolted down.","0,8":"\"don't count them. you won't stop\""},"links":{}},{"npcs":{"5,4":"wanderer4"},"notes":{"5,0":"\"the crows read one plaque each. then they leave\"","5,10":"\"the veiled ones stand at every plaque. none of them are ours\""},"links":{}},{"npcs":{},"notes":{"10,8":"\"T was here too. where did T go\"","4,10":"\"it crawled out of the ground and went back to work\""},"links":{}},{"npcs":{},"notes":{"4,9":"Cold air seeps from somewhere.","8,6":"Tally marks on a plaque, where the name should be.","8,4":"\"T was here too. where did T go\""},"links":{}},{"npcs":{},"notes":{"0,6":"Tally marks on a plaque, where the name should be."},"links":{}},{"npcs":{},"notes":{"9,4":"\"the crows read one plaque each. then they leave\""},"links":{}},{"npcs":{},"notes":{"6,5":"\"don't count them. you won't stop\""},"links":{}},{"npcs":{},"notes":{"0,3":"\"the crows read one plaque each. then they leave\"","5,10":"\"the veiled ones stand at every plaque. none of them are ours\""},"links":{}},{"npcs":{},"notes":{"2,0":"\"T was here too. where did T go\"","8,0":"\"remember your name\""},"links":{}},{"npcs":{},"notes":{"5,5":"Someone slept here. The dust kept their shape."},"links":{}},{"npcs":{},"notes":{"2,3":"Cold air seeps from somewhere.","6,4":"\"it had my coat. it had my walk. it had no face yet\""},"links":{}},{"npcs":{},"notes":{"1,0":"Tally marks, hundreds of them. Then none.","0,9":"\"the tall ones make no sound at all\""},"links":{}},{"npcs":{},"notes":{"3,2":"Cold air seeps from somewhere.","0,6":"\"it had my coat. it had my walk. it had no face yet\"","5,10":"\"the tall ones make no sound at all\""},"links":{"0,0":104}},{"npcs":{},"notes":{"7,4":"Cold air seeps from somewhere.","8,3":"\"you are not alone\" - and under it, smaller: \"i was\"","4,10":"Someone slept here. The dust kept their shape."},"links":{}},{"npcs":{},"notes":{"2,10":"\"how many floors is that. how many\""},"links":{}},{"npcs":{"5,5":"brann4"},"notes":{"5,4":"\"I was here. -T\" - and beside it, too neat: \"I was here. -T\"","0,10":"Tally marks, hundreds of them. Then none."},"links":{}},{"npcs":{"0,2":"tallymanCopy"},"notes":{"5,4":"Cold air seeps from somewhere.","10,3":"\"you are not alone\" - and under it, smaller: \"i was\"","0,0":"Someone slept here. The dust kept their shape."},"links":{}},{"npcs":{},"notes":{"5,6":"\"you are not alone\" - and under it, smaller: \"i was\""},"links":{}},{"npcs":{},"notes":{"3,10":"\"I was here. -T\" - and beside it, too neat: \"I was here. -T\"","7,10":"\"how many floors is that. how many\""},"links":{}},{"npcs":{},"notes":{"4,2":"\"the wall was on fire and the fire was a grid\"","0,10":"\"the dog checks that you are still running\""},"links":{}},{"npcs":{"4,6":"wanderer5"},"notes":{"0,2":"\"the wall was on fire and the fire was a grid\"","5,4":"\"everything that stops gets collected\"","8,4":"\"hollow\""},"links":{}},{"npcs":{},"notes":{"0,4":"\"everything that stops gets collected\""},"links":{}},{"npcs":{},"notes":{"1,6":"\"it is so quiet up here\"","7,0":"\"count complete. -T\""},"links":{}},{"npcs":{},"notes":{"9,10":"\"count complete. -T\""},"links":{}},{"npcs":{},"notes":{"0,0":"\"the wall was on fire and the fire was a grid\""},"links":{}},{"npcs":{},"notes":{"10,7":"\"the dog checks that you are still running\"","2,6":"\"it is so quiet up here\""},"links":{}},{"npcs":{},"notes":{"2,5":"One panel here was never bolted down.","0,4":"\"the dog checks that you are still running\""},"links":{}},{"npcs":{},"notes":{"9,6":"\"count complete. -T\""},"links":{}},{"npcs":{},"notes":{"1,7":"\"it is so quiet up here\"","9,7":"\"it is so quiet up here\""},"links":{}},{"npcs":{},"notes":{"2,8":"\"Papa forgets my name on bad days. I leave it on his desk.\"","8,8":"A small blanket, folded very neatly."},"links":{"0,0":14}},{"npcs":{},"notes":{"2,6":"\"The white ones are in our ward. Don't make a sound.\"","8,6":"Scratched low on the wall: two lines, walking."},"links":{"5,0":32}},{"npcs":{},"notes":{"6,0":"Water marks, up to the ceiling. Then dry.","9,5":"\"I read you the one about the sun again. You like that one.\""},"links":{"10,0":47}},{"npcs":{},"notes":{"3,2":"\"The lamp in ward 9 still works. If you get cold, sit by it.\"","7,2":"A child's shoe. Just the one."},"links":{"0,0":65}},{"npcs":{},"notes":{"3,8":"\"If you are reading this, you are not me. That is all right.\"","7,10":"\"Thank you, whoever you are.\""},"links":{"0,0":83}},{"npcs":{},"notes":{"4,8":"A plate by the inner gate: RELAY 7. INTAKE. PRESENT SIGNATURE AT EVERY STRATUM. Scratched under it, names, thousands of them. The newest is only two lines.","1,9":"The outer gate. There is no handle on this side."},"links":{}}];
+const MAP_META = [{"npcs":{"5,1":"archivist1"},"notes":{"4,10":"\"I was here. -T\""},"links":{}},{"npcs":{},"notes":{"0,5":"\"the builder fell over and the mites walked out of it\""},"links":{}},{"npcs":{},"notes":{"0,9":"\"on seven, stand in the corner. just stand there\""},"links":{}},{"npcs":{"5,0":"brann1"},"notes":{"5,2":"\"one eye. it never blinks\""},"links":{}},{"npcs":{},"notes":{"1,4":"\"hollow\"","2,3":"\"up\""},"links":{}},{"npcs":{"6,10":"tallyman1"},"notes":{"0,2":"\"on seven, stand in the corner. just stand there\"","7,9":"\"the builder fell over and the mites walked out of it\""},"links":{}},{"npcs":{},"notes":{"10,7":"\"one eye. it never blinks\""},"links":{"0,0":106}},{"npcs":{},"notes":{"5,8":"Knuckle marks on the wall. Someone knocked, and knocked.","10,3":"\"the loose wire moved. i swear it moved\""},"links":{}},{"npcs":{"8,9":"wanderer1"},"notes":{"0,2":"\"WE ARE NOT DIRT\"","7,10":"\"on seven, stand in the corner. just stand there\""},"links":{}},{"npcs":{},"notes":{"7,0":"\"on seven, stand in the corner. just stand there\""},"links":{}},{"npcs":{},"notes":{"0,10":"\"the knot has hands\""},"links":{}},{"npcs":{"3,10":"tallyman2"},"notes":{"0,0":"\"don't sleep by the cables\"","10,4":"\"the tripod watched me all night\""},"links":{}},{"npcs":{"5,5":"archivist2"},"notes":{"6,10":"\"the knot has hands\""},"links":{}},{"npcs":{},"notes":{"0,10":"\"the knot has hands\""},"links":{}},{"npcs":{},"notes":{"4,1":"Cold air seeps from somewhere.","1,9":"\"cut the knot open. a leech crawled out and kept going\""},"links":{"0,0":100}},{"npcs":{"5,5":"ohm1"},"notes":{"7,10":"\"the knot has hands\""},"links":{}},{"npcs":{},"notes":{"5,2":"\"cut the knot open. a leech crawled out and kept going\""},"links":{}},{"npcs":{},"notes":{"0,1":"Cold air seeps from somewhere.","2,9":"\"the knot has hands\"","10,10":"\"still warm here\""},"links":{}},{"npcs":{},"notes":{"4,4":"\"the tripod watched me all night\""},"links":{}},{"npcs":{},"notes":{"1,10":"\"the knot has hands\""},"links":{}},{"npcs":{},"notes":{"0,5":"\"the drip stand followed me three wards\""},"links":{}},{"npcs":{"2,6":"pip1"},"notes":{"0,2":"\"it was a sun. i swear it was a sun\"","6,10":"\"my brother went glass. he says it doesn't hurt. he says it slowly\""},"links":{}},{"npcs":{},"notes":{"5,0":"\"the tall one corrects you. it says better. better. better.\""},"links":{}},{"npcs":{},"notes":{"0,0":"\"mama said wait here\"","10,10":"\"mama said wait here\""},"links":{"0,5":107}},{"npcs":{"0,8":"brann2"},"notes":{"0,2":"\"it was a sun. i swear it was a sun\""},"links":{}},{"npcs":{},"notes":{"5,0":"\"the tall one corrects you. it says better. better. better.\""},"links":{}},{"npcs":{"10,5":"wanderer2"},"notes":{"5,3":"\"still counting. -T\""},"links":{}},{"npcs":{},"notes":{"1,5":"\"my brother went glass. he says it doesn't hurt. he says it slowly\"","9,5":"\"it hums behind here\""},"links":{}},{"npcs":{},"notes":{"5,0":"\"the tall one corrects you. it says better. better. better.\""},"links":{}},{"npcs":{},"notes":{"0,10":"\"it was a sun. i swear it was a sun\""},"links":{}},{"npcs":{},"notes":{"5,5":"A rivet driven through a boot, into the floor. The boot is empty.","0,10":"\"the crane is carrying someone. it won't put him down\""},"links":{}},{"npcs":{},"notes":{"5,0":"\"forgive the Builders. they were told.\"","9,3":"\"hollow\""},"links":{}},{"npcs":{},"notes":{"4,5":"\"it hums behind here\"","6,5":"A rivet driven through a boot, into the floor. The boot is empty."},"links":{"6,10":101}},{"npcs":{},"notes":{"3,0":"\"the big ones have faces now. whose faces\""},"links":{}},{"npcs":{"0,0":"archivist3"},"notes":{"5,2":"\"the big ones have faces now. whose faces\"","9,4":"One panel here was never bolted down."},"links":{}},{"npcs":{},"notes":{"0,2":"\"why does the furnace walk\"","8,2":"\"why does the furnace walk\""},"links":{}},{"npcs":{"2,7":"pip2"},"notes":{"0,10":"\"the crane is carrying someone. it won't put him down\""},"links":{}},{"npcs":{},"notes":{"4,8":"\"hollow\"","0,8":"\"hold on\"","7,0":"\"the crane is carrying someone. it won't put him down\""},"links":{"10,0":108}},{"npcs":{},"notes":{"7,10":"\"the crane is carrying someone. it won't put him down\""},"links":{}},{"npcs":{},"notes":{"8,10":"\"the crane is carrying someone. it won't put him down\""},"links":{}},{"npcs":{},"notes":{"2,2":"\"something with many legs filed me and moved on\"","4,10":"\"the diver came up out of the black water and just looked at me\""},"links":{}},{"npcs":{},"notes":{"5,6":"\"shh\"","3,10":"One panel here was never bolted down."},"links":{}},{"npcs":{"0,6":"tallyman3"},"notes":{"7,4":"\"rot in the stacks. whole shelves forgetting\""},"links":{}},{"npcs":{"4,10":"wanderer3"},"notes":{"5,2":"\"something with many legs filed me and moved on\"","6,10":"\"the diver came up out of the black water and just looked at me\""},"links":{}},{"npcs":{"5,5":"archivist4"},"notes":{"2,0":"\"the screens remember people. that's all they do now\"","5,8":"\"the pages fly by themselves\""},"links":{}},{"npcs":{},"notes":{"5,2":"\"something with many legs filed me and moved on\"","2,10":"\"the diver came up out of the black water and just looked at me\""},"links":{}},{"npcs":{"10,4":"verity1"},"notes":{"2,9":"\"the screens remember people. that's all they do now\"","9,10":"\"something with many legs filed me and moved on\""},"links":{}},{"npcs":{},"notes":{"3,2":"Cold air seeps from somewhere.","4,6":"\"shh\""},"links":{"0,0":102}},{"npcs":{},"notes":{"0,10":"\"the diver came up out of the black water and just looked at me\""},"links":{}},{"npcs":{},"notes":{"3,10":"\"the diver came up out of the black water and just looked at me\""},"links":{}},{"npcs":{"4,1":"verity2"},"notes":{"5,4":"\"cover your ears. it doesn't help\""},"links":{}},{"npcs":{},"notes":{"4,3":"Knuckle marks on the wall. Someone knocked, and knocked.","10,4":"\"the hum is a song\"","2,0":"\"the hum is a song\""},"links":{"4,0":109}},{"npcs":{"6,0":"ohm2"},"notes":{"6,2":"\"i heard my own voice come back out of the wall, a bit late\"","4,10":"\"there is a face in the horn\""},"links":{}},{"npcs":{},"notes":{"0,8":"\"i heard my own voice come back out of the wall, a bit late\""},"links":{}},{"npcs":{"2,4":"verity3"},"notes":{"7,8":"\"hollow\"","6,10":"\"singing floors. counting louder. -T\""},"links":{}},{"npcs":{},"notes":{"1,7":"\"singing floors. counting louder. -T\""},"links":{}},{"npcs":{},"notes":{"6,0":"\"the hum is a song\""},"links":{}},{"npcs":{"4,10":"brann3"},"notes":{"6,5":"\"singing floors. counting louder. -T\"","8,10":"One panel here was never bolted down."},"links":{}},{"npcs":{},"notes":{"5,0":"\"the hum is a song\""},"links":{}},{"npcs":{},"notes":{"3,10":"\"there is a face in the horn\""},"links":{}},{"npcs":{},"notes":{"2,6":"\"waiting for a gap. -T\""},"links":{}},{"npcs":{},"notes":{"2,2":"Knuckle marks on the wall. Someone knocked, and knocked.","10,6":"\"not the red plate. NOT the red plate\""},"links":{}},{"npcs":{},"notes":{"6,6":"\"not the red plate. NOT the red plate\""},"links":{}},{"npcs":{"3,9":"broker3"},"notes":{"6,0":"\"waiting for a gap. -T\""},"links":{}},{"npcs":{"6,8":"tallyman4"},"notes":{"8,8":"\"hollow\"","8,0":"\"something in the pod knocked back\""},"links":{}},{"npcs":{},"notes":{"8,0":"One panel here was never bolted down.","4,10":"\"they came for her in a cage. the cage flew\""},"links":{"0,0":103}},{"npcs":{},"notes":{"0,9":"\"something in the pod knocked back\""},"links":{}},{"npcs":{"4,8":"pip3"},"notes":{"5,2":"\"it didn't look angry. it looked busy.\"","6,8":"\"it hums behind here\"","0,10":"\"it didn't look angry. it looked busy.\""},"links":{}},{"npcs":{},"notes":{"5,2":"\"it didn't look angry. it looked busy.\""},"links":{}},{"npcs":{},"notes":{"0,10":"\"it didn't look angry. it looked busy.\""},"links":{}},{"npcs":{},"notes":{"5,5":"\"remember your name\""},"links":{}},{"npcs":{},"notes":{"8,2":"One panel here was never bolted down.","0,8":"\"don't count them. you won't stop\""},"links":{}},{"npcs":{"5,4":"wanderer4"},"notes":{"5,0":"\"the crows read one plaque each. then they leave\"","5,10":"\"the veiled ones stand at every plaque. none of them are ours\""},"links":{}},{"npcs":{},"notes":{"10,8":"\"T was here too. where did T go\"","4,10":"\"it crawled out of the ground and went back to work\""},"links":{}},{"npcs":{},"notes":{"4,9":"Cold air seeps from somewhere.","8,6":"Tally marks on a plaque, where the name should be.","8,4":"\"T was here too. where did T go\""},"links":{}},{"npcs":{},"notes":{"0,6":"Tally marks on a plaque, where the name should be."},"links":{}},{"npcs":{},"notes":{"9,4":"\"the crows read one plaque each. then they leave\""},"links":{"0,4":110}},{"npcs":{},"notes":{"6,5":"\"don't count them. you won't stop\""},"links":{}},{"npcs":{},"notes":{"0,3":"\"the crows read one plaque each. then they leave\"","5,10":"\"the veiled ones stand at every plaque. none of them are ours\""},"links":{}},{"npcs":{},"notes":{"2,0":"\"T was here too. where did T go\"","8,0":"\"remember your name\""},"links":{}},{"npcs":{},"notes":{"5,5":"Someone slept here. The dust kept their shape."},"links":{}},{"npcs":{},"notes":{"2,3":"Cold air seeps from somewhere.","6,4":"\"it had my coat. it had my walk. it had no face yet\""},"links":{}},{"npcs":{},"notes":{"1,0":"Tally marks, hundreds of them. Then none.","0,9":"\"the tall ones make no sound at all\""},"links":{}},{"npcs":{},"notes":{"3,2":"Cold air seeps from somewhere.","0,6":"\"it had my coat. it had my walk. it had no face yet\"","5,10":"\"the tall ones make no sound at all\""},"links":{"0,0":104}},{"npcs":{},"notes":{"7,4":"Cold air seeps from somewhere.","8,3":"\"you are not alone\" - and under it, smaller: \"i was\"","4,10":"Someone slept here. The dust kept their shape."},"links":{}},{"npcs":{},"notes":{"2,10":"\"how many floors is that. how many\""},"links":{}},{"npcs":{"5,5":"brann4"},"notes":{"5,4":"\"I was here. -T\" - and beside it, too neat: \"I was here. -T\"","0,10":"Tally marks, hundreds of them. Then none."},"links":{}},{"npcs":{"0,2":"tallymanCopy"},"notes":{"5,4":"Cold air seeps from somewhere.","10,3":"\"you are not alone\" - and under it, smaller: \"i was\"","0,0":"Someone slept here. The dust kept their shape."},"links":{}},{"npcs":{},"notes":{"5,6":"\"you are not alone\" - and under it, smaller: \"i was\""},"links":{}},{"npcs":{},"notes":{"3,10":"\"I was here. -T\" - and beside it, too neat: \"I was here. -T\"","7,10":"\"how many floors is that. how many\""},"links":{}},{"npcs":{},"notes":{"4,2":"\"the wall was on fire and the fire was a grid\"","0,10":"\"the dog checks that you are still running\""},"links":{}},{"npcs":{"4,6":"wanderer5"},"notes":{"0,2":"\"the wall was on fire and the fire was a grid\"","5,4":"\"everything that stops gets collected\"","8,4":"\"hollow\""},"links":{}},{"npcs":{},"notes":{"0,4":"\"everything that stops gets collected\""},"links":{}},{"npcs":{},"notes":{"1,6":"\"it is so quiet up here\"","7,0":"\"count complete. -T\""},"links":{}},{"npcs":{},"notes":{"9,10":"\"count complete. -T\""},"links":{"0,0":111}},{"npcs":{},"notes":{"0,0":"\"the wall was on fire and the fire was a grid\""},"links":{}},{"npcs":{},"notes":{"10,7":"\"the dog checks that you are still running\"","2,6":"\"it is so quiet up here\""},"links":{}},{"npcs":{},"notes":{"2,5":"One panel here was never bolted down.","0,4":"\"the dog checks that you are still running\""},"links":{}},{"npcs":{},"notes":{"9,6":"\"count complete. -T\""},"links":{}},{"npcs":{},"notes":{"1,7":"\"it is so quiet up here\"","9,7":"\"it is so quiet up here\""},"links":{}},{"npcs":{},"notes":{"2,8":"\"Papa forgets my name on bad days. I leave it on his desk.\"","8,8":"A small blanket, folded very neatly."},"links":{"0,0":14}},{"npcs":{},"notes":{"2,6":"\"The white ones are in our ward. Don't make a sound.\"","8,6":"Scratched low on the wall: two lines, walking."},"links":{"5,0":32}},{"npcs":{},"notes":{"6,0":"Water marks, up to the ceiling. Then dry.","9,5":"\"I read you the one about the sun again. You like that one.\""},"links":{"10,0":47}},{"npcs":{},"notes":{"3,2":"\"The lamp in ward 9 still works. If you get cold, sit by it.\"","7,2":"A child's shoe. Just the one."},"links":{"0,0":65}},{"npcs":{},"notes":{"3,8":"\"If you are reading this, you are not me. That is all right.\"","7,10":"\"Thank you, whoever you are.\""},"links":{"0,0":83}},{"npcs":{},"notes":{"4,8":"A plate by the inner gate: RELAY 7. INTAKE. PRESENT SIGNATURE AT EVERY STRATUM. Scratched under it, names, thousands of them. The newest is only two lines.","1,9":"The outer gate. There is no handle on this side."},"links":{}},{"npcs":{},"notes":{"5,4":"LOST PROPERTY. Claimed: 1 visor, cracked, humming (by BROKER). Unclaimed: everything else."},"links":{"5,8":6}},{"npcs":{},"notes":{"5,5":"WARD 9. Twelve cots, all made. The heat lamp over the door is on. Someone has been changing the bulb.","4,8":"A child's coat on a hook. Two lines stitched on the pocket."},"links":{"5,9":23}},{"npcs":{},"notes":{"4,7":"A plate on a half-built wall: SECTOR RESERVED FOR FUTURE EXPANSION. Under it, in chalk, much later: \"still reserved\""},"links":{"5,9":37}},{"npcs":{},"notes":{"1,9":"Two lines cut into the floor, as long as the room. A little person, walking."},"links":{"5,9":51}},{"npcs":{},"notes":{"9,5":"A crack in the outer skin, a hand wide. Through it: grey, and wind. Something small and dark crosses the grey, flapping. It is not a machine."},"links":{"1,5":76}},{"npcs":{},"notes":{"6,5":"SECTOR 0xFF. One chair, bolted down, facing the wall. The seat is dusty. Nobody ever needed this one."},"links":{"4,5":94}}];

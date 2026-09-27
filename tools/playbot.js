@@ -2,6 +2,15 @@
 // Usage: await playbot(10) after newGame(). Returns a per-floor log.
 window.playbot = async (maxFloor) => {
   const log = [];
+  // Same firmware habits as the calibrator's player: slot by taste, upgrade slotted modules before buying stats.
+  const TASTE = ['exploit', 'multithread', 'checksum', 'backprop', 'overclock', 'cache', 'dropout', 'faraday', 'prefetch', 'sandbox', 'scavenger', 'compiler'];
+  const reslot = () => { G.slotted = TASTE.filter(id => G.mods[id]).slice(0, G.slots); };
+  const upgrade = f => {
+    const id = G.slotted.find(m => G.mods[m] < MODS[m].lv.length), cost = id && BALANCE[zoneOf(f)].shop.upgrade[G.mods[id] - 1];
+    if (!id || G.gold < cost) return false;
+    G.gold -= cost; G.mods[id]++;
+    return true;
+  };
   const step = n => { for (let i = 0; i < n; i++) update(0.05); };
   const settle = () => {
     for (let g = 0; g < 400; g++) {
@@ -14,7 +23,7 @@ window.playbot = async (maxFloor) => {
       else step(2);
     }
   };
-  const walkable = c => c === '.' || c === 'n' || ITEMS[c] || c === 'U' || c === 'D' || c === '^';
+  const walkable = c => c === '.' || c === 'n' || c === '~' || c === '-' || ITEMS[c] || c === 'U' || c === 'D' || c === '^';
   const bfs = () => {
     const prev = {}, seen = new Set([G.x + ',' + G.y]), q = [[G.x, G.y]], frontier = [];
     while (q.length) {
@@ -33,21 +42,28 @@ window.playbot = async (maxFloor) => {
   const pathTo = (prev, tx, ty) => { const p = []; let k = tx + ',' + ty; while (prev[k]) { p.unshift(k.split(',').map(Number)); const [px, py] = prev[k]; k = px + ',' + py; if (px === G.x && py === G.y) break; } return p; };
   // Items are taken from the adjacent cell, so a step onto one takes a second press.
   const go = path => { for (const [x, y] of path) { const dx = x - G.x, dy = y - G.y, item = ITEMS[tile(x, y)]; for (let i = item ? 2 : 1; i--;) { hero.cooldown = 0; tryMove(dx, dy, dy < 0 ? 'U' : dy > 0 ? 'D' : dx < 0 ? 'L' : 'R'); settle(); if (scene !== 'play') return; } } };
-  for (let guard = 0; guard < 3000 && scene === 'play' && (G.floor < maxFloor || G.floor === ENTRANCE); guard++) {
+  for (let guard = 0; guard < 8000 && scene === 'play' && (G.floor < maxFloor || G.floor === ENTRANCE); guard++) {
     settle();
+    reslot();
     const { prev, seen, frontier } = bfs();
     // 1. items anywhere reachable
     let target = null;
     for (const k of seen) { const [x, y] = k.split(',').map(Number); const c = tile(x, y); if (ITEMS[c] && prev[k] && !(x === G.x && y === G.y)) { target = [x, y]; break; } }
     if (target) { go(pathTo(prev, ...target)); continue; }
-    // 2. fights and doors on the frontier
+    // 2. a pump in reach drains the floor
+    const pump = frontier.find(f => f[2] === 'k' && G.maps[G.floor].flat().includes('~'));
+    if (pump) { go(pathTo(prev, pump[0], pump[1])); continue; }
+    // 3. fights and doors on the frontier
     const mons = frontier.filter(f => isMonster(f[2])).map(f => ({ f, c: battleCost(G, monsterAt(f[2])) + (monsterAt(f[2]).aura || 0) })).sort((a, b) => a.c - b.c);
     const up0 = findTile(G.floor, 'U') || [5, 5];
     const doors = frontier.filter(f => DOORS[f[2]] && G.keys[DOORS[f[2]]] > 0).sort((a, b) => Math.abs(a[0] - up0[0]) + Math.abs(a[1] - up0[1]) - Math.abs(b[0] - up0[0]) - Math.abs(b[1] - up0[1]));
     const shop = frontier.find(f => f[2] === 'S');
+    if (shop && upgrade(G.floor)) continue;
     if (shop && G.gold >= fabricatorCost(G.buys)) { const s = shopFor('S'); const o = s.offers[G.buys % 2 ? 2 : 1]; G.gold -= o.cost; G.buys++; G[o.atk ? 'atk' : 'def'] += o.atk || o.def; continue; }
     let pick = null;
+    const elite = mons.find(o => monsterAt(o.f[2]).drop && o.c < G.hp * 0.4); // firmware is worth a hard fight
     if (mons.length && mons[0].c < G.hp * 0.12 && !monsterAt(mons[0].f[2]).boss) pick = mons[0].f;
+    else if (elite) pick = elite.f;
     else if (doors.length) pick = doors[0];
     else if (mons.length && mons[0].c < G.hp * 0.8 && (!frontier.some(f => f[2] === 'U') || mons[0].c < G.hp * 0.25)) pick = mons[0].f;
     if (pick) {
@@ -59,8 +75,14 @@ window.playbot = async (maxFloor) => {
     // 3. climb
     const up = frontier.find(f => f[2] === 'U');
     if (up) { log.push(`F${G.floor + 1} done: hp ${G.hp} atk ${G.atk} def ${G.def} lv ${G.lv} keys ${G.keys.y}/${G.keys.b}/${G.keys.r} gold ${G.gold}`); go(pathTo(prev, up[0], up[1])); settle(); continue; }
-    // Out of options: fly back to a Fabricator and spend credits, like a player with the Phase Compass would.
+    // Out of options: a lever (a few pulls per floor), then an alarm plate.
+    const lever = frontier.find(f => f[2] === 'j'), alarm = frontier.find(f => f[2] === '!');
+    const pulls = (G.flags.botPulls ??= {});
+    if (lever && (pulls[G.floor] = (pulls[G.floor] || 0) + 1) <= 3) { go(pathTo(prev, lever[0], lever[1])); continue; }
+    if (alarm) { go(pathTo(prev, alarm[0], alarm[1])); continue; }
+    // Spend credits at a Fabricator, like a player with the Phase Compass would.
     const fabFloor = G.visited.filter(f => (f === G.floor || !ABANDONED.has(f)) && G.maps[f].flat().includes('S')).pop();
+    if (fabFloor !== undefined && upgrade(fabFloor)) continue;
     if (fabFloor !== undefined && G.gold >= fabricatorCost(G.buys)) {
       const b = BALANCE[zoneOf(fabFloor)].shop, k = ['atk', 'def', 'hp'][G.buys % 3];
       G.gold -= fabricatorCost(G.buys++); G[k] += b[k];

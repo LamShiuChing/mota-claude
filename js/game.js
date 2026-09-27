@@ -4,18 +4,20 @@
 const TS = 32, N = 11, MW = N * TS, W = 576, H = 432;
 const MX = 192, MY = 48;                       // map origin
 const FONT = '"Press Start 2P", monospace', BODY = '"VT323", monospace';
-const CYAN = '#1ea4d4', MOVE_TIME = 0.1, SAVE_KEY = 'stratum-save-v3', CORRUPT_STEPS = 60;
+const CYAN = '#1ea4d4', MOVE_TIME = 0.1, SAVE_KEY = 'stratum-save-v3';
 const cv = document.getElementById('game'), ctx = cv.getContext('2d');
 let scale = 1;
 
 // ---------------------------------------------------------------- sprites
 const spriteCache = {};
+// Sprites are square char grids: 16x16 for one tile, 32x32 for elites, 48x48 for bosses.
+const spriteSize = rows => Math.max(16, rows.length);
 function buildSprite(rows, swap = {}) {
-  const c = document.createElement('canvas');
-  c.width = c.height = 16;
+  const c = document.createElement('canvas'), S = spriteSize(rows);
+  c.width = c.height = S;
   const g = c.getContext('2d');
   const at = (x, y) => (rows[y] || '')[x] || '.';
-  for (let y = 0; y < 16; y++) for (let x = 0; x < 16; x++) {
+  for (let y = 0; y < S; y++) for (let x = 0; x < S; x++) {
     const ch = at(x, y);
     const edge = ch === '.' && [[1, 0], [-1, 0], [0, 1], [0, -1]].some(([dx, dy]) => at(x + dx, y + dy) !== '.');
     if (ch === '.' && !edge) continue;
@@ -42,23 +44,12 @@ function spriteKey(def) {
   return key;
 }
 function whiteSprite(name) {
-  const key = name + '#w';
-  if (!spriteCache[key]) {
-    const c = document.createElement('canvas');
-    c.width = c.height = 16;
-    const g = c.getContext('2d');
-    g.drawImage(sprite(name), 0, 0);
-    g.globalCompositeOperation = 'source-in';
-    g.fillStyle = '#fff';
-    g.fillRect(0, 0, 16, 16);
-    spriteCache[key] = c;
-  }
-  return spriteCache[key];
+  return spriteFx(name, '#fff');
 }
 // Opaque pixels of a sprite, used to shatter enemies into particles.
 function spritePixels(name) {
-  const d = sprite(name).getContext('2d').getImageData(0, 0, 16, 16).data, out = [];
-  for (let i = 0; i < 256; i++) if (d[i * 4 + 3]) out.push({ x: i % 16, y: i >> 4, color: `rgb(${d[i * 4]},${d[i * 4 + 1]},${d[i * 4 + 2]})` });
+  const S = sprite(name).width, d = sprite(name).getContext('2d').getImageData(0, 0, S, S).data, out = [];
+  for (let i = 0; i < S * S; i++) if (d[i * 4 + 3]) out.push({ x: i % S, y: Math.floor(i / S), color: `rgb(${d[i * 4]},${d[i * 4 + 1]},${d[i * 4 + 2]})` });
   return out;
 }
 
@@ -97,7 +88,7 @@ let panelPattern = null;
 
 const floorBg = [];
 // Walls and fake walls look the same; the map edge counts as wall.
-const solid = (m, x, y) => x < 0 || y < 0 || x >= N || y >= N || m[y][x] === '#' || m[y][x] === '%';
+const solid = (m, x, y) => x < 0 || y < 0 || x >= N || y >= N || '#%z'.includes(m[y][x]);
 const mix = (a, b, t) => '#' + [1, 3, 5].map(i => Math.round(parseInt(a.substr(i, 2), 16) * (1 - t) + parseInt(b.substr(i, 2), 16) * t).toString(16).padStart(2, '0')).join('');
 // Flat 16x16 pixel tiles drawn at 2x. Walls are raised blocks: a lit top, plus a dark rack face wherever floor lies below.
 // Built from the live map, so a revealed fake wall ('%') becomes floor after a rebuild.
@@ -138,7 +129,7 @@ let scene = 'title', time = 0, titleSel = 0, lastR = -9, endT = 0, deadT = 0, en
 let ui = null;                 // modal: dialog | banner | battle | shop | book | help | fade | goal | fly | choice
 let hero = { move: null, nudge: null, cooldown: 0 };
 let particles = [], floaters = [], toasts = [], doorAnims = [], motes = [], statFlash = {};
-let shake = 0, pendingDir = null;
+let shake = 0, pendingDir = null, alarmT = -9; // alarmT: when a Quarantine alarm last tripped
 
 const tile = (x, y, f = G.floor) => G.maps[f][y][x];
 const setTile = (x, y, ch, f = G.floor) => { G.maps[f][y][x] = ch; };
@@ -146,26 +137,27 @@ const findTile = (f, ch) => {
   for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (G.maps[f][y][x] === ch) return [x, y];
 };
 const mapX = x => MX + x * TS, mapY = y => MY + y * TS;
-const isVault = f => f >= MAIN_FLOORS && f !== ENTRANCE;
+const isVault = f => f >= MAIN_FLOORS && f < ENTRANCE;
+const isSector = f => f >= SECTOR_BASE;
 const isMain = f => f < MAIN_FLOORS;
 // Relay 0 sits below 1F but is stored after the vaults.
 const floorAbove = f => (f === ENTRANCE ? 0 : f + 1), floorBelow = f => (f === 0 ? ENTRANCE : f - 1);
 const depth = f => (f === ENTRANCE ? -1 : f);
-// Vaults take the zone of the floor that hides their entrance.
-const FLOOR_ZONE = MAPS.map((_, f) => (isVault(f) ? Math.floor(FLOOR_PLAN.findIndex(p => p.vault === f - MAIN_FLOORS) / 10) : Math.max(0, Math.floor(depth(f) / 10))));
+// Vaults and sectors take the zone of the floor that hides their entrance.
+const FLOOR_ZONE = MAPS.map((_, f) => Math.max(0, Math.floor((isVault(f) ? FLOOR_PLAN.findIndex(p => p.vault === f - MAIN_FLOORS) : isSector(f) ? WARPS[f - SECTOR_BASE][0] : depth(f)) / 10)));
 const zoneOf = (f = G.floor) => FLOOR_ZONE[f];
-const floorLabel = f => (isVault(f) ? 'MEMORY VAULT' : `${TOWER}  ${depth(f) + 1}F`);
+const floorLabel = f => (isVault(f) ? 'MEMORY VAULT' : isSector(f) ? 'UNALLOCATED' : `${f === ENTRANCE ? TOWER : ZONES[zoneOf(f)].name} - ${depth(f) + 1}F`);
 const metaKey = (x, y) => `${x},${y}`;
 const meta = (f = G.floor) => MAP_META[f];
-const isMonster = ch => /[1-69]/.test(ch);
-const monsterAt = (ch, f = G.floor) => ({ ...zoneMonster(zoneOf(f), ch), ...BALANCE[zoneOf(f)].monsters[ch], boss: ch === '9' });
+const isMonster = ch => /[1-79]/.test(ch);
+const monsterAt = (ch, f = G.floor) => ({ ...zoneMonster(zoneOf(f), ch), ...BALANCE[zoneOf(f)].monsters[ch], boss: ch === '9', elite: ch === '7' });
 const itemValue = (ch, f = G.floor) => BALANCE[zoneOf(f)].items[ch];
-const itemName = (ch, f = G.floor) => ITEMS[ch].name ?? ZONES[zoneOf(f)].gear[ch];
+const itemName = (ch, f = G.floor) => (ITEMS[ch].tiered ? `${ITEMS[ch].name} Mk.${TIER_NAMES[itemTier(zoneOf(f))]}` : ITEMS[ch].name ?? ZONES[zoneOf(f)].gear[ch]);
 
 function newGame() {
   G = {
     ...structuredClone(HERO_START), floor: ENTRANCE, x: 0, y: 0, dir: 'D', maps: MAPS.map(m => m.map(r => [...r])),
-    flags: {}, buys: 0, steps: 0, kills: 0, status: 'NORMAL', antivirus: 0, shards: 0, visited: [ENTRANCE], weapon: -1, decals: {}, read: {},
+    flags: {}, buys: 0, steps: 0, kills: 0, antivirus: 0, shards: 0, visited: [ENTRANCE], weapon: -1, decals: {}, read: {}, seen: {}, warps: {},
   };
   [G.x, G.y] = findTile(ENTRANCE, 'P');
   setTile(G.x, G.y, '.');
@@ -183,18 +175,18 @@ function enterPlay() {
 }
 
 function floorMusic(f = G.floor) {
-  if (isVault(f)) return 'vault';
+  if (isVault(f) || isSector(f)) return 'vault';
   if (f % 10 === 9 && !G.flags['boss' + f]) return 'boss';
   return ZONES[zoneOf(f)].music;
 }
 
 // ---------------------------------------------------------------- combat math
 const expectedDamage = m => battleCost(G, m);
-function roll(base, { crit, miss }) {
+function roll(base, { crit, miss }, critX = 2) {
   if (base <= 0) return { v: 0, block: true };
   const r = Math.random();
   if (r < miss) return { v: 0, miss: true };
-  if (r < miss + crit) return { v: base * 2, crit: true };
+  if (r < miss + crit) return { v: Math.round(base * critX), crit: true };
   return { v: Math.max(1, Math.round(base * (0.9 + Math.random() * 0.2))) };
 }
 const dmgColor = d => (d === Infinity || d >= G.hp ? '#ff3b4e' : d >= G.hp / 2 ? '#ff8a3c' : d >= G.hp / 4 ? '#ffc23a' : d === 0 ? '#39ff9e' : '#f2f0ea');
@@ -216,9 +208,10 @@ function burst(x, y, color, n = 12, speed = 60) { // color: one color, or a list
 }
 // Something dissolves pixel by pixel into rising data.
 function shatter(tx, ty, spr) {
+  const S = sprite(spr).width;
   spritePixels(spr).forEach(p => particles.push({
     x: mapX(tx) + p.x * 2, y: mapY(ty) + p.y * 2,
-    vx: (p.x - 8) * 6 + (Math.random() - 0.5) * 30, vy: -20 - Math.random() * 60,
+    vx: (p.x - S / 2) * 6 + (Math.random() - 0.5) * 30, vy: -20 - Math.random() * 60,
     life: 0.5 + Math.random() * 0.6, max: 1.1, color: p.color, size: 2, grav: -30,
   }));
 }
@@ -235,7 +228,9 @@ function tryMove(dx, dy, dir) {
   const block = () => { hero.nudge = { dx, dy, t: 0.12 }; hero.cooldown = 0.18; Sound.sfx.bump(); };
   if (nx < 0 || ny < 0 || nx >= N || ny >= N) return block();
   const ch = tile(nx, ny);
-  if (ch === '#') return block();
+  if (ch === '#' || ch === 'z' || ch === '=') return block();
+  if (ch === 'k') return drain();
+  if (ch === 'j') return pullLever();
   if (ch === '%') return revealWall(nx, ny);
   if (isMonster(ch)) return engage(nx, ny, ch);
   if (DOORS[ch]) return openDoor(nx, ny, ch);
@@ -249,17 +244,43 @@ function tryMove(dx, dy, dir) {
 }
 
 function arrive() {
-  if (G.status === 'CORRUPT') {
-    hurt(BALANCE[zoneOf()].poison);
-    if (G.steps % 4 === 0) floater(`-${BALANCE[zoneOf()].poison}`, mapX(G.x) + 16, mapY(G.y), '#b98cff', 8);
-    if (--G.corruptSteps <= 0) { G.status = 'NORMAL'; toast('The corruption fades', '#39ff9e'); }
-  }
+  tickStatus();
   fieldDamage();
+  reveal();
   const ch = tile(G.x, G.y);
+  if (ch === '~') wade();
+  if (ch === '!') tripAlarm(G.x, G.y);
   if (ch === 'U' || ch === 'D') changeFloor(ch === 'U' ? floorAbove(G.floor) : floorBelow(G.floor), ch === 'U' ? 'D' : 'U');
   else if (ch === '^') changeFloor(meta().links[metaKey(G.x, G.y)], '^');
+  else if (ch === '&') { // a hidden warp: found once stood on, then drawn as a faint stair at both ends
+    if (!G.warps[noteKey(G.x, G.y)]) Sound.sfx.chime();
+    G.warps[noteKey(G.x, G.y)] = true;
+    changeFloor(meta().links[metaKey(G.x, G.y)], '&');
+  }
   else if (ch === 'n' && !G.read[noteKey(G.x, G.y)]) readNote(); // read notes stay silent; E re-reads
 }
+
+// ---------------------------------------------------------------- statuses (G.fx: steps left; STATUS in data.js)
+const STATUS_TOAST = { corrupt: 'Corrupted', breach: 'Breached', throttle: 'Throttled', lag: 'Lagging' };
+const immune = s => G.immune[s] || (s === 'corrupt' && kit(G).clean);
+// Each step wears statuses down; corruption also bleeds HP.
+function tickStatus() {
+  for (const s in G.fx) {
+    if (s === 'corrupt') {
+      hurt(BALANCE[zoneOf()].poison);
+      if (G.steps % 4 === 0) floater(`-${BALANCE[zoneOf()].poison}`, mapX(G.x) + 16, mapY(G.y), '#b98cff', 8);
+    }
+    if (--G.fx[s] <= 0) { delete G.fx[s]; toast(`${s.toUpperCase()} cleared`, '#39ff9e'); }
+  }
+}
+// A fight's parting status. A stored antivirus disk stops corruption before it takes; a repeat hit only refreshes it.
+function afflict(s) {
+  if (immune(s)) return;
+  if (s === 'corrupt' && !G.fx.corrupt && G.antivirus) { G.antivirus--; return toast('Quarantined', '#39ff9e'); }
+  if (!G.fx[s]) { toast(STATUS_TOAST[s], s === 'corrupt' ? '#b98cff' : '#ff8a3c'); Sound.sfx.corrupt(); }
+  G.fx[s] = STATUS_STEPS;
+}
+const cure = () => { if (G.fx.corrupt) delete G.fx.corrupt; else G.antivirus++; }; // an antivirus disk
 
 const noteKey = (x, y) => `${G.floor}:${metaKey(x, y)}`;
 // A floor's authored fragment (LORE, by floor number) replaces its first ordinary scrawl.
@@ -275,12 +296,53 @@ function readNote() {
 function fieldDamage() {
   const dmg = [[1, 0], [-1, 0], [0, 1], [0, -1]].map(([dx, dy]) => [G.x + dx, G.y + dy])
     .filter(([x, y]) => x >= 0 && y >= 0 && x < N && y < N && isMonster(tile(x, y)))
-    .reduce((s, [x, y]) => s + (monsterAt(tile(x, y)).aura || 0), 0);
+    .reduce((s, [x, y]) => s + (monsterAt(tile(x, y)).aura || 0), 0) * kit(G).field;
   if (!dmg) return;
   hurt(dmg);
   floater(`-${dmg}`, mapX(G.x) + 16, mapY(G.y) - 4, '#ff3b4e', 9);
   shake = 0.15;
   Sound.sfx.field();
+}
+
+// ---------------------------------------------------------------- floor mechanics
+function wade() {
+  const v = BALANCE[zoneOf()].flood;
+  hurt(v);
+  floater(`-${v}`, mapX(G.x) + 16, mapY(G.y) - 4, '#4ec3ff', 8);
+  for (let i = 0; i < 6; i++) particles.push({ x: mapX(G.x) + 8 + Math.random() * 16, y: mapY(G.y) + 26, vx: (Math.random() - 0.5) * 40, vy: -30 - Math.random() * 30, life: 0.4, max: 0.4, color: '#6ff7ff', size: 2, grav: 160 });
+}
+const cellsOf = ch => G.maps[G.floor].flatMap((row, y) => row.flatMap((c, x) => (c === ch ? [[x, y]] : [])));
+// The pump drains every flooded cell on the floor.
+function drain() {
+  const water = cellsOf('~');
+  hero.cooldown = 0.35;
+  if (!water.length) return Sound.sfx.deny();
+  water.forEach(([x, y]) => { setTile(x, y, '.'); burst(mapX(x) + 16, mapY(y) + 24, '#4ec3ff', 3, 30); });
+  shake = 0.2;
+  Sound.sfx.door();
+}
+function tripAlarm(x, y) {
+  setTile(x, y, '.');
+  const woken = podsWaking(G.maps[G.floor], x, y, (ox, oy) => ox >= 0 && oy >= 0 && ox < N && oy < N && tile(ox, oy) === '.' && !(ox === G.x && oy === G.y));
+  woken.forEach(([px, py, ox, oy]) => { setTile(px, py, '#'); setTile(ox, oy, '2'); shatter(px, py, 'pod'); });
+  floorBg[G.floor] = null;
+  alarmT = time;
+  shake = 0.5;
+  Sound.sfx.roar();
+}
+function pullLever() {
+  hero.cooldown = 0.35;
+  G.maps[G.floor].forEach((row, y) => row.forEach((c, x) => { if (GATE_SWAP[c] && !(x === G.x && y === G.y)) setTile(x, y, GATE_SWAP[c]); }));
+  G.flags['lever' + G.floor] = !G.flags['lever' + G.floor];
+  Sound.sfx.door();
+}
+// Dark floors: what Rho can see now, and what it has seen.
+const inSight = (x, y) => (x - G.x) ** 2 + (y - G.y) ** 2 <= 5;
+const seen = (x, y) => !DARK.has(G.floor) || G.seen[G.floor]?.[metaKey(x, y)];
+function reveal() {
+  if (!DARK.has(G.floor)) return;
+  const s = G.seen[G.floor] ??= {};
+  for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) if (inSight(x, y)) s[metaKey(x, y)] = true;
 }
 
 function revealWall(x, y) {
@@ -310,8 +372,20 @@ function pickUp(ch, x, y) {
   }
   if (it.kind === 'antivirus') {
     Sound.sfx.gem();
-    if (G.status === 'CORRUPT') G.status = 'NORMAL'; else G.antivirus++;
+    cure();
     return banner('Antivirus Disk', '#39ff9e');
+  }
+  if (it.kind === 'patch') {
+    G.immune[it.immune] = true;
+    delete G.fx[it.immune];
+    Sound.sfx.gear();
+    return banner(it.name, '#6ff7ff', 'INSTALLED', undefined, ITEM_LORE[it.name], `Immune to ${it.immune.toUpperCase()}`);
+  }
+  if (it.kind === 'implant') {
+    gain('crit', v.crit); gain('agi', v.agi);
+    floater(`CRIT +${v.crit} AGI +${v.agi}`, cx, cy, '#6ff7ff');
+    Sound.sfx.gear();
+    return banner(`${itemName(ch)}   CRIT +${v.crit} AGI +${v.agi}`, '#6ff7ff', undefined, undefined, ITEM_LORE[itemName(ch)]);
   }
   gain(it.kind, v);
   if (ch === 'w') G.weapon = Math.max(G.weapon, zoneOf()); // battle fx follow the best weapon owned
@@ -343,6 +417,7 @@ function openDoor(x, y, ch) {
 }
 
 function engage(x, y, ch) {
+  [x, y] = bodyAnchor(G.maps[G.floor], x, y);
   const m = monsterAt(ch);
   hero.cooldown = 0.3;
   if (G.atk <= m.def) {
@@ -385,6 +460,15 @@ function giveGift(gift) {
   banner(`${itemName(gift)}   ${it.kind.toUpperCase()} +${v}`);
 }
 
+// A firmware module: slotted at once while a slot is free.
+function giveMod(id) {
+  const mod = MODS[id], fresh = !G.mods[id];
+  G.mods[id] ||= 1;
+  if (fresh && G.slotted.length < G.slots) G.slotted.push(id);
+  Sound.sfx.gear();
+  banner(`${mod.name}   firmware`, PAL[mod.color], 'RECOVERED', undefined, ITEM_LORE[mod.name], mod.text(mod.lv[G.mods[id] - 1]) + (G.slotted.includes(id) ? '' : '  (no free slot)'));
+}
+
 function touchGoal() {
   if (!G.flags['boss' + G.floor]) return say(STORY.goalLocked);
   if (G.shards >= 5) {
@@ -412,6 +496,8 @@ function changeFloor(nf, arriveAt) {
       particles = []; doorAnims = [];
       spawnMotes();
       Sound.play(floorMusic());
+      reveal();
+      if (arriveAt === '&') G.warps[noteKey(G.x, G.y)] = true;
       const first = !G.visited.includes(nf);
       if (first) G.visited.push(nf);
       ui.after = first && ON_ENTER[nf] ? () => say(STORY[ON_ENTER[nf]]) : null;
@@ -425,8 +511,11 @@ const FRAME = { M: { x: BOX.x + 14, y: BOX.y + 36 }, H: { x: BOX.x + BOX.w - 62,
 const frameCenter = who => ({ x: FRAME[who].x + 24, y: FRAME[who].y + 24 });
 
 function startBattle(x, y, ch) {
-  const m = monsterAt(ch);
-  ui = { type: 'battle', m, x, y, mhp: m.hp, heroTurn: !m.swift, timer: 0.45, mHits: 0, second: false, over: false, fast: false, fx: { H: 0, M: 0 }, sh: { H: 0, M: 0 }, spr: {}, mFlash: 0, fxs: [], stop: 0, white: 0 };
+  const m = monsterAt(ch), k = kit(G);
+  ui = {
+    type: 'battle', m, ch, x, y, k, me: afflicted({ ...G, agi: G.agi + k.agi }), mhp: m.hp, heroTurn: !m.swift || k.first, absorb: k.absorb, lost: 0,
+    timer: 0.45, mHits: 0, second: false, over: false, fast: false, fx: { H: 0, M: 0 }, sh: { H: 0, M: 0 }, spr: {}, mFlash: 0, fxs: [], stop: 0, white: 0,
+  };
   Sound.sfx.battle();
 }
 
@@ -448,20 +537,27 @@ function updateBattle(b, dt) {
   if (b.timer > 0) return;
   if (b.over) return endBattle(b);
   if (b.heroTurn) {
-    const r = roll(G.atk - b.m.def, hitChances(G, b.m));
+    const hd = heroBlow(b.me, b.m, b.k), r = roll(b.second ? Math.max(1, Math.round(hd * b.k.twin)) : hd, hitChances(b.me, b.m), b.k.critX);
     b.mhp = Math.max(0, b.mhp - r.v);
     if (r.v) b.mFlash = 0.5;
     hitFx(b, r, 'M');
     if (b.mhp === 0) { b.over = true; b.timer = 0.7; Sound.sfx.kill(); }
+    // Multithread strikes again before the monster answers.
+    if (b.k.twin && !b.second && !b.over) { b.second = true; b.timer = 0.18; return; }
+    b.second = false;
   } else {
     b.mHits++;
-    const r = roll(b.m.pierce ? b.m.atk : b.m.atk - G.def, hitChances(b.m, G));
+    const r = roll(monsterBlow(b.me, b.m, b.k), hitChances(b.m, b.me));
     if (b.m.surge && b.mHits % 3 === 0 && r.v > 0) { r.v *= 2; r.surge = true; }
     if (b.m.pierce && r.v) r.pierce = true;
+    if (r.v && b.absorb > 0) { b.absorb--; Object.assign(r, { v: 0, block: true, absorb: true }); }
     G.hp = Math.max(0, G.hp - r.v);
+    b.lost += r.v;
     if (r.v) flash('hp', false);
+    if (r.v && b.k.reflect && G.hp) { r.back = Math.max(1, Math.round(r.v * b.k.reflect)); b.mhp = Math.max(0, b.mhp - r.back); }
     hitFx(b, r, 'H');
     if (G.hp === 0) { b.over = true; b.dead = true; b.timer = 0.9; }
+    else if (b.mhp === 0) { b.over = true; b.timer = 0.9; Sound.sfx.kill(); }
     // Twin attackers strike again before the hero answers.
     if (b.m.double && !b.second && !b.over) { b.second = true; b.timer = 0.18; return; }
     b.second = false;
@@ -489,7 +585,7 @@ function landFx(b, r, target) {
   const pos = frameCenter(target), big = r.crit || r.surge;
   if (r.miss) { floater('MISS', pos.x, pos.y - 34, '#9ea2ad', 10); return Sound.sfx.miss(); }
   if (r.block) {
-    floater('BLOCK', pos.x, pos.y - 34, '#6ff7ff', 10);
+    floater(r.absorb ? 'CHECKSUM' : 'BLOCK', pos.x, pos.y - 34, '#6ff7ff', 10);
     fxAdd(b, 0.2, p => fxSigil(pos, 20 + 6 * p, '#6ff7ff', 1 - p, 0));
     return Sound.sfx.block();
   }
@@ -499,6 +595,7 @@ function landFx(b, r, target) {
   const label = r.surge ? 'OVERFLOW' : r.crit ? 'CRIT!' : r.pierce ? 'PIERCE' : null;
   if (label) floater(label, pos.x, pos.y - 48, r.surge ? '#6ff7ff' : r.pierce ? '#b98cff' : '#ff8a3c', 9);
   floater(`-${r.v}`, pos.x, pos.y - 34, big ? '#ffc23a' : target === 'H' ? '#ff3b4e' : '#f2f0ea', big ? 14 : 11);
+  if (r.back) { const m = frameCenter('M'); b.mFlash = 0.5; b.sh.M = 0.15; floater(`-${r.back}`, m.x, m.y - 34, '#ffc23a', 11); floater('BACKPROP', m.x, m.y - 48, '#ffc23a', 9); }
   burst(pos.x, pos.y, target === 'H' ? '#ff3b4e' : SPRAY[remains(b.m)], r.crit ? 22 : 10, r.crit ? 140 : 80);
   fxAdd(b, 0.16, p => fxOrb(pos, (big ? 26 : 18) * (1 - p * 0.3), '#ffffff', 0.8 * (1 - p)));
   if (target === 'H' && b.m.boss) fxAdd(b, 0.3, p => fxRing(pos, 10 + 50 * p, '#ff3b4e', 4 * (1 - p) + 1, 1 - p));
@@ -613,7 +710,7 @@ const fxFrame = (b, P, color, dur, a, delay = 0) => fxAdd(b, dur, p => {
   const s = b.spr[P.to];
   if (P.miss || !s) return;
   ctx.globalAlpha = a * (1 - p) * s.a;
-  ctx.drawImage(spriteFx(s.name, color), s.x, s.y, 36, 36);
+  ctx.drawImage(spriteFx(s.name, color), s.x, s.y, s.d, s.d);
 }, delay);
 // Blade shapes are drawn in Rho's frame (striking leftwards) and mirrored when the attacker is on the left (the Mirror).
 // Straight cut through c: a lens that runs end to end, then thins and fades. cols: outer glow first, core last.
@@ -1014,26 +1111,34 @@ function endBattle(b) {
   ui = null;
   floaters = []; particles = [];
   if (b.dead) return gameOver();
-  const m = b.m, cx = mapX(b.x) + 16, cy = mapY(b.y);
-  setTile(b.x, b.y, '.');
-  (G.decals[G.floor] ??= []).push([b.x, b.y, remains(m), Math.floor(Math.random() * 4)]);
+  const m = b.m, k = b.k, s = bodySize(b.ch), cx = mapX(b.x) + 16 * s, cy = mapY(b.y) + 16 * (s - 1);
+  bodyCells(b.x, b.y, s).forEach(([x, y]) => {
+    setTile(x, y, '.');
+    (G.decals[G.floor] ??= []).push([x, y, remains(m), Math.floor(Math.random() * 4)]);
+  });
   shatter(b.x, b.y, spriteKey(m));
   G.kills++;
-  if (m.gold) { G.gold += m.gold; flash('gold'); floater(`+${m.gold} CR`, cx, cy, '#ffc23a'); Sound.sfx.coin(); }
-  G.exp += m.exp;
+  const gold = Math.round(m.gold * k.gold), heal = Math.round(b.lost * k.heal);
+  if (gold) { G.gold += gold; flash('gold'); floater(`+${gold} CR`, cx, cy, '#ffc23a'); Sound.sfx.coin(); }
+  if (heal) { G.hp += heal; flash('hp'); floater(`+${heal}`, cx, cy + 12, '#39ff9e'); }
+  G.exp += Math.round(m.exp * k.exp);
   flash('exp');
   hero.cooldown = 0.25;
-  if (m.corrupt && G.status !== 'CORRUPT') {
-    if (G.antivirus) { G.antivirus--; toast('Quarantined', '#39ff9e'); }
-    else { G.status = 'CORRUPT'; toast('Corrupted', '#b98cff'); Sound.sfx.corrupt(); }
+  if (m.rollback) { // an older build boots where it fell
+    setTile(b.x, b.y, String(m.rollback));
+    floater('ROLLBACK', cx, cy - 12, '#6ff7ff', 9);
+    burst(cx, cy + 16, ['#6ff7ff', '#f2f0ea'], 16, 50);
+    Sound.sfx.zap();
   }
-  if (G.status === 'CORRUPT' && m.corrupt) G.corruptSteps = CORRUPT_STEPS;
+  for (const st of ['corrupt', ...Object.keys(STATUS)]) if (m[st]) afflict(st);
   checkLevel();
+  if (m.drop) giveMod(m.drop);
   if (m.boss) {
     G.flags['boss' + G.floor] = true;
     shake = 0.8;
     Sound.play(floorMusic());
-    if (m.outro) say(STORY[m.outro]);
+    const slot = m.slot && (() => { G.slots++; Sound.sfx.gear(); banner(`Firmware slot   ${G.slots}`, '#6ff7ff', 'RECOVERED', undefined, undefined, 'Rewire at a Fabricator'); });
+    if (m.outro) say(STORY[m.outro], slot); else slot?.();
   }
 }
 
@@ -1091,6 +1196,9 @@ function shopFor(ch) {
       { label: `HP +${b.shop.hp}`, cost: fabricatorCost(G.buys), hp: b.shop.hp, fab: true },
       { label: `ATK +${b.shop.atk}`, cost: fabricatorCost(G.buys), atk: b.shop.atk, fab: true },
       { label: `DEF +${b.shop.def}`, cost: fabricatorCost(G.buys), def: b.shop.def, fab: true },
+      { label: `CRIT +${b.shop.crit}`, cost: fabricatorCost(G.buys), crit: b.shop.crit, fab: true },
+      { label: `AGI +${b.shop.agi}`, cost: fabricatorCost(G.buys), agi: b.shop.agi, fab: true },
+      ...(Object.keys(G.mods).length ? [{ label: 'Rewire firmware', rewire: true }] : []),
     ],
   };
   return {
@@ -1101,27 +1209,54 @@ function shopFor(ch) {
       { label: 'Cyan Keycard', cost: b.broker.b, key: 'b' },
       { label: 'Crimson Keycard', cost: b.broker.r, key: 'r' },
       { label: 'Antivirus Disk', cost: b.broker.v, antivirus: true },
+      ...['scavenger', 'compiler'].map(mod => ({ label: `${MODS[mod].name} firmware`, cost: b.broker.mod, mod })),
     ],
   };
 }
 function openShop(ch) { hero.cooldown = 0.2; ui = { type: 'shop', ch, shop: shopFor(ch), sel: 0 }; Sound.sfx.select(); }
-const soldOut = o => o.flag && G.flags[o.flag];
+const soldOut = o => (o.flag && G.flags[o.flag]) || (o.mod && G.mods[o.mod]);
 
 function buy(s) {
   const o = s.shop.offers[s.sel];
   if (!o) { ui = null; hero.cooldown = 0.2; return; }
+  if (o.rewire) { ui = { type: 'firmware', sel: 0 }; return Sound.sfx.select(); }
   if (soldOut(o)) return Sound.sfx.deny();
   if (G.gold < o.cost) { Sound.sfx.deny(); return toast(`Need ${o.cost} credits`, '#ff3b4e'); }
   G.gold -= o.cost;
   flash('gold', false);
-  for (const k of ['hp', 'atk', 'def']) if (o[k]) gain(k, o[k]);
+  for (const k of ['hp', 'atk', 'def', 'crit', 'agi']) if (o[k]) gain(k, o[k]);
   if (o.key) { G.keys[o.key]++; flash('key' + o.key); }
   if (o.flag) { G.flags[o.flag] = true; banner('Scan Firmware', '#6ff7ff', 'INSTALLED', undefined, undefined, 'M  read what waits on this floor'); }
-  if (o.antivirus) { if (G.status === 'CORRUPT') G.status = 'NORMAL'; else G.antivirus++; }
+  if (o.antivirus) cure();
   if (o.fab) G.buys++;
+  if (o.mod) return giveMod(o.mod);
   s.shop = shopFor(s.ch);
   burst(mapX(G.x) + 16, mapY(G.y) + 16, '#6ff7ff', 16, 70);
   Sound.sfx.buy();
+}
+
+// Rewiring at a Fabricator: Enter slots or unslots a module, Right upgrades it (credits, by this zone's prices).
+const ownedMods = () => Object.keys(MODS).filter(id => G.mods[id]);
+const upgradeCost = id => (G.mods[id] < MODS[id].lv.length ? BALANCE[zoneOf()].shop.upgrade[G.mods[id] - 1] : undefined);
+function rewire(u, key) {
+  const ids = ownedMods(), id = ids[u.sel];
+  if (key === 'ArrowUp' || key === 'ArrowDown') { u.sel = (u.sel + (key === 'ArrowUp' ? ids.length : 1)) % (ids.length + 1); return Sound.sfx.select(); }
+  if (key === 'Escape' || (CONFIRM.has(key) && !id)) { ui = { type: 'shop', ch: 'S', shop: shopFor('S'), sel: 0 }; return Sound.sfx.select(); }
+  if (!id) return;
+  if (CONFIRM.has(key)) {
+    const on = G.slotted.includes(id);
+    if (!on && G.slotted.length >= G.slots) { Sound.sfx.deny(); return toast('No free slot', '#ff3b4e'); }
+    G.slotted = on ? G.slotted.filter(s => s !== id) : [...G.slotted, id];
+    return on ? Sound.sfx.bump() : Sound.sfx.gear();
+  }
+  if (key === 'ArrowRight') {
+    const cost = upgradeCost(id);
+    if (cost === undefined) return Sound.sfx.deny();
+    if (G.gold < cost) { Sound.sfx.deny(); return toast(`Need ${cost} credits`, '#ff3b4e'); }
+    G.gold -= cost; G.mods[id]++;
+    flash('gold', false);
+    Sound.sfx.buy();
+  }
 }
 
 function save() {
@@ -1138,7 +1273,9 @@ function load() {
   G.weapon ??= MAPS.reduce((best, m, f) => (m.some((r, y) => [...r].some((c, x) => c === 'w' && G.maps[f][y][x] !== 'w')) ? Math.max(best, FLOOR_ZONE[f]) : best), -1);
   G.decals ??= {}; // older saves have no death decals
   G.read ??= {};
-  G.maps[ENTRANCE] ??= MAPS[ENTRANCE].map(r => [...r]); // saves from before Relay 0
+  MAPS.forEach((m, f) => { G.maps[f] ??= m.map(r => [...r]); }); // saves from before Relay 0 and the sectors
+  G.mods ??= {}; G.slotted ??= []; G.slots ??= 1; G.seen ??= {}; G.warps ??= {}; G.immune ??= {}; // saves from before firmware and dark floors
+  G.fx ??= G.status === 'CORRUPT' ? { corrupt: G.corruptSteps } : {}; // saves from before the other statuses
   enterPlay();
   toast('State restored', '#39ff9e');
 }
@@ -1200,6 +1337,7 @@ function uiKey(key) {
   }
   else if (ui.type === 'book' && ['m', 'M', 'Escape', ...CONFIRM].includes(key)) close();
   else if (ui.type === 'help') close();
+  else if (ui.type === 'firmware') rewire(ui, key);
   else if (ui.type === 'shop') {
     const n = ui.shop.offers.length + 1;
     if (key === 'ArrowUp' || key === 'ArrowDown') { ui.sel = (ui.sel + (key === 'ArrowUp' ? n - 1 : 1)) % n; Sound.sfx.select(); }
@@ -1320,7 +1458,8 @@ function portraitFrame(name, x, y, size = 48) {
   ctx.strokeStyle = CYAN;
   ctx.lineWidth = 2;
   ctx.strokeRect(x + 1, y + 1, size - 2, size - 2);
-  if (name) ctx.drawImage(sprite(name), x + 6, y + 6, size - 12, size - 12);
+  const pad = name && sprite(name).width > 16 ? 2 : 6;
+  if (name) ctx.drawImage(sprite(name), x + pad, y + pad, size - 2 * pad, size - 2 * pad);
 }
 const spr = (name, x, y, s = 32) => ctx.drawImage(sprite(name), x, y, s, s);
 const enterHint = (x, y) => body('-Enter-', x, y, { size: 18, color: '#8a8f9c', align: 'right', shadow: false, alpha: 0.6 + 0.4 * Math.sin(time * 4) });
@@ -1378,7 +1517,10 @@ function tileSpriteName(ch, x, y) {
   if (isMonster(ch)) return spriteKey(monsterAt(ch));
   if (ITEMS[ch]) return ITEMS[ch].sprite;
   if (ch === 'O') return spriteKey(NPCS[meta().npcs[metaKey(x, y)]]);
-  return { Y: 'doorY', B: 'doorB', R: 'doorR', S: 'fabricator', M: 'broker', n: 'note', L: G.flags['boss' + G.floor] ? 'root' : 'rootDark' }[ch];
+  return {
+    Y: 'doorY', B: 'doorB', R: 'doorR', S: 'fabricator', M: 'broker', n: 'note', L: G.flags['boss' + G.floor] ? 'root' : 'rootDark',
+    k: 'pump', '!': 'alarm', z: 'pod', '=': 'gateShut', '-': 'gateOpen', j: 'lever',
+  }[ch];
 }
 
 function glow(px, py, rgb, r = 30) {
@@ -1386,7 +1528,7 @@ function glow(px, py, rgb, r = 30) {
   gr.addColorStop(0, `rgba(${rgb},${0.35 + 0.15 * Math.sin(time * 3)})`);
   gr.addColorStop(1, `rgba(${rgb},0)`);
   ctx.fillStyle = gr;
-  ctx.fillRect(px - 16, py - 16, 64, 64);
+  ctx.fillRect(px + 16 - r, py + 16 - r, 2 * r, 2 * r);
 }
 
 // ---------------------------------------------------------------- idle animation
@@ -1430,20 +1572,25 @@ const IDLE = {
   faceless: { style: 'glitch', still: true },
   kernel: { style: 'skitter', frame: 'kernelB' },
   firewall: { style: 'breathe', cut: 4 },
-  gatekeeper: { style: 'sentry' },
+  foreman: { style: 'breathe', cut: 10 },
+  librarian: { style: 'stance', legs: 10 },
+  heir: { style: 'breathe', cut: 9 },
+  pallbearer: { style: 'stance', legs: 10 },
   ...Object.fromEntries([
     ['hover', 'syringe seraph lacuna daemon'],
-    ['glitch', 'mirror'],
+    ['glitch', 'mirror patchBay'],
+    ['sentry', 'triage organ blindSpot'],
     ['slither', 'leech motherworm tangle bitrot'],
-    ['stomp', 'crab furnace tomb collector crane foreman janitor drip specimen masonII bell'],
+    ['stomp', 'crab furnace tomb collector crane drip specimen masonII bell pileDriver dropForge tapeLibrary incinerator hypervisor'],
     ['shamble', 'patient drowned citizen burrow'],
-    ['dread', 'heir choirmother librarian surgeonBoss monolith'],
+    ['dread', 'choirmother surgeonBoss monolith janitor gatekeeper'],
   ].flatMap(([style, names]) => names.split(' ').map(n => [n, { style }]))),
 };
 const idleWave = (t, hz, seed) => Math.sin((t * hz + seed) * 2 * Math.PI);
 const idleBeat = (t, per, len, seed) => (t + seed * per) % per < len; // on for len s out of every per s
-// Bands: rows [0,cut) rise 1 sprite pixel (d=1, row cut-1 repeats) or sink 1 (d=-1, row cut drops).
-const idleLift = (cut, d) => d > 0 ? [[cut - 1, 16, 0, 0], [0, cut, 0, -1]] : d < 0 ? [[cut + 1, 16, 0, 0], [0, cut, 0, 1]] : null;
+// Bands (rows in 16ths): rows [0,cut) rise 1 art pixel (d=1, the rows below the cut show through) or sink 1
+// (d=-1, drawn over the first row below the cut).
+const idleLift = (cut, d) => d > 0 ? [[cut - 1, 16, 0, 0], [0, cut, 0, -1]] : d < 0 ? [[cut, 16, 0, 0], [0, cut, 0, 1]] : null;
 const IDLE_STYLES = {
   breathe: (p, t, s, c) => { p.bands = idleLift(c.cut || 7, idleWave(t, 0.45, s) > 0.2 ? 1 : 0); },
   skitter: (p, t, s, c) => {
@@ -1511,32 +1658,36 @@ function idlePose(name, t, seed = 0, face = 0, heavy = false) {
 }
 // Cached derived canvases of a cached sprite: '#f' mirrored, '#r' flat red silhouette, '#rrggbb' silhouette in that color.
 function spriteFx(key, fx) {
-  return spriteCache[key + fx] ??= canvasOf(16, 16, g => {
-    if (fx === '#f') { g.scale(-1, 1); g.drawImage(sprite(key), -16, 0); return; }
+  const S = sprite(key).width;
+  return spriteCache[key + fx] ??= canvasOf(S, S, g => {
+    if (fx === '#f') { g.scale(-1, 1); g.drawImage(sprite(key), -S, 0); return; }
     g.drawImage(sprite(key), 0, 0);
     g.globalCompositeOperation = 'source-in';
     g.fillStyle = fx === '#r' ? '#ff3b4e' : fx;
-    g.fillRect(0, 0, 16, 16);
+    g.fillRect(0, 0, S, S);
   });
 }
+// Motion (x, y, band shifts) is in art pixels; band cuts and the shadow are in 16ths of the sprite, so a
+// 48px boss uses the same poses as a 16px mite with finer steps.
 function drawIdle(def, x, y, p, s = TS) {
-  const v = VARIANTS[def.sprite], u = s / 16;
+  const v = VARIANTS[def.sprite];
   let key = spriteKey(p.frame ? { sprite: p.frame, swap: v ? { ...v[1], ...def.swap } : def.swap } : def);
   if (p.flip) { spriteFx(key, '#f'); key += '#f'; }
+  const S = sprite(key).width, u = s / S, q = s / 16;
   x += p.x * u;
   if (p.shadow) { // shrinks as the creature rises
-    const w = (7 + p.y) * u, sx = x + s / 2 - w / 2, sy = y + 13 * u;
+    const w = 7 * q + p.y * u, sx = x + s / 2 - w / 2, sy = y + 13 * q;
     ctx.fillStyle = `rgba(0,0,0,${0.3 * p.shadow})`;
-    ctx.fillRect(sx + u, sy, w - 2 * u, u);
-    ctx.fillRect(sx, sy + u, w, u);
+    ctx.fillRect(sx + u, sy, w - 2 * u, q);
+    ctx.fillRect(sx, sy + q, w, q);
   }
   y += p.y * u;
-  const blit = img => p.bands ? p.bands.forEach(([a, b, dx, dy]) => ctx.drawImage(img, 0, a, 16, b - a, x + dx * u, y + (a + dy) * u, s, (b - a) * u)) : ctx.drawImage(img, x, y, s, s);
+  const blit = img => p.bands ? p.bands.forEach(([a, b, dx, dy]) => ctx.drawImage(img, 0, a * S / 16, S, (b - a) * S / 16, x + dx * u, y + a * q + dy * u, s, (b - a) * q)) : ctx.drawImage(img, x, y, s, s);
   ctx.globalAlpha = p.alpha;
   blit(sprite(key));
   if (p.pulse) { ctx.globalAlpha = p.pulse * 0.45; blit(spriteFx(key, '#r')); }
   ctx.globalAlpha = 1;
-  if (p.spark) rect(ctx, '#fff', x + p.spark[0] * u, y + p.spark[1] * u, 2 * u, u);
+  if (p.spark) rect(ctx, '#fff', x + p.spark[0] * q, y + p.spark[1] * q, 2 * q, q);
 }
 
 // What's left where something died, by base sprite: machines leak oil, glitch things leave dead pixels, cable things
@@ -1601,9 +1752,14 @@ function drawMap() {
     const ch = tile(x, y), px = mapX(x), py = mapY(y);
     if (ch === '.' || ch === '#' || ch === '%') continue;
     if (ch === 'U' || ch === 'D') { drawStairs(px, py, x, y, ch === 'U'); continue; }
+    if (ch === '~') { drawWater(px, py, x, y); continue; }
+    if (ch === 'j' && G.flags['lever' + G.floor]) { ctx.save(); ctx.translate(px + TS, py); ctx.scale(-1, 1); spr('lever', 0, 0); ctx.restore(); continue; }
     if (ch === '^') { glow(px, py, '255,194,58'); drawStairs(px, py, x, y, isVault(G.floor), true); continue; }
+    if (ch === '&') { if (G.warps[noteKey(x, y)]) { ctx.globalAlpha = 0.3; drawStairs(px, py, x, y, !isSector(G.floor)); ctx.globalAlpha = 1; } continue; }
     const m = isMonster(ch) ? monsterAt(ch) : null, npc = ch === 'O' ? NPCS[meta().npcs[metaKey(x, y)]] : null;
-    if (m?.boss) glow(px, py, '255,59,78');
+    const size = bodySize(ch), mid = 16 * (size - 1); // big bodies draw once, from their top-left cell
+    if (size > 1 && bodyAnchor(G.maps[G.floor], x, y).join() !== `${x},${y}`) continue;
+    if (m?.boss) glow(px + mid, py + mid, '255,59,78', 30 * size);
     if (ch === 'L') glow(px, py, G.flags['boss' + G.floor] ? '111,247,255' : '60,70,90');
     if (ch === '*') glow(px, py, '255,194,58', 26);
     if (m?.aura) {
@@ -1613,15 +1769,20 @@ function drawMap() {
     }
     const def = m || npc || (ch === 'M' ? { sprite: 'broker' } : null);
     if (def) {
-      const p = idlePose(def.sprite, time, hash(x, y, G.floor), Math.sign(G.x - x), m?.boss);
+      const p = idlePose(def.sprite, time, hash(x, y, G.floor), Math.sign(G.x - x - (size - 1) / 2), m?.boss);
       if (npc?.ghost) p.alpha = 0.75 + 0.25 * Math.sin(time * 9 + Math.sin(time * 23));
-      drawIdle(def, px, py, p);
+      drawIdle(def, px, py, p, TS * size);
       continue;
     }
     if (ch === 'n') ctx.globalAlpha = G.read[noteKey(x, y)] ? 0.35 : 0.55 + 0.35 * Math.sin(time * 2 + x);
     spr(tileSpriteName(ch, x, y), px, py);
     ctx.globalAlpha = 1;
   }
+  if (DARK.has(G.floor)) for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+    ctx.fillStyle = inSight(x, y) ? `rgba(4,4,6,${(x - G.x) ** 2 + (y - G.y) ** 2 > 2 ? 0.3 : 0})` : seen(x, y) ? 'rgba(4,4,6,0.72)' : '#040406';
+    ctx.fillRect(mapX(x), mapY(y), TS, TS);
+  }
+  if (time - alarmT < 2) { ctx.fillStyle = `rgba(255,59,78,${0.18 * Math.abs(Math.sin((time - alarmT) * 9)) * (1 - (time - alarmT) / 2)})`; ctx.fillRect(MX, MY, MW, MW); }
   doorAnims.filter(d => d.f === G.floor).forEach(d => {
     const p = d.t / 0.25, s = sprite(tileSpriteName(d.ch));
     ctx.drawImage(s, 0, 16 * p, 16, 16 * (1 - p), mapX(d.x), mapY(d.y), TS, TS * (1 - p));
@@ -1631,6 +1792,17 @@ function drawMap() {
     if (ITEMS[tile(x, y)]) particles.push({ x: mapX(x) + 8 + Math.random() * 16, y: mapY(y) + 8 + Math.random() * 16, vx: 0, vy: -10, life: 0.5, max: 0.5, color: '#fff', size: 2, grav: 0 });
   }
   drawHero();
+}
+
+// Standing water: a translucent sheet with slow ripples.
+function drawWater(px, py, x, y) {
+  ctx.fillStyle = 'rgba(40,110,190,0.38)';
+  ctx.fillRect(px, py, TS, TS);
+  ctx.fillStyle = 'rgba(111,247,255,0.35)';
+  for (let i = 0; i < 2; i++) {
+    const t = (time * 0.6 + hash(x, y, i) * 3) % 3, w = 6 + t * 4;
+    if (t < 2) ctx.fillRect(px + 4 + ((i * 13 + x * 7) % 16), py + 8 + i * 12, w, 2);
+  }
 }
 
 function heroPos() {
@@ -1712,8 +1884,10 @@ function drawChrome() {
   ctx.drawImage(backdrop, 0, 0, W, H);
 
   // Floor tab above the map.
+  ctx.font = `22px ${BODY}`;
+  const tab = ctx.measureText(floorLabel(G.floor)).width + 28;
   ctx.fillStyle = '#25272e';
-  ctx.fillRect(MX + MW / 2 - 60, 10, 120, MY - 10);
+  ctx.fillRect(MX + MW / 2 - tab / 2, 10, tab, MY - 10);
   body(floorLabel(G.floor), MX + MW / 2, 17, { size: 22, align: 'center' });
 
   // Status panel.
@@ -1726,13 +1900,15 @@ function drawChrome() {
   ctx.beginPath();
   ctx.roundRect(sx + 48, sy + 24, sw - 58, 20, 4);
   ctx.stroke();
-  const corrupt = G.status === 'CORRUPT';
-  body(G.status, sx + 48 + (sw - 58) / 2, sy + 25, { size: 18, align: 'center', color: corrupt ? (Math.floor(time * 3) % 2 ? '#b98cff' : '#ff3b4e') : '#c9c6bd' });
-  [['Level', G.lv, 'lv'], ['HP', G.hp, 'hp'], ['ATK', G.atk, 'atk'], ['DEF', G.def, 'def'], ['CRIT', G.crit, 'crit'], ['AGI', G.agi, 'agi'], ['EXP', G.exp, 'exp']]
+  // Statuses take turns in the box; a stat a status cuts shows its cut value in orange.
+  const fx = Object.keys(G.fx), st = fx[Math.floor(time / 1.2) % fx.length], eff = afflicted(G);
+  const blink = Math.floor(time * 3) % 2 ? (st === 'corrupt' ? '#b98cff' : '#ff8a3c') : '#ff3b4e';
+  body(st ? st.toUpperCase() : 'NORMAL', sx + 48 + (sw - 58) / 2, sy + 25, { size: 18, align: 'center', color: st ? blink : '#c9c6bd' });
+  [['Level', G.lv, 'lv'], ['HP', G.hp, 'hp'], ['ATK', eff.atk, 'atk'], ['DEF', eff.def, 'def'], ['CRIT', G.crit, 'crit'], ['AGI', eff.agi, 'agi'], ['EXP', G.exp, 'exp']]
     .forEach(([label, val, k], i) => {
       const y = sy + 52 + i * 23, f = statFlash[k];
       body(label + ':', sx + 10, y);
-      body(String(val), sx + sw - 14, y - (f && time - f.t < 0.25 ? 2 : 0), { align: 'right', italic: true, color: flashColor(k) });
+      body(String(val), sx + sw - 14, y - (f && time - f.t < 0.25 ? 2 : 0), { align: 'right', italic: true, color: val < G[k] ? '#ff8a3c' : flashColor(k) });
     });
 
   // Keys panel.
@@ -1751,6 +1927,13 @@ function drawChrome() {
   ctx.strokeRect(MX - 2.5, MY - 2.5, MW + 5, MW + 5);
 
   body('-Press H-', MX + MW, H - 26, { size: 22, color: '#ff4d6d', align: 'right' });
+
+  // Firmware slots under the map: a chip per slotted module, an empty socket per free slot.
+  for (let i = 0; i < G.slots; i++) {
+    const id = G.slotted[i], x = MX + i * 22, y = H - 26;
+    if (id) spr(spriteKey({ sprite: 'modChip', swap: { c: MODS[id].color } }), x, y, 20);
+    else { ctx.strokeStyle = '#4f535e'; ctx.lineWidth = 1; ctx.strokeRect(x + 3.5, y + 3.5, 13, 13); }
+  }
 
   // Carried extras under the keys panel: antivirus disks and memory shards.
   if (G.antivirus) { spr('floppy', sx + 2, H - 30, 24); body(`x${G.antivirus}`, sx + 26, H - 28, { size: 18 }); }
@@ -1801,7 +1984,7 @@ function drawBattle(b) {
   drawFighter(b, 'M', spriteKey(b.m));
   drawFighter(b, 'H', heroSprite());
 
-  const rows = [['HP', b.mhp, G.hp], ['ATK', b.m.atk, G.atk], ['DEF', b.m.def, G.def], ['CRIT', b.m.crit, G.crit], ['AGI', b.m.agi, G.agi]];
+  const rows = [['HP', b.mhp, G.hp], ['ATK', b.m.atk, b.me.atk], ['DEF', b.m.def, b.me.def], ['CRIT', b.m.crit, b.me.crit], ['AGI', b.m.agi, b.me.agi]];
   rows.forEach(([label, mv, hv], i) => {
     const y = BOX.y + 34 + i * 22;
     body(label + ':', FRAME.M.x + 58, y);
@@ -1838,18 +2021,19 @@ function boxFill(color) {
 // Portrait: the frame stays put; only the sprite inside is knocked back, shaken, flashed white and faded on deletion.
 function drawFighter(b, who, name) {
   const f = FRAME[who], k = b.sh[who] / 0.3, a = who === 'M' && b.over && !b.dead ? Math.max(0, b.timer / 0.7) : 1;
-  const x = f.x + 6 + (k ? (Math.random() - 0.5) * 5 + k * 5 * (who === 'H' ? 1 : -1) : 0), y = f.y + 6 + (k ? (Math.random() - 0.5) * 4 : 0);
+  const pad = sprite(name).width > 16 ? 2 : 6, d = 48 - 2 * pad;
+  const x = f.x + pad + (k ? (Math.random() - 0.5) * 5 + k * 5 * (who === 'H' ? 1 : -1) : 0), y = f.y + pad + (k ? (Math.random() - 0.5) * 4 : 0);
   portraitFrame(null, f.x, f.y, 48);
-  b.spr[who] = { name, x, y, a };
+  b.spr[who] = { name, x, y, a, d };
   ctx.save();
   ctx.beginPath();
   ctx.rect(f.x + 2, f.y + 2, 44, 44);
   ctx.clip();
   ctx.globalAlpha = a;
-  ctx.drawImage(sprite(name), x, y, 36, 36);
+  ctx.drawImage(sprite(name), x, y, d, d);
   if (b.fx[who]) {
     ctx.globalAlpha = a * b.fx[who] / 0.22;
-    ctx.drawImage(whiteSprite(name), x, y, 36, 36);
+    ctx.drawImage(whiteSprite(name), x, y, d, d);
   }
   ctx.restore();
   ctx.globalAlpha = 1;
@@ -1859,7 +2043,7 @@ function drawBook() {
   const x = MX + 6, y = MY + 6, w = MW - 12, h = MW - 12;
   panel(x, y, w, h);
   text(`SCAN // ${floorLabel(G.floor)}`, x + 12, y + 12, { size: 8, color: '#6ff7ff' });
-  const ids = [...new Set(G.maps[G.floor].flat().filter(isMonster))];
+  const ids = [...new Set(G.maps[G.floor].flatMap((row, y) => row.filter((c, x) => isMonster(c) && seen(x, y))))];
   if (!ids.length) body('No hostiles detected.', x + 12, y + 36, { color: '#9ea2ad' });
   ids.map(id => monsterAt(id)).sort((a, b) => expectedDamage(a) - expectedDamage(b)).forEach((m, i) => {
     const ry = y + 28 + i * 44, d = expectedDamage(m);
@@ -1888,6 +2072,28 @@ function drawShop(s) {
     if (o.cost !== undefined) body(out ? 'SOLD' : `${o.cost} CR`, x + w - 18, ry, { align: 'right', color: out ? '#6e6b66' : G.gold >= o.cost ? '#ffc23a' : '#8f1626' });
   });
   body(`Credits: ${G.gold}`, x + w - 14, y + h - 26, { size: 18, color: '#ffc23a', align: 'right' });
+}
+
+function drawFirmware(u) {
+  const ids = ownedMods(), x = MX + 14, y = MY + 30, w = MW - 28, h = 92 + (ids.length + 1) * 22;
+  panel(x, y, w, h);
+  text('FIRMWARE', x + 12, y + 12, { size: 9, color: '#6ff7ff' });
+  body(`slots ${G.slotted.length}/${G.slots}`, x + w - 14, y + 6, { size: 18, align: 'right', color: '#9ea2ad' });
+  [...ids, null].forEach((id, i) => {
+    const ry = y + 32 + i * 22, on = i === u.sel;
+    if (on) { ctx.fillStyle = 'rgba(30,164,212,0.2)'; ctx.fillRect(x + 8, ry - 2, w - 16, 21); }
+    if (!id) return body((on ? '► ' : '   ') + 'Back', x + 16, ry, { color: on ? '#ffd23f' : '#f2f0ea' });
+    const slotted = G.slotted.includes(id), cost = upgradeCost(id);
+    if (slotted) spr(spriteKey({ sprite: 'modChip', swap: { c: MODS[id].color } }), x + 16, ry, 18);
+    else { ctx.strokeStyle = '#4f535e'; ctx.lineWidth = 1; ctx.strokeRect(x + 19.5, ry + 3.5, 11, 11); }
+    body(MODS[id].name, x + 40, ry, { color: slotted ? '#f2f0ea' : '#6e6b66' });
+    body('I II III'.split(' ')[G.mods[id] - 1], x + 150, ry, { color: '#ffc23a' });
+    body(cost === undefined ? 'MAX' : `▶ ${cost} CR`, x + w - 16, ry, { align: 'right', color: cost === undefined ? '#6e6b66' : G.gold >= cost ? '#ffc23a' : '#8f1626' });
+  });
+  const id = ids[u.sel];
+  if (id) wrap(MODS[id].text(MODS[id].lv[G.mods[id] - 1]), w - 28, 16).forEach((l, i) => body(l, x + 14, y + h - 56 + i * 15, { size: 16, color: '#6ff7ff' }));
+  body('Enter slot  ▶ upgrade', x + 14, y + h - 22, { size: 15, color: '#6e6b66' });
+  body(`Credits: ${G.gold}`, x + w - 14, y + h - 22, { size: 16, color: '#ffc23a', align: 'right' });
 }
 
 // Keys only. M and F appear once there is something for them to do.
@@ -1927,7 +2133,7 @@ function drawFade(f) {
   const a = f.t < 0.25 ? f.t / 0.25 : f.t < 0.6 ? 1 : 1 - (f.t - 0.6) / 0.5;
   ctx.fillStyle = `rgba(0,0,0,${Math.max(0, a)})`;
   ctx.fillRect(MX, MY, MW, MW);
-  if (f.t > 0.2 && f.t < 1.1) body(f.label, MX + MW / 2, MY + MW / 2 - 12, { size: 28, color: '#6ff7ff', align: 'center', alpha: Math.min(1, a * 1.5) });
+  if (f.t > 0.2 && f.t < 1.1) body(f.label, MX + MW / 2, MY + MW / 2 - 12, { size: 24, color: '#6ff7ff', align: 'center', alpha: Math.min(1, a * 1.5) });
 }
 
 // ---------------------------------------------------------------- title / ending (megastructure vista)
@@ -2038,7 +2244,7 @@ function render() {
   drawFx();
   ctx.restore();
   ctx.restore();
-  const modal = { dialog: drawDialog, banner: drawBanner, battle: drawBattle, book: drawBook, shop: drawShop, help: drawHelp, fade: drawFade, fly: drawFly, choice: drawChoice }[ui?.type];
+  const modal = { dialog: drawDialog, banner: drawBanner, battle: drawBattle, book: drawBook, shop: drawShop, firmware: drawFirmware, help: drawHelp, fade: drawFade, fly: drawFly, choice: drawChoice }[ui?.type];
   modal?.(ui);
   if (ui?.type === 'battle') drawFx();
   if (ui?.type === 'goal') {
